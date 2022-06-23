@@ -81,7 +81,7 @@ public class ControllerPrototype : Fusion.NetworkBehaviour {
     } else if (_nrb && !_nrb.Rigidbody.isKinematic) {
       _nrb.Rigidbody.AddForce(direction * Speed);
     } else if (_nrb2d && !_nrb2d.Rigidbody.isKinematic) {
-      var direction2d = new Vector2(direction.x, direction.y + direction.z);
+      Vector2 direction2d = new Vector2(direction.x, direction.y + direction.z);
       _nrb2d.Rigidbody.AddForce(direction2d * Speed);
     } else {
       transform.position += (direction * Speed * Runner.DeltaTime);

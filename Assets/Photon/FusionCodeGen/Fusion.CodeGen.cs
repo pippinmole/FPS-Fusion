@@ -13,6 +13,7 @@
 
 namespace Fusion.CodeGen {
   using System;
+  using System.Linq;
   using Mono.Cecil.Cil;
 
   internal struct ILMacroStruct : ILProcessorMacro {
@@ -59,6 +60,7 @@ namespace Fusion.CodeGen {
 namespace Fusion.CodeGen {
 
   using System;
+  using System.Collections.Generic;
   using System.Linq;
   using System.Runtime.CompilerServices;
   using Mono.Cecil;
@@ -90,7 +92,7 @@ namespace Fusion.CodeGen {
         return field;
       }
 
-      var typeName = $"FixedStorage@{wordCount}";
+      string typeName = $"FixedStorage@{wordCount}";
       var fixedBufferType = asm.CecilAssembly.MainModule.GetType("Fusion.CodeGen", typeName);
       if (fixedBufferType == null) { 
         // fixed buffers could be included directly in structs, but then again it would be impossible to provide a custom drawer;
@@ -111,7 +113,7 @@ namespace Fusion.CodeGen {
           // Unity debugger seems to copy only the first element of a buffer,
           // the rest is garbage when inspected; let's add some additional
           // fields to help it
-          for (var i = 1; i < wordCount; ++i) {
+          for (int i = 1; i < wordCount; ++i) {
             var unityDebuggerWorkaroundField = new FieldDefinition($"_{i}", FieldAttributes.Private | FieldAttributes.NotSerialized, asm.Import<int>());
             unityDebuggerWorkaroundField.Offset = Allocator.REPLICATE_WORD_SIZE * i;
             unityDebuggerWorkaroundField.AddTo(storageType);
@@ -125,7 +127,7 @@ namespace Fusion.CodeGen {
     }
 
     private string TypeNameToIdentifier(TypeReference type, string prefix) {
-      var result = type.FullName;
+      string result = type.FullName;
       result = result.Replace("`1", "");
       result = result.Replace("`2", "");
       result = result.Replace("`3", "");
@@ -179,7 +181,7 @@ namespace Fusion.CodeGen {
         dataType = property.PropertyType;
       }
 
-      var attributesHash = HashCodeUtilities.InitialHash;
+      int attributesHash = HashCodeUtilities.InitialHash;
       VisitPropertyMovableAttributes(property, (ctor, blob) => {
         attributesHash = HashCodeUtilities.GetHashDeterministic(ctor.FullName, attributesHash);
         attributesHash = HashCodeUtilities.GetHashCodeDeterministic(blob, attributesHash);
@@ -327,12 +329,12 @@ namespace Fusion.CodeGen {
 
         return behaviour;
       } else {
-        var readerWriterName = "ReaderWriter@" + elementType.FullName.Replace(".", "_");
+        var readerWriterName = "ReaderWriter@" + elementType.FullName.Replace(".", "_").Replace("/", "__");
         if (typeInfo.IsAccuracySupported && typeInfo.TryGetEffectiveMemberAccuracy(member, out var accuracy)) {
-          var value = BitConverter.ToUInt32(BitConverter.GetBytes(accuracy), 0);
+          uint value = BitConverter.ToUInt32(BitConverter.GetBytes(accuracy), 0);
           readerWriterName += $"@Accuracy_0x{value:x}";
         }
-        if (typeInfo.IsCapacitySupported && typeInfo.TryGetEffectiveMemberCapacity(member, out var capacity)) {
+        if (typeInfo.IsCapacitySupported && typeInfo.TryGetEffectiveMemberCapacity(member, out int capacity)) {
           readerWriterName += $"@Capacity_{capacity}";
         }
 
@@ -411,7 +413,11 @@ namespace Fusion.CodeGen {
 namespace Fusion.CodeGen {
   using System;
   using System.Collections.Generic;
+  using System.IO;
   using System.Linq;
+  using UnityEditor;
+  using UnityEditor.Compilation;
+  using UnityEngine;
   using System.Runtime.CompilerServices;
   using static Fusion.CodeGen.ILWeaverOpCodes;
   using Mono.Cecil;
@@ -419,6 +425,7 @@ namespace Fusion.CodeGen {
   using Mono.Cecil.Rocks;
   using Mono.Collections.Generic;
   using CompilerAssembly = UnityEditor.Compilation.Assembly;
+  using FieldAttributes = Mono.Cecil.FieldAttributes;
   using MethodAttributes = Mono.Cecil.MethodAttributes;
   using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 
@@ -537,7 +544,7 @@ namespace Fusion.CodeGen {
         instructions = getter.Body.Instructions;
         idx = 0;
 
-        var expectLocalVariable = false;
+        bool expectLocalVariable = false;
         var returnType = getter.ReturnType;
 
         switch (returnType.MetadataType) {
@@ -697,7 +704,7 @@ namespace Fusion.CodeGen {
 
     MethodReference FindMethodInParent(ILWeaverAssembly asm, TypeDefinition type, string name, string stopAtType = null, int? argCount = null) {
 
-      var typeRef = type.BaseType;
+      TypeReference typeRef = type.BaseType;
       type = typeRef.Resolve();
       
       while (type != null) {
@@ -735,7 +742,7 @@ namespace Fusion.CodeGen {
       var rpcs = new List<(MethodDefinition, CustomAttribute)>();
 
 
-      var hasStaticRpc = false;
+      bool hasStaticRpc = false;
 
       foreach (var rpc in type.Methods) {
         if (rpc.TryGetAttribute<RpcAttribute>(out var attr)) {
@@ -784,9 +791,9 @@ namespace Fusion.CodeGen {
         return;
       }
 
-      var instanceRpcKeys = GetInstanceRpcCount(type.BaseType);
+      int instanceRpcKeys = GetInstanceRpcCount(type.BaseType);
 
-      var invokerNameCounter = new Dictionary<string, int>();
+      Dictionary<string, int> invokerNameCounter = new Dictionary<string, int>();
 
       foreach (var (rpc, attr) in rpcs) {
         int sources;
@@ -800,7 +807,7 @@ namespace Fusion.CodeGen {
           targets = AuthorityMasks.ALL;
         }
 
-        var rpcTargetParameter = rpc.Parameters.SingleOrDefault(x => x.HasAttribute<RpcTargetAttribute>());
+        ParameterDefinition rpcTargetParameter = rpc.Parameters.SingleOrDefault(x => x.HasAttribute<RpcTargetAttribute>());
         if (rpcTargetParameter != null && !rpcTargetParameter.ParameterType.Is<PlayerRef>()) {
           throw new ILWeaverException($"{rpcTargetParameter}: {nameof(RpcTargetAttribute)} can only be used for {nameof(PlayerRef)} type argument");
         }
@@ -812,7 +819,7 @@ namespace Fusion.CodeGen {
         attr.TryGetAttributeProperty<RpcHostMode>(nameof(RpcAttribute.HostMode), out var hostMode);
 
         // rpc key
-        var instanceRpcKey = -1;
+        int instanceRpcKey = -1;
         var returnsRpcInvokeInfo = rpc.ReturnType.Is(asm.RpcInvokeInfo);
 
 
@@ -850,7 +857,7 @@ namespace Fusion.CodeGen {
 
             // fix each ret
             var instructions = il.Body.Instructions;
-            for (var i = 0; i < instructions.Count; ++i) {
+            for (int i = 0; i < instructions.Count; ++i) {
               var instruction = instructions[i];
               if (instruction.OpCode == OpCodes.Ret) {
                 if (instructions[i - 1].IsLdlocWithIndex(out _)) {
@@ -886,7 +893,7 @@ namespace Fusion.CodeGen {
           // insert instruction into method body
           var prev = rpc.Body.Instructions[0]; //.OpCode == OpCodes.Nop ? rpc.Body.Instructions[1] :  rpc.Body.Instructions[0];
 
-          for (var i = ins.Count - 1; i >= 0; --i) {
+          for (int i = ins.Count - 1; i >= 0; --i) {
             il.InsertBefore(prev, ins[i]);
             prev = ins[i];
           }
@@ -1054,7 +1061,7 @@ namespace Fusion.CodeGen {
           il.Append(Stloc(messageSizeVar));
 
 
-          for (var i = 0; i < rpc.Parameters.Count; ++i) {
+          for (int i = 0; i < rpc.Parameters.Count; ++i) {
             var para = rpc.Parameters[i];
 
             if (rpc.IsStatic && i == 0) {
@@ -1127,7 +1134,7 @@ namespace Fusion.CodeGen {
           il.Append(Stloc(ctx.OffsetVariable));
 
           // write parameters
-          for (var i = 0; i < rpc.Parameters.Count; ++i) {
+          for (int i = 0; i < rpc.Parameters.Count; ++i) {
             var para = rpc.Parameters[i];
 
             if (rpc.IsStatic && i == 0) {
@@ -1275,7 +1282,7 @@ namespace Fusion.CodeGen {
           ctx.OffsetVariable = new VariableDefinition(asm.Import(typeof(int)));
           var parameters = new VariableDefinition[rpc.Parameters.Count];
 
-          for (var i = 0; i < parameters.Length; ++i) {
+          for (int i = 0; i < parameters.Length; ++i) {
             invoker.Body.Variables.Add(parameters[i] = new VariableDefinition(rpc.Parameters[i].ParameterType));
           }
 
@@ -1295,7 +1302,7 @@ namespace Fusion.CodeGen {
           il.AppendMacro(ctx.AlignToWordSize());
           il.Append(Stloc(ctx.OffsetVariable));
 
-          for (var i = 0; i < parameters.Length; ++i) {
+          for (int i = 0; i < parameters.Length; ++i) {
             var para = parameters[i];
 
             if (rpc.IsStatic && i == 0) {
@@ -1341,7 +1348,7 @@ namespace Fusion.CodeGen {
             il.Append(Instruction.Create(OpCodes.Castclass, callableRpc.DeclaringType));
           }
 
-          for (var i = 0; i < parameters.Length; ++i) {
+          for (int i = 0; i < parameters.Length; ++i) {
             il.Append(Ldloc(parameters[i]));
           }
           il.Append(Call(callableRpc));
@@ -1353,13 +1360,13 @@ namespace Fusion.CodeGen {
       }
 
       {
-        Log.Assert(_rpcCount.TryGetValue(type, out var count) == false || count == instanceRpcKeys);
+        Log.Assert(_rpcCount.TryGetValue(type, out int count) == false || count == instanceRpcKeys);
         _rpcCount[type] = instanceRpcKeys;
       }
     }
 
     private int GetInstanceRpcCount(TypeReference type) {
-      if (_rpcCount.TryGetValue(type, out var result)) {
+      if (_rpcCount.TryGetValue(type, out int result)) {
         return result;
       }
 
@@ -1510,7 +1517,7 @@ namespace Fusion.CodeGen {
         il.Append(Ldloc(totalSize));
 
       } else {
-        var size = TypeRegistry.GetInfo(elementType).GetMemberByteCount(member, context.Method.DeclaringType);
+        int size = TypeRegistry.GetInfo(elementType).GetMemberByteCount(member, context.Method.DeclaringType);
 
         // array length
         il.AppendMacro(context.LoadValue());
@@ -1557,13 +1564,13 @@ namespace Fusion.CodeGen {
       }
 
       var instructions = constructor.Body.Instructions;
-      var prevStfld = -1;
-      for (var i = 0; i < instructions.Count; ++i) {
+      int prevStfld = -1;
+      for (int i = 0; i < instructions.Count; ++i) {
         var instruction = instructions[i];
         if (instruction.OpCode == OpCodes.Stfld) {
           // found the store
           if (IsFieldStoreOp(instruction, field, declaringType)) {
-            var start = prevStfld + 1;
+            int start = prevStfld + 1;
             return instructions.Skip(start).Take(i - start + 1).ToArray();
           } else {
             prevStfld = i;
@@ -1638,7 +1645,7 @@ namespace Fusion.CodeGen {
     }
 
     private void ReplaceBackingFieldInInlineInit(ILWeaverAssembly asm, FieldDefinition backingField, FieldReference field, ILProcessor il, Instruction[] instructions) {
-      var nextImplicitCast = false;
+      bool nextImplicitCast = false;
       foreach (var instruction in instructions) {
         if (nextImplicitCast) {
           CheckIfMakeInitializerImplicitCast(instruction);
@@ -1763,13 +1770,22 @@ namespace Fusion.CodeGen {
 #if FUSION_WEAVER && FUSION_HAS_MONO_CECIL
 namespace Fusion.CodeGen {
   using System;
+  using System.Collections.Generic;
+  using System.IO;
+  using System.Linq;
+  using UnityEditor;
+  using UnityEditor.Compilation;
   using UnityEngine;
   using System.Runtime.CompilerServices;
   using static Fusion.CodeGen.ILWeaverOpCodes;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
+  using Mono.Cecil.Rocks;
+  using Mono.Collections.Generic;
   using CompilerAssembly = UnityEditor.Compilation.Assembly;
   using FieldAttributes = Mono.Cecil.FieldAttributes;
+  using MethodAttributes = Mono.Cecil.MethodAttributes;
+  using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 
   unsafe partial class ILWeaver {
 
@@ -1821,7 +1837,7 @@ namespace Fusion.CodeGen {
 
       EnsureTypeRegistry(asm);
       using (Log.ScopeInput(type)) {
-        var wordCount = WeaveStructInner(asm, type);
+        int wordCount = WeaveStructInner(asm, type);
         // add new attribute
         type.AddAttribute<NetworkInputWeavedAttribute, int>(asm, wordCount);
         return true;
@@ -1839,7 +1855,7 @@ namespace Fusion.CodeGen {
       EnsureTypeRegistry(asm);
 
       using (Log.ScopeStruct(type)) {
-        var wordCount = WeaveStructInner(asm, type);
+        int wordCount = WeaveStructInner(asm, type);
         // add new attribute
         type.AddAttribute<NetworkStructWeavedAttribute, int>(asm, wordCount);
         return true;
@@ -1876,7 +1892,7 @@ namespace Fusion.CodeGen {
               $"[Networked] attribute should to be applied only on collections, booleans, floats and vectors.");
           }
 
-          var fieldIndex = type.Fields.Count;
+          int fieldIndex = type.Fields.Count;
 
           if (propertyInfo.BackingField != null) {
             if (!propertyInfo.BackingField.FieldType.IsValueType) {
@@ -2000,16 +2016,21 @@ namespace Fusion.CodeGen {
 namespace Fusion.CodeGen {
   using System;
   using System.Collections.Generic;
+  using System.IO;
   using System.Linq;
+  using UnityEditor;
+  using UnityEditor.Compilation;
   using UnityEngine;
   using System.Runtime.CompilerServices;
   using static Fusion.CodeGen.ILWeaverOpCodes;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
   using Mono.Cecil.Rocks;
+  using Mono.Collections.Generic;
   using CompilerAssembly = UnityEditor.Compilation.Assembly;
   using FieldAttributes = Mono.Cecil.FieldAttributes;
   using MethodAttributes = Mono.Cecil.MethodAttributes;
+  using ParameterAttributes = Mono.Cecil.ParameterAttributes;
   using UnityEngine.Scripting;
 
   unsafe partial class ILWeaver {
@@ -2071,7 +2092,7 @@ namespace Fusion.CodeGen {
     }
 
     private void MovePropertyAttributesToBackingField(ILWeaverAssembly asm, PropertyDefinition property, FieldDefinition field, bool addSerializeField = true) {
-      var hasNonSerialized = false;
+      bool hasNonSerialized = false;
 
       VisitPropertyMovableAttributes(property, (ctor, blob) => {
         Log.Debug($"Adding {ctor.DeclaringType} to {field}");
@@ -2196,7 +2217,7 @@ namespace Fusion.CodeGen {
         var getDefaults = new Lazy<(MethodDefinition, Instruction)>(() => createOverride(nameof(NetworkBehaviour.CopyStateToBackingFields)));
 
         FieldDefinition lastAddedFieldWithKnownPosition = null;
-        var fieldsWithUncertainPosition = new List<FieldDefinition>();
+        List<FieldDefinition> fieldsWithUncertainPosition = new List<FieldDefinition>();
 
         foreach (var property in type.Properties) {
           if (!IsWeavableProperty(property, out var propertyInfo)) {
@@ -2222,7 +2243,7 @@ namespace Fusion.CodeGen {
 
           try {
             // try to maintain fields order
-            var backingFieldIndex = type.Fields.Count;
+            int backingFieldIndex = type.Fields.Count;
             if (propertyInfo.BackingField != null) {
               backingFieldIndex = type.Fields.IndexOf(propertyInfo.BackingField);
               if (backingFieldIndex >= 0) {
@@ -2320,7 +2341,7 @@ namespace Fusion.CodeGen {
                   fieldInit = fieldInit.Skip(1);
                 }
 
-                var skipImplicitInitializerCast = false;
+                bool skipImplicitInitializerCast = false;
                 foreach (var instruction in fieldInit) {
                   if (instruction.IsLdlocWithIndex(out var index)) {
                     var repl = Ldloc(fieldInitLocalVariables[index], il.Body.Method);
@@ -2424,10 +2445,10 @@ namespace Fusion.CodeGen {
                 if (readOnlyInit?.Instructions.Length > 0) {
                   var il = constructor.Body.GetILProcessor();
 
-                  var before = il.Body.Instructions[0];
+                  Instruction before = il.Body.Instructions[0];
                   {
                     // find where to plug in; after last stfld, but before base constructor call
-                    for (var i = 0; i < il.Body.Instructions.Count; ++i) {
+                    for (int i = 0; i < il.Body.Instructions.Count; ++i) {
                       var instruction = il.Body.Instructions[i];
                       if (instruction.IsBaseConstructorCall(type)) {
                         break;
@@ -2650,7 +2671,7 @@ namespace Fusion.CodeGen {
         var instructions = property.GetMethod.Body.Instructions;
 
 
-        for (var i = 0; i < instructions.Count; ++i) {
+        for (int i = 0; i < instructions.Count; ++i) {
           var instr = instructions[i];
           if (IsMakeRefOrMakePtrCall(instr)) {
             // found it!
@@ -2729,6 +2750,8 @@ namespace Fusion.CodeGen {
   using System.Collections.Generic;
   using System.Linq;
   using System.Reflection;
+  using Assembly = UnityEditor.Compilation.Assembly;
+
   using Mono.Cecil;
 
   public class ILWeaverImportedType {
@@ -2748,7 +2771,7 @@ namespace Fusion.CodeGen {
       ClrType    = type;
       Assembly   = asm;
 
-      var baseType = type;
+      Type baseType = type;
       BaseDefinitions = new List<TypeDefinition>();
       // Store the type, and each of its base types - so we can later find fields/properties/methods in the base class.
       while (baseType != null) {
@@ -2760,10 +2783,10 @@ namespace Fusion.CodeGen {
     }
 
     public FieldReference GetField(string name) {
-      var found = _fields.TryGetValue(name, out var fieldRef);
+      bool found = _fields.TryGetValue(name, out var fieldRef);
       if (found == false) {
-        for (var i = 0; i < BaseDefinitions.Count; ++i) {
-          var typeDef = BaseDefinitions[i].Fields.FirstOrDefault(x => x.Name == name);
+        for (int i = 0; i < BaseDefinitions.Count; ++i) {
+          FieldDefinition typeDef = BaseDefinitions[i].Fields.FirstOrDefault(x => x.Name == name);
           if (typeDef != null) {
             fieldRef = Assembly.CecilAssembly.MainModule.ImportReference(typeDef);
             _fields.Add(name, fieldRef);
@@ -2775,10 +2798,10 @@ namespace Fusion.CodeGen {
     }
 
     public MethodReference GetProperty(string name) {
-      var found = _propertiesGet.TryGetValue(name, out var methRef);
+      bool found = _propertiesGet.TryGetValue(name, out var methRef);
       if (found == false) {
-        for (var i = 0; i < BaseDefinitions.Count; ++i) {
-          var typeDef = BaseDefinitions[i].Properties.FirstOrDefault(x => x.Name == name);
+        for (int i = 0; i < BaseDefinitions.Count; ++i) {
+          PropertyDefinition typeDef = BaseDefinitions[i].Properties.FirstOrDefault(x => x.Name == name);
           if (typeDef != null) {
             methRef = Assembly.CecilAssembly.MainModule.ImportReference(typeDef.GetMethod);
             _propertiesGet.Add(name, methRef);
@@ -2790,10 +2813,10 @@ namespace Fusion.CodeGen {
     }
 
     public MethodReference SetProperty(string name) {
-      var found = _propertiesSet.TryGetValue(name, out var methRef);
+      bool found = _propertiesSet.TryGetValue(name, out var methRef);
       if (found == false) {
-        for (var i = 0; i < BaseDefinitions.Count; ++i) {
-          var def = BaseDefinitions[i].Properties.FirstOrDefault(x => x.Name == name);
+        for (int i = 0; i < BaseDefinitions.Count; ++i) {
+          PropertyDefinition def = BaseDefinitions[i].Properties.FirstOrDefault(x => x.Name == name);
           if (def != null) {
             methRef = Assembly.CecilAssembly.MainModule.ImportReference(def.SetMethod);
             _propertiesSet.Add(name, methRef);
@@ -2805,9 +2828,9 @@ namespace Fusion.CodeGen {
     }
 
     public MethodReference GetMethod(string name, int? argsCount = null, int? genericArgsCount = null) {
-      var found = _methods.TryGetValue((name, argsCount), out var methRef);
+      bool found = _methods.TryGetValue((name, argsCount), out var methRef);
       if (found == false) {
-        for (var i = 0; i < BaseDefinitions.Count; ++i) {
+        for (int i = 0; i < BaseDefinitions.Count; ++i) {
           
           var typeDef = BaseDefinitions[i].Methods.FirstOrDefault(
             x => x.Name == name &&
@@ -3570,8 +3593,13 @@ namespace Fusion.CodeGen {
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using System.Runtime.CompilerServices;
+  using System.Text;
+  using System.Text.RegularExpressions;
+  using System.Threading.Tasks;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
+  using Mono.Cecil.Rocks;
 
   public static class ILWeaverExtensions {
 
@@ -3914,7 +3942,7 @@ namespace Fusion.CodeGen {
     }
 
     public static bool RemoveAttribute<T>(this IMemberDefinition member, ILWeaverAssembly asm) where T : Attribute {
-      for (var i = 0; i < member.CustomAttributes.Count; ++i) {
+      for (int i = 0; i < member.CustomAttributes.Count; ++i) {
         var attr = member.CustomAttributes[i];
         if ( attr.AttributeType.Is<T>() ) {
           member.CustomAttributes.RemoveAt(i);
@@ -4564,9 +4592,9 @@ namespace Fusion.CodeGen {
 
       var elementField = fixedBufferField.FieldType.Resolve().Fields[0];
 
-      var pointerLoc = il.Body.Variables.Count;
+      int pointerLoc = il.Body.Variables.Count;
       il.Body.Variables.Add(new VariableDefinition(elementField.FieldType.MakePointerType()));
-      var pinnedRefLoc = il.Body.Variables.Count;
+      int pinnedRefLoc = il.Body.Variables.Count;
       il.Body.Variables.Add(new VariableDefinition(elementField.FieldType.MakeByReferenceType().MakePinnedType()));
 
       il.Append(Ldflda(fixedBufferField));
@@ -4837,7 +4865,10 @@ namespace Fusion.CodeGen {
 
 #if FUSION_WEAVER && FUSION_HAS_MONO_CECIL
 namespace Fusion.CodeGen {
-    using Mono.Cecil;
+  using System;
+  using System.Diagnostics;
+
+  using Mono.Cecil;
   using Mono.Cecil.Cil;
 
   static class ILWeaverOpCodes {
@@ -5134,6 +5165,10 @@ namespace Fusion.CodeGen {
 #if FUSION_WEAVER
 namespace Fusion.CodeGen {
   using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
 
   static partial class ILWeaverSettings {
 
@@ -5149,13 +5184,13 @@ namespace Fusion.CodeGen {
     }
 
     internal static bool NullChecksForNetworkedProperties() {
-      var result = true;
+      bool result = true;
       NullChecksForNetworkedPropertiesPartial(ref result);
       return result;
     }
 
     internal static bool IsAssemblyWeavable(string name) {
-      var result = false;
+      bool result = false;
       IsAssemblyWeavablePartial(name, ref result);
       return result;
     }
@@ -5165,19 +5200,19 @@ namespace Fusion.CodeGen {
     }
 
     internal static bool UseSerializableDictionaryForNetworkDictionaryProperties() {
-      var result = true;
+      bool result = true;
       UseSerializableDictionaryForNetworkDictionaryPropertiesPartial(ref result);
       return result;
     }
 
     internal static bool CheckRpcAttributeUsage() {
-      var result = true;
+      bool result = true;
       CheckRpcAttributeUsagePartial(ref result);
       return result;
     }
 
     internal static bool CheckNetworkedPropertiesBeingEmpty() {
-      var result = true;
+      bool result = true;
       CheckNetworkedPropertiesBeingEmptyPartial(ref result);
       return result;
     }
@@ -5211,7 +5246,9 @@ namespace Fusion.CodeGen {
   using System.IO;
   using System.Linq;
   using System.Runtime.Serialization.Json;
+  using System.Text;
   using System.Xml.Linq;
+  using System.Xml.XPath;
 
   static partial class ILWeaverSettings {
 
@@ -5245,7 +5282,7 @@ namespace Fusion.CodeGen {
 
       var element = GetElementOrThrow(_config.Value.Root, nameof(NetworkProjectConfig.AccuracyDefaults));
 
-      var defaults = new AccuracyDefaults();
+      AccuracyDefaults defaults = new AccuracyDefaults();
 
       {
         var t = ParseAccuracies(element, nameof(AccuracyDefaults.coreKeys), nameof(AccuracyDefaults.coreVals));
@@ -5366,7 +5403,7 @@ namespace Fusion.CodeGen {
       var ancestors = element.AncestorsAndSelf()
         .Select(x => {
           int index = x.GetIndexPosition();
-          var name = x.Name.LocalName;
+          string name = x.Name.LocalName;
           return (index == -1) ? $"/{name}" : $"/{name}[{index}]";
         });
 
@@ -5378,7 +5415,7 @@ namespace Fusion.CodeGen {
         return -1;
       }
 
-      var i = 0;
+      int i = 0;
       foreach (var sibling in element.Parent.Elements(element.Name)) {
         if (sibling == element) {
           return i;
@@ -5676,7 +5713,7 @@ namespace Fusion.CodeGen {
     }
 
     public static bool TryGetAttribute<T>(this ICustomAttributeProvider type, out CustomAttribute attribute) where T : Attribute {
-      for (var i = 0; i < type.CustomAttributes.Count; ++i) {
+      for (int i = 0; i < type.CustomAttributes.Count; ++i) {
         var attr = type.CustomAttributes[i];
         if (attr.AttributeType.Is(typeof(T))) {
           attribute = attr;
@@ -6088,10 +6125,12 @@ namespace Fusion.CodeGen {
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using System.Runtime.InteropServices;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
   using Mono.Cecil.Rocks;
   using UnityEngine;
+  using Debug = System.Diagnostics.Debug;
   using static ILWeaverOpCodes;
 
   public class NetworkTypeInfoRegistry {
@@ -6364,7 +6403,7 @@ namespace Fusion.CodeGen {
         size = sizeof(T);
       }
 
-      var alignedByteCount = Native.WordCount(size.Value, Allocator.REPLICATE_WORD_SIZE) * Allocator.REPLICATE_WORD_SIZE;
+      int alignedByteCount = Native.WordCount(size.Value, Allocator.REPLICATE_WORD_SIZE) * Allocator.REPLICATE_WORD_SIZE;
 
       var imported = _module.ImportReference(typeof(T));
       AddBuiltInType(NetworkTypeInfo.MakeCustom(imported, imported, 
@@ -6635,10 +6674,10 @@ namespace Fusion.CodeGen {
 
       var definition = type.Resolve();
 
-      var rawByteCount = 0;
+      int rawByteCount = 0;
 
-      var needsRunner = false;
-      var argsStart = 0;
+      bool needsRunner = false;
+      int argsStart = 0;
 
       if (definition.GetSingleOrDefaultMethodWithAttribute<NetworkSerializeMethodAttribute>(out var wrapAttribute, out var wrapMethod)) {
         wrapAttribute.TryGetAttributeProperty<int>(nameof(NetworkSerializeMethodAttribute.MaxSize), out rawByteCount);
@@ -6667,7 +6706,7 @@ namespace Fusion.CodeGen {
         }
       }
 
-      var unwrapByRef = false;
+      bool unwrapByRef = false;
 
       if (definition.GetSingleOrDefaultMethodWithAttribute<NetworkDeserializeMethodAttribute>(out var unwrapAttribute, out var unwrapMethod)) {
         if (wrapMethod == null) {

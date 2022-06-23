@@ -7,7 +7,7 @@ using UnityEngine;
 namespace StarterAssets {
     [OrderBefore(typeof(HitboxManager))]
     [RequireComponent(typeof(CharacterController))]
-    public class FirstPersonController : NetworkBehaviour {
+    public class PlayerController : NetworkBehaviour {
         [Header("Player")] [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 4.0f;
 
@@ -32,7 +32,7 @@ namespace StarterAssets {
         [Tooltip("What layers the character uses as ground")]
         public LayerMask GroundLayers;
 
-        [Networked] private FirstPersonInput.NetworkInputData Inputs { get; set; }
+        [Networked] private PlayerInput.NetworkInputData Inputs { get; set; }
         [Networked] private bool IsGrounded { get; set; }
         [Networked] public int Kills { get; set; }
         [Networked] public int Deaths { get; set; }
@@ -40,15 +40,15 @@ namespace StarterAssets {
         public float KillDeathRatio => Deaths == 0 ? Kills : Kills / Deaths;
 
         private NetworkCharacterControllerPrototype _controller;
-        private FirstPersonCamera _camera;
-        private FirstPersonInput _input;
-        private FirstPersonHealth _health;
+        private PlayerCamera _camera;
+        private PlayerInput _input;
+        private PlayerHealth _health;
 
         private void Awake() {
             _controller = GetComponent<NetworkCharacterControllerPrototype>();
-            _camera = GetComponent<FirstPersonCamera>();
-            _input = GetComponent<FirstPersonInput>();
-            _health = GetComponent<FirstPersonHealth>();
+            _camera = GetComponent<PlayerCamera>();
+            _input = GetComponent<PlayerInput>();
+            _health = GetComponent<PlayerHealth>();
         }
 
         public override void Spawned() {
@@ -60,10 +60,12 @@ namespace StarterAssets {
             }
         }
 
+        private int tick = 0;
+
         public override void FixedUpdateNetwork() {
             base.FixedUpdateNetwork();
-            
-            if ( GetInput(out FirstPersonInput.NetworkInputData input) ) {
+
+            if ( GetInput(out PlayerInput.NetworkInputData input) ) {
                 //
                 // Copy our inputs that we have received, to a [Networked] property, so other clients can predict using our
                 // tick-aligned inputs. This is the core of the Client Prediction system.
@@ -72,7 +74,7 @@ namespace StarterAssets {
 
                 GroundedCheck();
 
-                if ( _health.IsAlive ) {
+                if ( _health.IsAlive && tick > 5 ) {
                     Jump();
                     Move();
                 }
@@ -80,10 +82,12 @@ namespace StarterAssets {
 
             if ( _health.IsAlive ) {
                 _camera.YawAndPitch(Inputs);
-
+            
                 // rotate the player left and right
                 _controller.transform.rotation = Quaternion.Euler(0, (float) _camera.Yaw, 0);
             }
+
+            tick++;
         }
 
         private void GroundedCheck() {
@@ -96,7 +100,7 @@ namespace StarterAssets {
 
         private void Move() {
             // set target speed based on move speed, sprint speed and if sprint is pressed
-            var targetSpeed = Inputs.IsDown(FirstPersonInput.NetworkInputData.ButtonSprint) ? SprintSpeed : MoveSpeed;
+            var targetSpeed = Inputs.IsDown(PlayerInput.NetworkInputData.ButtonSprint) ? SprintSpeed : MoveSpeed;
 
             // a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
             if ( Inputs.Move == Vector2.zero ) targetSpeed = 0.0f;
@@ -116,7 +120,7 @@ namespace StarterAssets {
             if ( !IsGrounded ) return;
 
             // Jump
-            if ( Inputs.IsDownThisFrame(FirstPersonInput.NetworkInputData.ButtonJump) ) {
+            if ( Inputs.IsDownThisFrame(PlayerInput.NetworkInputData.ButtonJump) ) {
                 // the square root of H * -2 * G = how much velocity needed to reach desired height
                 var newVel = _controller.Velocity;
                 newVel.y += Mathf.Sqrt(JumpHeight * -2f * _controller.gravity);

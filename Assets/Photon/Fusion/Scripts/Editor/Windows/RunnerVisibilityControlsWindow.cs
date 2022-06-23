@@ -141,8 +141,8 @@ namespace Fusion.Editor {
       _lastRepaintTime = Time.realtimeSinceStartup;
 
       var currentViewWidth = EditorGUIUtility.currentViewWidth;
-      var isWide      = currentViewWidth > WIDE_SWITCH_WIDTH;
-      var shortText   = currentViewWidth < TEXT_SWITCH_WIDTH;
+      bool isWide      = currentViewWidth > WIDE_SWITCH_WIDTH;
+      bool shortText   = currentViewWidth < TEXT_SWITCH_WIDTH;
 
       _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
 
@@ -158,16 +158,16 @@ namespace Fusion.Editor {
             continue;
           }
 
-          var config = runner.Config;
+          NetworkProjectConfig config = runner.Config;
 
-          var isSinglePeer = config.PeerMode == NetworkProjectConfig.PeerModes.Single;
+          bool isSinglePeer = config.PeerMode == NetworkProjectConfig.PeerModes.Single;
 
           EditorGUILayout.BeginHorizontal();
           {
             var lclplayer = runner.LocalPlayer;
             var lclplayerid = lclplayer.IsValid ? "P" + lclplayer.PlayerId.ToString() : "--";
 
-            var runnerName = 
+            string runnerName = 
               shortText ? (runner.IsServer ? (runner.IsSinglePlayer ? "SP" : runner.IsPlayer ? "H" : "S") : "C") : 
               runner.name;
 

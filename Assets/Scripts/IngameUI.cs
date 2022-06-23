@@ -11,12 +11,12 @@ public class IngameUI : MonoBehaviour {
     [SerializeField] private Transform _deathScreen;
     [SerializeField] private TMP_Text _deathCountdownText;
 
-    private FirstPersonController _player;
-    private FirstPersonHealth _health;
+    private PlayerController _player;
+    private PlayerHealth _health;
     
-    public void Setup(FirstPersonController player) {
+    public void Setup(PlayerController player) {
         _player = player;
-        _health = player.GetComponent<FirstPersonHealth>();
+        _health = player.GetComponent<PlayerHealth>();
 
         _health.HealthUpdated += UpdateHealthText;
         _health.HealthUpdated += UpdateDeathScreen;

@@ -7,10 +7,10 @@ public class UIController : NetworkBehaviour {
     [SerializeField] private IngameUI _uiPrefab;
 
     private IngameUI _ui;
-    private FirstPersonController _player;
+    private PlayerController _player;
 
     private void Awake() {
-        _player = GetComponent<FirstPersonController>();
+        _player = GetComponent<PlayerController>();
     }
 
     public override void Spawned() {

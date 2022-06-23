@@ -3,12 +3,12 @@ using Fusion;
 using StarterAssets;
 using UnityEngine;
 
-public class FirstPersonHealth : NetworkBehaviour, IHealthProvider {
+public class PlayerHealth : NetworkBehaviour, IHealthProvider {
 
     [SerializeField] private float _respawnTimer = 5f;
-    
+
     [Networked(OnChanged = nameof(OnHealthUpdate))]
-    private float NetworkedHealth { get; set; }
+    private float NetworkedHealth { get; set; } = 100f;
     [Networked] public TickTimer DeathTimer { get; set; }
 
     public bool IsAlive => DeathTimer.ExpiredOrNotRunning(Runner);
@@ -29,10 +29,10 @@ public class FirstPersonHealth : NetworkBehaviour, IHealthProvider {
     public float MaxHealth { get; set; } = 100f;
     public event Action<float> HealthUpdated;
 
-    private FirstPersonController _controller;
+    private PlayerController _controller;
 
     private void Awake() {
-        _controller = GetComponent<FirstPersonController>();
+        _controller = GetComponent<PlayerController>();
     }
 
     public override void FixedUpdateNetwork() {
@@ -50,10 +50,12 @@ public class FirstPersonHealth : NetworkBehaviour, IHealthProvider {
         var spawnPointManager = FindObjectOfType<PlayerSpawnPointManagerPrototype>();
         var point = spawnPointManager.GetNextSpawnPoint(Runner, Object.InputAuthority);
 
+        Debug.Log("Respawning");
+        
         transform.position = point.position;
     }
     
-    public static void OnHealthUpdate(Changed<FirstPersonHealth> changed) {
+    public static void OnHealthUpdate(Changed<PlayerHealth> changed) {
         changed.Behaviour.HealthUpdated?.Invoke(changed.Behaviour.NetworkedHealth);
     }
 }

@@ -18,11 +18,11 @@ public class LobbyManager : NetworkBehaviour, INetworkRunnerCallbacks {
         GameInProgress
     }
     
-    [Networked] public NetworkDictionary<PlayerRef, FirstPersonController> Players { get; }
+    [Networked] public NetworkDictionary<PlayerRef, PlayerController> Players { get; }
     [Networked] public EGameState GameState { get; set; }
     [Networked] public GameStateData GameData { get; set; }
 
-    [SerializeField] private FirstPersonController _playerPrefab;
+    [SerializeField] private PlayerController _playerPrefab;
     [SerializeField] private float _matchTimeInSeconds = 3 * 60f;
 
     public static event Action<List<PlayerRef>> Connected; 
@@ -125,6 +125,10 @@ public class LobbyManager : NetworkBehaviour, INetworkRunnerCallbacks {
         foreach ( var (player, _) in Players ) {
             var spawnPoint = _spawnManager.GetNextSpawnPoint(Runner, player);
             var playerObject = Runner.Spawn(_playerPrefab, spawnPoint.position, Quaternion.identity, player);
+            
+            playerObject.GetComponent<NetworkCharacterControllerPrototype>().TeleportToPosition(spawnPoint.position);
+            
+            Debug.Log($"Spawning player at {spawnPoint.position}");
             
             playerObject.Object.AssignInputAuthority(player);
             

@@ -4,14 +4,14 @@ using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 
-public class FirstPersonInput : NetworkBehaviour, INetworkRunnerCallbacks {
+public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
 
     [SerializeField] private float _sensitivity = 2.5f;
 
-    private FirstPersonCamera _camera;
+    private PlayerCamera _camera;
 
     private void Awake() {
-        _camera = GetComponent<FirstPersonCamera>();
+        _camera = GetComponent<PlayerCamera>();
     }
 
     public struct NetworkInputData : INetworkInput {

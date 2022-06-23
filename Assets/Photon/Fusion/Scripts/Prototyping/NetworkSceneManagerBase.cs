@@ -207,8 +207,8 @@ namespace Fusion {
 
 
     private IEnumerator SwitchSceneWrapper(SceneRef prevScene, SceneRef newScene) {
-      var finishCalled = false;
-      var sceneObjects = new Dictionary<Guid, NetworkObject>();
+      bool finishCalled = false;
+      Dictionary<Guid, NetworkObject> sceneObjects = new Dictionary<Guid, NetworkObject>();
       Exception error = null;
       FinishedLoadingDelegate callback = (objects) => {
         finishCalled = true;
@@ -223,7 +223,7 @@ namespace Fusion {
         Runner.InvokeSceneLoadStart();
         var coro = SwitchScene(prevScene, newScene, callback);
 
-        for (var next = true; next;) {
+        for (bool next = true; next;) {
           try {
             next = coro.MoveNext();
           } catch (Exception ex) {

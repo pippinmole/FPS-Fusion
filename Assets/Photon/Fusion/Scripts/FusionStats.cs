@@ -1082,7 +1082,7 @@ public class FusionStats : Fusion.Behaviour {
     _graphGridLayoutGroup = _graphsLayoutRT.AddGridlLayoutGroup(MARGIN);
 
     _objGraphs = new FusionGraph[Stats.OBJ_STAT_TYPE_COUNT];
-    for (var i = 0; i < Stats.OBJ_STAT_TYPE_COUNT; ++i) {
+    for (int i = 0; i < Stats.OBJ_STAT_TYPE_COUNT; ++i) {
       if (InitializeAllGraphs == false) {
         var statFlag = (Stats.ObjStatFlags)(1 << i);
         if ((statFlag & _includedObjStats) == 0) {
@@ -1093,7 +1093,7 @@ public class FusionStats : Fusion.Behaviour {
     }
 
     _netGraphs = new FusionGraph[Stats.NET_STAT_TYPE_COUNT];
-    for (var i = 0; i < Stats.NET_STAT_TYPE_COUNT; ++i) {
+    for (int i = 0; i < Stats.NET_STAT_TYPE_COUNT; ++i) {
       if (InitializeAllGraphs == false) {
         var statFlag = (Stats.NetStatFlags)(1 << i);
         if ((statFlag & _includedNetStats) == 0) {
@@ -1104,7 +1104,7 @@ public class FusionStats : Fusion.Behaviour {
     }
 
     _simGraphs = new FusionGraph[Stats.SIM_STAT_TYPE_COUNT];
-    for (var i = 0; i < Stats.SIM_STAT_TYPE_COUNT; ++i) {
+    for (int i = 0; i < Stats.SIM_STAT_TYPE_COUNT; ++i) {
       if (InitializeAllGraphs == false) {
         var statFlag = (Stats.SimStatFlags)(1 << i);
         if ((statFlag & _includedSimStats) == 0) {
@@ -1151,7 +1151,7 @@ public class FusionStats : Fusion.Behaviour {
       // Pause for all SimStats tied to this runner if all related FusionStats are paused.
       if (_statsForRunnerLookup.TryGetValue(_runner, out var stats)) {
 
-        var statsAreBeingUsed = false;
+        bool statsAreBeingUsed = false;
         foreach (var stat in stats) {
           if (stat._paused == false) {
             statsAreBeingUsed = true;
@@ -1171,19 +1171,19 @@ public class FusionStats : Fusion.Behaviour {
 
     _statsPanelRT.gameObject.SetActive(!_hidden);
 
-    for (var i = 0; i < _simGraphs.Length; ++i) {
+    for (int i = 0; i < _simGraphs.Length; ++i) {
       var graph = _simGraphs[i];
       if (graph) {
         _simGraphs[i].gameObject.SetActive(!_hidden && (1 << i & (int)_includedSimStats) != 0);
       }
     }
-    for (var i = 0; i < _objGraphs.Length; ++i) {
+    for (int i = 0; i < _objGraphs.Length; ++i) {
       var graph = _objGraphs[i];
       if (graph) {
         _objGraphs[i].gameObject.SetActive(!_hidden && (1 << i & (int)_includedObjStats) != 0);
       }
     }
-    for (var i = 0; i < _netGraphs.Length; ++i) {
+    for (int i = 0; i < _netGraphs.Length; ++i) {
       var graph = _netGraphs[i];
       if (graph) {
         _netGraphs[i].gameObject.SetActive(!_hidden && (1 << i & (int)_includedNetStats) != 0);
@@ -1196,19 +1196,19 @@ public class FusionStats : Fusion.Behaviour {
       _runner.Simulation.Stats.Clear();
     }
 
-    for (var i = 0; i < _simGraphs.Length; ++i) {
+    for (int i = 0; i < _simGraphs.Length; ++i) {
       var graph = _simGraphs[i];
       if (graph) {
         _simGraphs[i].Clear();
       }
     }
-    for (var i = 0; i < _objGraphs.Length; ++i) {
+    for (int i = 0; i < _objGraphs.Length; ++i) {
       var graph = _objGraphs[i];
       if (graph) {
         _objGraphs[i].Clear();
       }
     }
-    for (var i = 0; i < _netGraphs.Length; ++i) {
+    for (int i = 0; i < _netGraphs.Length; ++i) {
       var graph = _netGraphs[i];
       if (graph) {
         _netGraphs[i].Clear();
@@ -1288,7 +1288,7 @@ public class FusionStats : Fusion.Behaviour {
 
     // Use of the Runner getter here is intentional - this forces a test of the existing Runner having gone null or inactive.
     var runner = Runner;
-    var runnerIsNull = runner == null;
+    bool runnerIsNull = runner == null;
 
     if (AutoDestroy && runnerIsNull) {
       Destroy(this.gameObject);
@@ -1396,9 +1396,9 @@ public class FusionStats : Fusion.Behaviour {
       return;
     }
 
-    for (var i = 0; i < _simGraphs.Length; ++i) {
+    for (int i = 0; i < _simGraphs.Length; ++i) {
       var graph = _simGraphs[i];
-      var enabled = ((Stats.SimStatFlags)(1 << i) & _includedSimStats) != 0;
+      bool enabled = ((Stats.SimStatFlags)(1 << i) & _includedSimStats) != 0;
       if (graph == null) {
         if (enabled) {
           graph = CreateGraph(Stats.StatSourceTypes.Simulation, i, _graphsLayoutRT);
@@ -1410,9 +1410,9 @@ public class FusionStats : Fusion.Behaviour {
       graph.gameObject.SetActive(enabled);
     }
 
-    for (var i = 0; i < _objGraphs.Length; ++i) {
+    for (int i = 0; i < _objGraphs.Length; ++i) {
       var graph = _objGraphs[i];
-      var enabled = _enableObjectStats && ((Stats.ObjStatFlags)(1 << i) & _includedObjStats) != 0;
+      bool enabled = _enableObjectStats && ((Stats.ObjStatFlags)(1 << i) & _includedObjStats) != 0;
       if (graph == null) {
         if (enabled) {
           graph = CreateGraph(Stats.StatSourceTypes.NetworkObject, i, _graphsLayoutRT);
@@ -1427,9 +1427,9 @@ public class FusionStats : Fusion.Behaviour {
       }
     }
 
-    for (var i = 0; i < _netGraphs.Length; ++i) {
+    for (int i = 0; i < _netGraphs.Length; ++i) {
       var graph = _netGraphs[i];
-      var enabled = ((Stats.NetStatFlags)(1 << i) & _includedNetStats) != 0;
+      bool enabled = ((Stats.NetStatFlags)(1 << i) & _includedNetStats) != 0;
       if (graph == null) {
         if (enabled) {
           graph = CreateGraph(Stats.StatSourceTypes.NetConnection, i, _graphsLayoutRT);
@@ -1598,7 +1598,7 @@ public class FusionStats : Fusion.Behaviour {
         }
       }
 
-      for (var i = 0; i < _foundViews.Count; ++i) {
+      for (int i = 0; i < _foundViews.Count; ++i) {
         var graph = _foundViews[i];
         if (graph == null || graph.isActiveAndEnabled == false) {
           continue;
@@ -1611,8 +1611,8 @@ public class FusionStats : Fusion.Behaviour {
   }
 
   void ApplyDefaultLayout(DefaultLayouts defaults, StatCanvasTypes? applyForCanvasType = null) {
-    var applyToGO = applyForCanvasType.HasValue == false || applyForCanvasType.Value == StatCanvasTypes.GameObject;
-    var applyToOL = applyForCanvasType.HasValue == false || applyForCanvasType.Value == StatCanvasTypes.Overlay;
+    bool applyToGO = applyForCanvasType.HasValue == false || applyForCanvasType.Value == StatCanvasTypes.GameObject;
+    bool applyToOL = applyForCanvasType.HasValue == false || applyForCanvasType.Value == StatCanvasTypes.Overlay;
 
     if (defaults == DefaultLayouts.Custom) {
       return;

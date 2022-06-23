@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 using UI = UnityEngine.UI;
@@ -29,10 +31,10 @@ namespace Fusion.StatsInternal {
           var names = System.Enum.GetNames(enumtype);
           _cachedGraphVisualizationNames = new List<string>(names.Length);
           // Use Description for the nicified name
-          for (var i = 0; i < names.Length; ++i) {
+          for (int i = 0; i < names.Length; ++i) {
             string name;
             try {
-              var memberInfo = enumtype.GetMember(names[i]);
+              MemberInfo[] memberInfo = enumtype.GetMember(names[i]);
               var _Attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
               name = ((System.ComponentModel.DescriptionAttribute)(_Attribs[0])).Description;
             } catch {
@@ -62,8 +64,8 @@ namespace Fusion.StatsInternal {
       get {
         if (_meterTexture == null) {
           var tex = new Texture2D(METER_TEXTURE_WIDTH, 2);
-          for (var x = 0; x < METER_TEXTURE_WIDTH; ++x) {
-            for (var y = 0; y < 2; ++y) {
+          for (int x = 0; x < METER_TEXTURE_WIDTH; ++x) {
+            for (int y = 0; y < 2; ++y) {
               var color = (x != 0 && x % 16 == 0) ? new Color(1f, 1f, 1f, 0.75f) : new Color(1f, 1f, 1f, 1f);
               tex.SetPixel(x, y, color);
             }
@@ -93,10 +95,10 @@ namespace Fusion.StatsInternal {
       get {
         if (_circle32Texture == null) {
           var tex = new Texture2D(R * 2, R * 2);
-          for (var x = 0; x < R; ++x) {
-            for (var y = 0; y < R; ++y) {
-              var h = System.Math.Abs( System.Math.Sqrt(x * x + y * y));
-              var a = h > R ? 0.0f : h < (R - 1) ? 1.0f :(float) (R - h);
+          for (int x = 0; x < R; ++x) {
+            for (int y = 0; y < R; ++y) {
+              double h = System.Math.Abs( System.Math.Sqrt(x * x + y * y));
+              float a = h > R ? 0.0f : h < (R - 1) ? 1.0f :(float) (R - h);
               var c = new Color(1.0f, 1.0f, 1.0f, a);
               tex.SetPixel(R + 0 + x, R + 0 + y, c);
               tex.SetPixel(R - 1 - x, R + 0 + y, c);
@@ -305,7 +307,7 @@ namespace Fusion.StatsInternal {
       text.resizeTextForBestFit = true;
       text.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-      var colors = button.colors;
+      UI.ColorBlock colors = button.colors;
       colors.normalColor = new Color(.0f, .0f, .0f, BTTN_ALPHA);
       colors.pressedColor = new Color(.5f, .5f, .5f, BTTN_ALPHA);
       colors.highlightedColor = new Color(.3f, .3f, .3f, BTTN_ALPHA);

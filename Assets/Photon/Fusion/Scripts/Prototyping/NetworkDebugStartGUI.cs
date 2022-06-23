@@ -242,7 +242,7 @@ public class NetworkDebugStartGUI : Fusion.Behaviour {
             {
               GUILayout.Label("Client Count:", GUILayout.Height(height));
               GUILayout.Label("", GUILayout.Width(4));
-              var newcount = GUILayout.TextField(_clientCount, 10, GUILayout.Width(width * .25f), GUILayout.Height(height));
+              string newcount = GUILayout.TextField(_clientCount, 10, GUILayout.Width(width * .25f), GUILayout.Height(height));
               if (_clientCount != newcount) {
                 // Remove everything but numbers from our client count string.
                 _clientCount = newcount;
@@ -297,7 +297,7 @@ public class NetworkDebugStartGUI : Fusion.Behaviour {
   }
 
   private void StartMultipleAutoClients(NetworkDebugStart nds) {
-    int.TryParse(_clientCount, out var count);
+    int.TryParse(_clientCount, out int count);
     nds.StartMultipleAutoClients(count);
   }
 
@@ -314,7 +314,7 @@ public class NetworkDebugStartGUI : Fusion.Behaviour {
   // TODO Move to a utility
   public static Dictionary<T, string> ConvertEnumToNicifiedNameLookup<T>(string prefix = null, Dictionary<T, string> nonalloc = null) where T : System.Enum {
 
-    var sb = new System.Text.StringBuilder();
+    System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
     if (nonalloc == null) {
       nonalloc = new Dictionary<T, string>();
@@ -330,7 +330,7 @@ public class NetworkDebugStartGUI : Fusion.Behaviour {
         sb.Append(prefix);
       }
       var name = names[i];
-      for (var n = 0; n < name.Length; n++) {
+      for (int n = 0; n < name.Length; n++) {
         // If this character is a capital and it is not the first character add a space.
         // This is because we don't want a space before the word has even begun.
         if (char.IsUpper(name[n]) == true && n != 0) {

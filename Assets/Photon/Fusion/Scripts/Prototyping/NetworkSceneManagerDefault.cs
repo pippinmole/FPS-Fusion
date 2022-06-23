@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -23,7 +25,7 @@ namespace Fusion {
       var op = SceneManager.LoadSceneAsync(scenePath, parameters);
       Assert.Check(op);
 
-      var alreadyHandled = false;
+      bool alreadyHandled = false;
 
       // if there's a better way to get scene struct more reliably I'm dying to know
       UnityAction<Scene, LoadSceneMode> sceneLoadedHandler = (scene, _) => {
@@ -55,9 +57,9 @@ namespace Fusion {
 
     protected virtual IEnumerator SwitchSceneMultiplePeer(SceneRef prevScene, SceneRef newScene, FinishedLoadingDelegate finished) {
 
-      var activeScene = SceneManager.GetActiveScene();
+      Scene activeScene = SceneManager.GetActiveScene();
 
-      var canTakeOverActiveScene = prevScene == default && IsScenePathOrNameEqual(activeScene, newScene);
+      bool canTakeOverActiveScene = prevScene == default && IsScenePathOrNameEqual(activeScene, newScene);
 
       LogTrace($"Start loading scene {newScene} in multi peer mode");
       var loadSceneParameters = new LoadSceneParameters(LoadSceneMode.Additive, NetworkProjectConfig.ConvertPhysicsMode(Runner.Config.PhysicsEngine));
@@ -116,9 +118,9 @@ namespace Fusion {
     protected virtual IEnumerator SwitchSceneSinglePeer(SceneRef prevScene, SceneRef newScene, FinishedLoadingDelegate finished) {
 
       Scene loadedScene;
-      var activeScene = SceneManager.GetActiveScene();
+      Scene activeScene = SceneManager.GetActiveScene();
 
-      var canTakeOverActiveScene = prevScene == default && IsScenePathOrNameEqual(activeScene, newScene);
+      bool canTakeOverActiveScene = prevScene == default && IsScenePathOrNameEqual(activeScene, newScene);
 
       if (canTakeOverActiveScene) {
         LogTrace($"Not going to load initial scene {newScene} as this is the currently active scene");
@@ -126,7 +128,7 @@ namespace Fusion {
       } else {
 
         LogTrace($"Start loading scene {newScene} in single peer mode");
-        var loadSceneParameters = new LoadSceneParameters(LoadSceneMode.Single);
+        LoadSceneParameters loadSceneParameters = new LoadSceneParameters(LoadSceneMode.Single);
 
         loadedScene = default;
         LogTrace($"Loading scene {newScene} with parameters: {JsonUtility.ToJson(loadSceneParameters)}");
@@ -140,7 +142,7 @@ namespace Fusion {
         }
       }
 
-      for (var i = PostLoadDelayFrames; i > 0; --i) {
+      for (int i = PostLoadDelayFrames; i > 0; --i) {
         yield return null;
       }
 

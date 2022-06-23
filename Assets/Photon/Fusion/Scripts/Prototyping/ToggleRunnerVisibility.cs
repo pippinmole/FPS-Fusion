@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
 
@@ -64,7 +65,7 @@ public class ToggleRunnerVisibility : Fusion.Behaviour {
 
     var runners = NetworkRunner.GetInstancesEnumerator();
 
-    var index = 0;
+    int index = 0;
     while (runners.MoveNext()) {
 
       var runner = runners.Current;
@@ -73,7 +74,7 @@ public class ToggleRunnerVisibility : Fusion.Behaviour {
       if (runner == null || !runner.IsRunning)
         continue;
 
-      var enable = runnerIndex == -1 || index == runnerIndex;
+      bool enable = runnerIndex == -1 || index == runnerIndex;
       runner.IsVisible = enable; 
       index++;
     }

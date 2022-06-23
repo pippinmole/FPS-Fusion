@@ -96,7 +96,7 @@ public abstract class SpawnPointManagerPrototype<T> : Fusion.Behaviour, ISpawnPo
 
     CollectSpawnPoints(runner);
 
-    var spawnCount = _spawnPoints.Count;
+    int spawnCount = _spawnPoints.Count;
 
     if (_spawnPoints == null || spawnCount == 0)
       return null;

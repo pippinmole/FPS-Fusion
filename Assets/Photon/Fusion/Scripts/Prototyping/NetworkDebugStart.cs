@@ -410,7 +410,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
       yield break;
     }
 
-    var includesServerStart = serverMode != GameMode.Shared && serverMode != GameMode.Client && serverMode != GameMode.AutoHostOrClient;
+    bool includesServerStart = serverMode != GameMode.Shared && serverMode != GameMode.Client && serverMode != GameMode.AutoHostOrClient;
 
     if (!includesServerStart && clientCount == 0) {
       Debug.LogError($"{nameof(GameMode)} is set to {serverMode}, and {nameof(clientCount)} is set to zero. Starting no network runners.");
@@ -435,7 +435,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
     // Single-peer can't start more than one peer. Validate clientCount to make sure it complies with current PeerMode.
     var config = NetworkProjectConfig.Global;
     if (config.PeerMode != NetworkProjectConfig.PeerModes.Multiple) {
-      var maxClientsAllowed = includesServerStart ? 0 : 1;
+      int maxClientsAllowed = includesServerStart ? 0 : 1;
       if (clientCount > maxClientsAllowed) {
         Debug.LogWarning($"Instance mode must be set to {nameof(NetworkProjectConfig.PeerModes.Multiple)} to perform a debug start multiple peers. Restricting client count to {maxClientsAllowed}.");
         clientCount = maxClientsAllowed;
@@ -543,7 +543,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
 
     CurrentStage = Stage.ConnectingClients;
 
-    for (var i = 0; i < clientCount; ++i) {
+    for (int i = 0; i < clientCount; ++i) {
       var clientTask =  AddClient(serverMode, sceneRef);
       clientTasks.Add(clientTask);
     }

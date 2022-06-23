@@ -55,7 +55,7 @@ public class ToggleRunnerProvideInput : Fusion.Behaviour {
 
     var runners = NetworkRunner.GetInstancesEnumerator();
 
-    var index = 0;
+    int index = 0;
     while (runners.MoveNext()) {
 
       var runner = runners.Current;
@@ -64,7 +64,7 @@ public class ToggleRunnerProvideInput : Fusion.Behaviour {
       if (runner == null || !runner.IsRunning)
         continue;
 
-      var enable = runnerIndex == -1 || index == runnerIndex;
+      bool enable = runnerIndex == -1 || index == runnerIndex;
       runner.ProvideInput = enable;
       index++;
     }

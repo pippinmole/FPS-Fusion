@@ -160,7 +160,7 @@ public class FusionGraph : FusionGraphBase {
 
   protected override bool TryConnect() {
 
-    var isConnected = base.TryConnect();
+    bool isConnected = base.TryConnect();
 
     if (isConnected) {
 
@@ -168,7 +168,7 @@ public class FusionGraph : FusionGraphBase {
 
       DropdownLookup.Clear();
       _viewDropdown.ClearOptions();
-      for (var i = 0; i < 16; ++i) {
+      for (int i = 0; i < 16; ++i) {
         if (((int)flags & (1 << i)) != 0) {
           DropdownLookup.Add(1 << i);
           _viewDropdown.options.Add(new UI.Dropdown.OptionData(FusionStatsUtilities.CachedTelemetryNames[i + 1]));
@@ -206,7 +206,7 @@ public class FusionGraph : FusionGraphBase {
     if (_values != null && _values.Length > 0) {
       Array.Clear(_values, 0, _values.Length);
       Array.Clear(_histogram, 0, _histogram.Length);
-      for (var i = 0; i < _intensity.Length; ++i) {
+      for (int i = 0; i < _intensity.Length; ++i) {
         _intensity[i] = -2;
       }
       _min = 0;
@@ -233,7 +233,7 @@ public class FusionGraph : FusionGraphBase {
     //TEST
     _intensity = new float[200];
     _values = new float[200];
-    for (var i = 0; i < _values.Length; ++i) {
+    for (int i = 0; i < _values.Length; ++i) {
       _values[i] = (float)i / _values.Length;
       _intensity[i] = (float)i / 200; ;
     }
@@ -248,7 +248,7 @@ public class FusionGraph : FusionGraphBase {
   
   void ResetGraphShader() {
     if (GraphImg) {
-      var desiredShader = LocateParentFusionStats() != null ? (_fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject ? ShaderType.GameObject : ShaderType.Overlay) : ShaderType.None;
+      ShaderType desiredShader = LocateParentFusionStats() != null ? (_fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject ? ShaderType.GameObject : ShaderType.Overlay) : ShaderType.None;
       //if (_currentShader != desiredShader) {
       //  GraphImg.material = desiredShader == ShaderType.GameObject ? new Material(Shader3D) : new Material(Shader);
       //  _currentShader = desiredShader;
@@ -305,7 +305,7 @@ public class FusionGraph : FusionGraphBase {
 
     // TODO: move initialization of this to TryConnect?
     if (_values == null) {
-      var size =
+      int size =
         visualization == FusionGraphVisualization.ContinuousTick ? statsBuffer.Capacity :
         visualization == FusionGraphVisualization.ValueHistogram ? StatSourceInfo.HistoBucketCount + 3 :// _histoBucketCount + 3 :
         INTERMITTENT_DATA_ARRAYSIZE;
@@ -347,7 +347,7 @@ public class FusionGraph : FusionGraphBase {
     var avg = 0f;
     var last = 0f;
 
-    for (var i = 0; i < data.Count; ++i) {
+    for (int i = 0; i < data.Count; ++i) {
       var v = (float)(StatSourceInfo.Multiplier * data.GetSampleAtIndex(i).FloatValue);
 
       min = Math.Min(v, min);
@@ -389,9 +389,9 @@ public class FusionGraph : FusionGraphBase {
     var tailIndex = latestServerStateTick % INTERMITTENT_DATA_ARRAYSIZE;
     var headIndex = (tailIndex + 1) % INTERMITTENT_DATA_ARRAYSIZE;
 
-    var gapcheck = _lastCachedTick;
+    int gapcheck = _lastCachedTick;
     // Copy all data from the buffer into our larger intermediate cached buffer
-    for (var i = 0; i < data.Count; ++i) {
+    for (int i = 0; i < data.Count; ++i) {
       var sample = data.GetSampleAtIndex(i);
       var sampleTick = sample.TickValue;
       
@@ -409,7 +409,7 @@ public class FusionGraph : FusionGraphBase {
 
       // Fill any gaps in the buffer data 
       var gap = sampleTick - gapcheck;
-      for (var g = gapcheck + 1; g < sampleTick; ++g) {
+      for (int g = gapcheck + 1; g < sampleTick; ++g) {
         _cachedValues[g % INTERMITTENT_DATA_ARRAYSIZE] = (g, 0);
       }
 
@@ -420,7 +420,7 @@ public class FusionGraph : FusionGraphBase {
     }
 
     // Loop through once to determine scaling
-    for (var i = 0; i < INTERMITTENT_DATA_ARRAYSIZE; ++i) {
+    for (int i = 0; i < INTERMITTENT_DATA_ARRAYSIZE; ++i) {
       var sample = _cachedValues[(i + headIndex) % INTERMITTENT_DATA_ARRAYSIZE];
       var v = sample.value;
       // Any outdated values are ticks that had no data, set them to zero.
@@ -449,7 +449,7 @@ public class FusionGraph : FusionGraphBase {
     var sum = 0f;
     var last = 0f;
 
-    for (var i = 0; i < data.Count; ++i) {
+    for (int i = 0; i < data.Count; ++i) {
       var v = (float)(StatSourceInfo.Multiplier * data.GetSampleAtIndex(i).FloatValue);
 
       min = Math.Min(v, min);
@@ -569,9 +569,9 @@ public class FusionGraph : FusionGraphBase {
 
       // count non-existent ticks as zero values. Only for tick based data.
       if (mostCurrentSampleTickTime < latestServerStateTickTime) {
-        var countbackto = Math.Max((int)mostCurrentSampleTickTime, (int)_lastCachedTickTime);
-        var newZeroCount = (int)latestServerStateTickTime - countbackto;
-        var zerocountTotal = _histogram[0] + newZeroCount;
+        int countbackto = Math.Max((int)mostCurrentSampleTickTime, (int)_lastCachedTickTime);
+        int newZeroCount = (int)latestServerStateTickTime - countbackto;
+        float zerocountTotal = _histogram[0] + newZeroCount;
         _histogram[0] = zerocountTotal;
 
         if (zerocountTotal > _max) {
@@ -584,9 +584,9 @@ public class FusionGraph : FusionGraphBase {
     }
 
     var info = StatSourceInfo;
-    var multiplier = info.Multiplier;
+    double multiplier = info.Multiplier;
     // Read data in stat buffer backwards until we reach a tick already recorded
-    for (var i = data.Count - 1; i >= 0; --i) {
+    for (int i = data.Count - 1; i >= 0; --i) {
       var v = (float)(multiplier * data.GetSampleAtIndex(i).FloatValue);
 
       var sample = data.GetSampleAtIndex(i);
@@ -631,7 +631,7 @@ public class FusionGraph : FusionGraphBase {
       //}
     }
 
-    var medianIndex = 0;
+    int medianIndex = 0;
     float mostValues = 0;
     {
       var r = (_max - _min) * 1.1f;
@@ -789,7 +789,7 @@ public class FusionGraph : FusionGraphBase {
     }
     ApplyTitleText();
 
-    var graphIsValid = StatSourceInfo.InvalidReason == null;
+    bool graphIsValid = StatSourceInfo.InvalidReason == null;
 
     LabelMin.gameObject.SetActive(graphIsValid);
     LabelMax.gameObject.SetActive(graphIsValid);
@@ -807,8 +807,8 @@ public class FusionGraph : FusionGraphBase {
     GraphImg.material.SetInt("_ZWrite", (_fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject ? 1 : 0));
 
 
-    var isOverlayCanvas = _fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject;
-    var vrSafe = _fusionStats.NoGraphShader /*&& _fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject*/;
+    bool isOverlayCanvas = _fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject;
+    bool vrSafe = _fusionStats.NoGraphShader /*&& _fusionStats.CanvasType == FusionStats.StatCanvasTypes.GameObject*/;
 
     var height = rt.rect.height;
     var width  = rt.rect.width;
@@ -832,12 +832,12 @@ public class FusionGraph : FusionGraphBase {
       }
     }
 
-    var noGraph = vrSafe || layout == Layouts.CompactNoGraph || layout == Layouts.CenteredNoGraph || (_fusionStats.NoTextOverlap && layout == Layouts.CompactAuto);
-    var noOverlap = _fusionStats.NoTextOverlap || layout == Layouts.FullNoOverlap || layout == Layouts.CenteredNoOverlap;
-    var showGraph = !noGraph && (ShowGraph == ShowGraphOptions.Always || (ShowGraph == ShowGraphOptions.OverlayOnly && isOverlayCanvas));
+    bool noGraph = vrSafe || layout == Layouts.CompactNoGraph || layout == Layouts.CenteredNoGraph || (_fusionStats.NoTextOverlap && layout == Layouts.CompactAuto);
+    bool noOverlap = _fusionStats.NoTextOverlap || layout == Layouts.FullNoOverlap || layout == Layouts.CenteredNoOverlap;
+    bool showGraph = !noGraph && (ShowGraph == ShowGraphOptions.Always || (ShowGraph == ShowGraphOptions.OverlayOnly && isOverlayCanvas));
 
-    var expandGraph = !noOverlap && (_alwaysExpandGraph || !showGraph || layout == Layouts.CompactAuto || (!noOverlap && height < EXPAND_GRPH_THRESH));
-    var isSuperShort = height < MRGN * 3;
+    bool expandGraph = !noOverlap && (_alwaysExpandGraph || !showGraph || layout == Layouts.CompactAuto || (!noOverlap && height < EXPAND_GRPH_THRESH));
+    bool isSuperShort = height < MRGN * 3;
 
     var graphRT = GraphImg.rectTransform;
     if (graphRT) {
@@ -850,7 +850,7 @@ public class FusionGraph : FusionGraphBase {
       }
     }
 
-    var showExtras = layout == Layouts.FullAuto || layout == Layouts.FullNoOverlap /*|| (layout == Layouts.Compact && width > HIDE_XTRAS_WDTH)*/;
+    bool showExtras = layout == Layouts.FullAuto || layout == Layouts.FullNoOverlap /*|| (layout == Layouts.Compact && width > HIDE_XTRAS_WDTH)*/;
 
     var titleRT = LabelTitle.rectTransform;
     var avgRT = LabelAvg.rectTransform;

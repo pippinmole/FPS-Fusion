@@ -21,7 +21,7 @@ namespace Fusion {
           return true;
         }
       } else {
-        for (var i = 0; i < SceneManager.sceneCountInBuildSettings; ++i) {
+        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; ++i) {
           var scenePath = SceneUtility.GetScenePathByBuildIndex(i);
           GetFileNameWithoutExtensionPosition(scenePath, out var nameIndex, out var nameLength);
           if (nameLength == nameOrPath.Length && string.Compare(scenePath, nameIndex, nameOrPath, 0, nameLength, true) == 0) {

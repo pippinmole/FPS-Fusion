@@ -53,7 +53,7 @@ public class SpawnerPrototype<T> : SimulationBehaviour, IPlayerJoined, IPlayerLe
 
     if (Object) {
       if (_AllowClientObjects && StateAuthority != AuthorityOptions.Server) {
-        var playerNetworkObject = TrySpawn(Runner, Runner.LocalPlayer);
+        NetworkObject playerNetworkObject = TrySpawn(Runner, Runner.LocalPlayer);
         RegisterPlayerAndObject(Runner.LocalPlayer, playerNetworkObject);
       }
     }
@@ -72,7 +72,7 @@ public class SpawnerPrototype<T> : SimulationBehaviour, IPlayerJoined, IPlayerLe
     if (!_AllowClientObjects || StateAuthority == AuthorityOptions.Server)
       return;
 
-    var playerNetworkObject = TrySpawn(Runner, Runner.LocalPlayer);
+    NetworkObject playerNetworkObject = TrySpawn(Runner, Runner.LocalPlayer);
     RegisterPlayerAndObject(Runner.LocalPlayer, playerNetworkObject);
   }
 
@@ -95,7 +95,7 @@ public class SpawnerPrototype<T> : SimulationBehaviour, IPlayerJoined, IPlayerLe
       return;
     }
 
-    var playerNetworkObject = TrySpawn(runner, player);
+    NetworkObject playerNetworkObject = TrySpawn(runner, player);
     RegisterPlayerAndObject(player, playerNetworkObject);
   }
 
@@ -112,13 +112,13 @@ public class SpawnerPrototype<T> : SimulationBehaviour, IPlayerJoined, IPlayerLe
     } else {
 
       // Try to get a spawn point from a spawn manager (if one is attached) - fallback to this components transform as the spawn point.
-      var spawnTransform = (spawnManager != null) ? spawnManager.GetNextSpawnPoint(runner, player) : null;
+      Transform spawnTransform = (spawnManager != null) ? spawnManager.GetNextSpawnPoint(runner, player) : null;
 
       if (spawnTransform == null)
         spawnTransform = transform;
 
-      var spawnPosition = spawnTransform.position;
-      var spawnRotation = spawnTransform.rotation;
+      Vector3 spawnPosition = spawnTransform.position;
+      Quaternion spawnRotation = spawnTransform.rotation;
 
       return runner.Spawn(PlayerPrefab, spawnPosition, spawnRotation, player);
     }

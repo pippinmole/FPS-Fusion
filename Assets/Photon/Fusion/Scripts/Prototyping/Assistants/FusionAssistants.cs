@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using System;
+using UnityEditor;
 
 namespace Fusion.Assistants {
   public static class FusionAssistants {
@@ -180,13 +181,13 @@ namespace Fusion.Assistants {
       }
 
       // Component is not represented yet. If there is a VisNodes already, use it. Otherwise make one.
-      var targetNodes = component.GetComponent<RunnerVisibilityNodes>();
+      RunnerVisibilityNodes targetNodes = component.GetComponent<RunnerVisibilityNodes>();
       if (targetNodes == null) {
         targetNodes = component.gameObject.AddComponent<RunnerVisibilityNodes>();
       }
 
       // Add this component to the collection.
-      var newArrayPos = targetNodes.Components.Length;
+      int newArrayPos = targetNodes.Components.Length;
       Array.Resize(ref targetNodes.Components, newArrayPos + 1);
       targetNodes.Components[newArrayPos] = component;
       return targetNodes;

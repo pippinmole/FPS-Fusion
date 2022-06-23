@@ -861,6 +861,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _cameraRoot: {fileID: 4135013735270702856}
+  _camera: {fileID: 1556008952}
   _topClamp: 90
   _bottomClamp: -90
 --- !u!114 &7059430512680573544
@@ -877,9 +878,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _weaponRoot: {fileID: 731168272}
-  _weaponPrefabs:
-  - {fileID: 3026011492566865172, guid: cb335b81a88d3b845b2ccdc0a84ea007, type: 3}
-  - {fileID: -4505736697243038649, guid: 91a649fe9d2c6cf42bfedfa1412a687d, type: 3}
+  _weapons:
+  - {fileID: 11400000, guid: 76edfce642622ea42b394f2e9af8c76b, type: 2}
+  - {fileID: 11400000, guid: acfe119eaded4154fbae1b490896b007, type: 2}
+  _tracerMaterial: {fileID: 2100000, guid: c8efe9e7023433e46a04c3f3cfe66f89, type: 2}
   _WeaponIndex: -1
 --- !u!114 &7193105921843311116
 MonoBehaviour:

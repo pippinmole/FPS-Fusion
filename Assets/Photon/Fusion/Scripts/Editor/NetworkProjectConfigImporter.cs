@@ -26,7 +26,7 @@ namespace Fusion.Editor {
       FusionEditorLog.TraceImport(assetPath, "Staring scripted import");
 
       NetworkProjectConfig.UnloadGlobal();
-      var config = LoadConfigFromFile(ctx.assetPath);
+      NetworkProjectConfig config = LoadConfigFromFile(ctx.assetPath);
 
       var root = ScriptableObject.CreateInstance<NetworkProjectConfigAsset>();
       root.Config = config;
@@ -56,7 +56,7 @@ namespace Fusion.Editor {
         return;
       }
 
-      var hadChanges = false;
+      bool hadChanges = false;
 
       var mainAsset = AssetDatabase.LoadMainAssetAtPath(PrefabAssetsContainerPath);
       var root = mainAsset as NetworkPrefabAssetCollection;

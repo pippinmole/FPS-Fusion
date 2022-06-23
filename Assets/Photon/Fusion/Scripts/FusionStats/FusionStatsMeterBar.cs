@@ -102,13 +102,13 @@ public class FusionStatsMeterBar : FusionGraphBase
 
       if (statsBuffer.Count > 0) {
     
-        var highestRpcsFoundForTick = 0;
+        int highestRpcsFoundForTick = 0;
         float newestSampleTick = statsBuffer.GetSampleAtIndex(statsBuffer.Count - 1).TickValue;
         var tick = newestSampleTick;
         // Only look back at ticks we have not yet already looked at on previous updates.
         if (newestSampleTick > _lastImportedSampleTickTime) {
-          var tickRpcCount = 0;
-          for (var i = statsBuffer.Count - 1; i >= 0; i--) {
+          int tickRpcCount = 0;
+          for (int i = statsBuffer.Count - 1; i >= 0; i--) {
             var sampletick = statsBuffer.GetSampleAtIndex(i).TickValue;
 
             if (sampletick > _lastImportedSampleTickTime) {
@@ -159,7 +159,7 @@ public class FusionStatsMeterBar : FusionGraphBase
       return;
     }
 
-    var decayedVal = System.Math.Max(_currentBarValue - Time.deltaTime / DecayTime * _max, 0);
+    double decayedVal = System.Math.Max(_currentBarValue - Time.deltaTime / DecayTime * _max, 0);
     SetBar(decayedVal);
 
   }
@@ -168,7 +168,7 @@ public class FusionStatsMeterBar : FusionGraphBase
 
     var info = StatSourceInfo;
 
-    var multiplied = rawvalue * info.Multiplier;
+    double multiplied = rawvalue * info.Multiplier;
 
     if (MeterMax == 0) {
       if (multiplied > _max) {
@@ -177,7 +177,7 @@ public class FusionStatsMeterBar : FusionGraphBase
     }
 
 
-    var clampedValue = System.Math.Max(System.Math.Min(multiplied, _max), 0);
+    double clampedValue = System.Math.Max(System.Math.Min(multiplied, _max), 0);
     var roundedValue = System.Math.Round(clampedValue, info.Decimals);
     var newDisplayValue = _total > 0 ? _total : roundedValue;
 

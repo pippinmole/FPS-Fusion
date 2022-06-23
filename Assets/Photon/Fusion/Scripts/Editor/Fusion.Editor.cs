@@ -96,6 +96,7 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using UnityEditor;
   using UnityEngine;
 
   public class NetworkPrefabAssetFactoryResource: INetworkPrefabSourceFactory {
@@ -171,7 +172,11 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/BehaviourEditor.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using UnityEditor;
 
   [CustomEditor(typeof(Fusion.Behaviour), true)]
   [CanEditMultipleObjects]
@@ -264,7 +269,7 @@ namespace Fusion.Editor {
       // No delegate exists, brute force find one.
 
       var members = type.GetMember(memberName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-      foreach (var member in members) {
+      foreach (MemberInfo member in members) {
         if (member is FieldInfo) {
           var finfo = (FieldInfo)member;
           var getValDelegate = (Func<object, object>)((object targ) => finfo.GetValue(targ));
@@ -332,20 +337,20 @@ namespace Fusion.Editor {
 
           if (attr is BehaviourWarnAttribute warnAttr) {
             var condName = warnAttr.ConditionMember;
-            var condMethod = targetType.GetDelegateFromMember(warnAttr.ConditionMember);
+            Func<object, object> condMethod = targetType.GetDelegateFromMember(warnAttr.ConditionMember);
             reusableAttributeList.Add(new BehaviourActionInfo(member.Name, method.GetXmlDocSummary(), attr, null, condMethod));
             continue;
           }
 
           if (attr is BehaviourButtonActionAttribute buttonAttr) {
             var condName = buttonAttr.ConditionMember;
-            var condMethod = targetType.GetDelegateFromMember(buttonAttr.ConditionMember);
+            Func<object, object> condMethod = targetType.GetDelegateFromMember(buttonAttr.ConditionMember);
             reusableAttributeList.Add(new BehaviourActionInfo(member.Name, method.GetXmlDocSummary(), attr, (Action)method.CreateDelegate(typeof(Action), target), condMethod));
             continue;
           }
 
           if (attr is BehaviourToggleAttribute toggleAttr) {
-            var condMethod = targetType.GetDelegateFromMember(toggleAttr.ConditionMember);
+            Func<object, object> condMethod = targetType.GetDelegateFromMember(toggleAttr.ConditionMember);
             var actioninfo = new BehaviourActionInfo(member.Name, (member as PropertyInfo).GetXmlDocSummary(), attr, null, condMethod);
             actioninfo.MemberInfo = member;
             reusableAttributeList.Add(actioninfo);
@@ -353,7 +358,7 @@ namespace Fusion.Editor {
           }
 
           if (attr is BehaviourActionAttribute actionAttr) {
-            var condMethod = targetType.GetDelegateFromMember(actionAttr.ConditionMember);
+            Func<object, object> condMethod = targetType.GetDelegateFromMember(actionAttr.ConditionMember);
             reusableAttributeList.Add(new BehaviourActionInfo(member.Name, method.GetXmlDocSummary(), attr, (Action)method.CreateDelegate(typeof(Action), target), condMethod));
             continue;
           }
@@ -423,7 +428,7 @@ namespace Fusion.Editor {
     internal static void DrawEditorToggleAttribute(this BehaviourToggleAttribute toggleAttr, BehaviourActionInfo actionInfo, UnityEngine.Object target, ref string expandedPropertyName) {
       // If a condition member exists for this attribute, check it.
       if (actionInfo.Condition != null) {
-        var valObj = actionInfo.Condition(target);
+        object valObj = actionInfo.Condition(target);
         if (valObj == null || valObj.GetObjectValueAsDouble() == 0) {
           return;
         }
@@ -436,7 +441,7 @@ namespace Fusion.Editor {
 
       // If a condition member exists for this attribute, check it.
       if (actionInfo.Condition != null) {
-        var valObj = actionInfo.Condition(target);
+        object valObj = actionInfo.Condition(target);
         if (valObj == null || valObj.GetObjectValueAsDouble() == 0) {
           return;
         }
@@ -452,7 +457,7 @@ namespace Fusion.Editor {
         if (getValDelegate == null)
           return;
 
-        var valObj = getValDelegate(target);
+        object valObj = getValDelegate(target);
 
         if (valObj == null || valObj.GetObjectValueAsDouble() == 0) {
           return;
@@ -466,7 +471,7 @@ namespace Fusion.Editor {
 
       // If a condition member exists for this attribute, check it.
       if (condition != null) {
-        var valObj = condition(target);
+        object valObj = condition(target);
         if (valObj == null || valObj.GetObjectValueAsDouble() == 0) {
           return;
         }
@@ -480,7 +485,7 @@ namespace Fusion.Editor {
 
       if (ShouldShow(flags)) {
         GUILayout.Space(4);
-        var rect = EditorGUILayout.GetControlRect();
+        Rect rect = EditorGUILayout.GetControlRect();
 
         if (!string.IsNullOrEmpty(actionInfo.Summary)) {
           var wasExpanded = FusionEditorGUI.IsHelpExpanded(target, actionInfo.MemberName);
@@ -518,7 +523,7 @@ namespace Fusion.Editor {
 
       if (ShouldShow(flags)) {
         GUILayout.Space(4);
-        var rect = EditorGUILayout.GetControlRect();
+        Rect rect = EditorGUILayout.GetControlRect();
 
         if (!string.IsNullOrEmpty(actionInfo.Summary)) {
           var wasExpanded = FusionEditorGUI.IsHelpExpanded(target, actionInfo.MemberName);
@@ -611,7 +616,7 @@ namespace Fusion.Editor {
     }
 
     static bool ShouldShow(BehaviourActionAttribute.ActionFlags flags) {
-      var isPlaying = Application.isPlaying;
+      bool isPlaying = Application.isPlaying;
       return (
         (isPlaying && (flags & BehaviourActionAttribute.ActionFlags.ShowAtRuntime) == BehaviourActionAttribute.ActionFlags.ShowAtRuntime) ||
         (!isPlaying && (flags & BehaviourActionAttribute.ActionFlags.ShowAtNotRuntime) == BehaviourActionAttribute.ActionFlags.ShowAtNotRuntime));
@@ -673,13 +678,13 @@ namespace Fusion.Editor {
       var settings = NetworkProjectConfig.Global.AccuracyDefaults;
       settings.RebuildLookup();
 
-      var names = new List<string>(settings.coreKeys);
+      List<string> names = new List<string>(settings.coreKeys);
       names.AddRange(settings.tags);
       _tagNames = names.ToArray();
 
       _tagLookup.Clear();
       for (int i = 0, cnt = _tagNames.Length; i < cnt; ++i) {
-        var t = _tagNames[i];
+        string t = _tagNames[i];
         _tagLookup.Add(t.GetHashDeterministic(), (i, t));
       }
     }
@@ -694,8 +699,8 @@ namespace Fusion.Editor {
     }
 
     private static string SetKeyEnsureUnique(SerializedProperty array, int index, string value) {
-      var keys = new HashSet<string>();
-      for (var i = 0; i < array.arraySize; ++i) {
+      HashSet<string> keys = new HashSet<string>();
+      for (int i = 0; i < array.arraySize; ++i) {
         if (i == index)
           continue;
         keys.Add(GetKey(array, i));
@@ -738,17 +743,17 @@ namespace Fusion.Editor {
 
       if (property.isExpanded) {
 
-        var y = r.yMin + ELEMENT_HEIGHT;
+        float y = r.yMin + ELEMENT_HEIGHT;
 
         GUI.Box(new Rect(r) { yMin = y }, "", EditorStyles.helpBox); // FusionGUIStyles.GroupBoxType.Sand.GetStyle());
 
         r = new Rect(r) { xMin = r.xMin + BOX_PADDING, xMax = r.xMax - BOX_PADDING, yMin = y + BOX_PADDING,  height = ELEMENT_INNER };
 
         const float LABEL_WIDTH = 120;
-        var labelleft = r.xMin;
+        float labelleft = r.xMin;
         float resetbtnwidth = 24;
-        var valueleft = r.xMin + LABEL_WIDTH;
-        var valuewidth = r.width - LABEL_WIDTH - resetbtnwidth - 2;
+        float valueleft = r.xMin + LABEL_WIDTH;
+        float valuewidth = r.width - LABEL_WIDTH - resetbtnwidth - 2;
 
         EditorGUI.BeginChangeCheck();
         {
@@ -775,17 +780,17 @@ namespace Fusion.Editor {
           var values = property.FindPropertyRelativeOrThrow(nameof(AccuracyDefaults.values));
 
           // Fixed named items (Core)
-          for (var i = 0; i < AccuracyDefaults.CORE_COUNT; ++i) {
+          for (int i = 0; i < AccuracyDefaults.CORE_COUNT; ++i) {
 
-            var key = GetKey(coreKeys, i);
-            var val = GetValue(coreVals, i);
+            string key = GetKey(coreKeys, i);
+            Accuracy val = GetValue(coreVals, i);
 
-            var tooltip = "hash: " + key.GetHashDeterministic();
+            string tooltip = "hash: " + key.GetHashDeterministic();
             GUI.Label(new Rect(r) { width = LABEL_WIDTH - 2 }, new GUIContent(key, tooltip), new GUIStyle("Label") { fontStyle = FontStyle.Italic });
 
             EditorGUI.BeginDisabledGroup(i == 0);
             {
-              var newVal = CustomSliders.Log10Slider(new Rect(r) { x = valueleft, width = valuewidth }, val.Value, null, MIN, MAX, ZERO, 1);
+              float newVal = CustomSliders.Log10Slider(new Rect(r) { x = valueleft, width = valuewidth }, val.Value, null, MIN, MAX, ZERO, 1);
 
               // Button - Reset to default
               if (GUI.Button(new Rect(r) { xMin = r.xMax - resetbtnwidth}, EditorGUIUtility.FindTexture("d_RotateTool"))) {
@@ -803,14 +808,14 @@ namespace Fusion.Editor {
           //User Editable list items
           for (int i = 0, cnt = tags.arraySize; i < cnt; ++i) {
 
-            var key = GetKey(tags, i);
-            var val = GetValue(values, i)._value;
+            string key = GetKey(tags, i);
+            float val = GetValue(values, i)._value;
 
-            var tooltip = "hash: " + key.GetHashDeterministic();
+            string tooltip = "hash: " + key.GetHashDeterministic();
             GUI.Label(r, new GUIContent(key, tooltip));
-            var newKey = GUI.TextField(new Rect(r) { width = LABEL_WIDTH - 4 }, key);
+            string newKey = GUI.TextField(new Rect(r) { width = LABEL_WIDTH - 4 }, key);
 
-            var newVal = CustomSliders.Log10Slider(new Rect(r) { x = valueleft, width = valuewidth }, val, null, MIN, MAX, ZERO, 1);
+            float newVal = CustomSliders.Log10Slider(new Rect(r) { x = valueleft, width = valuewidth }, val, null, MIN, MAX, ZERO, 1);
 
             if (GUI.Button(new Rect(r) { xMin = r.xMax - resetbtnwidth }, "X")) {
               values.DeleteArrayElementAtIndex(i);
@@ -896,17 +901,17 @@ namespace Fusion.Editor {
         return;
       }
 
-      var min = range.min;
-      var max = range.max;
-      var labelWidth = EditorGUIUtility.labelWidth;
+      float min = range.min;
+      float max = range.max;
+      float labelWidth = EditorGUIUtility.labelWidth;
       const int CHECK_WIDTH = 18;
 
       EditorGUI.LabelField(r, label);
 
-      var toggleRect = new Rect(r) { xMin = r.xMin + labelWidth + 2, width = 16 };
+      Rect toggleRect = new Rect(r) { xMin = r.xMin + labelWidth + 2, width = 16 };
       const string globalsTooltip = "Toggles between custom accuracy value, and using a defined Global Accuracy (found in " + nameof(NetworkProjectConfig) + ").";
       EditorGUI.LabelField(r /*toggleRect*/, new GUIContent("", globalsTooltip));
-      var useGlobals = GUI.Toggle(toggleRect, inverse.floatValue == 0, GUIContent.none);
+      bool useGlobals = GUI.Toggle(toggleRect, inverse.floatValue == 0, GUIContent.none);
 
       // To spare some memory, a toggle bool isn't used. Instead the Inverse value being zero indicates usage of the hash/global setting.
       if (useGlobals != (inverse.floatValue == 0)) {
@@ -972,13 +977,13 @@ namespace Fusion.Editor {
       const float VAL_WIDTH = 50;
       const float COLLAPSE_WIDTH = 120;
 
-      var isNarrow = r.width < COLLAPSE_WIDTH;
+      bool isNarrow = r.width < COLLAPSE_WIDTH;
 
       if (hash == 0) {
         hash = AccuracyDefaults.ZeroHashRemap;
       }
 
-      var success = AccuracyDefaultsDrawer.TagLookup.TryGetValue(hash, out (int popupindex, string) tag);
+      bool success = AccuracyDefaultsDrawer.TagLookup.TryGetValue(hash, out (int popupindex, string) tag);
 
       var hold = EditorGUI.indentLevel;
       EditorGUI.indentLevel = 0;
@@ -988,12 +993,12 @@ namespace Fusion.Editor {
 
       var accuracy = GetAccuracyFromHash(hash, target);
 
-      var val = accuracy.Value;
+      float val = accuracy.Value;
       // Round the value to fit the label
       val = (val > 1) ? (float)System.Math.Round(val, 3) : (float)System.Math.Round(val, 4);
 
       if (isNarrow == false) {
-        var valStyle = new GUIStyle("MiniLabel") { alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Italic };
+        GUIStyle valStyle = new GUIStyle("MiniLabel") { alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Italic };
 
         if (GUI.Button(new Rect(r) { xMin = r.xMax - VAL_WIDTH }, val.ToString(), valStyle)) {
           NetworkProjectConfigUtilities.PingGlobalConfigAsset();
@@ -1013,7 +1018,7 @@ namespace Fusion.Editor {
     static System.Collections.Generic.HashSet<int> _beenWarnedOnce;
 
     static Accuracy GetAccuracyFromHash(int hash, UnityEngine.Object target) {
-      var found = NetworkProjectConfig.Global.AccuracyDefaults.TryGetAccuracy(hash, out var accuracy);
+      bool found = NetworkProjectConfig.Global.AccuracyDefaults.TryGetAccuracy(hash, out Accuracy accuracy);
       if (found == false) {
         // Warn of an invalid hash, but only once to avoid log spam.
         if (_beenWarnedOnce == null) {
@@ -1047,7 +1052,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/AccuracyRangeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEngine;
+
+  using System;
+  using UnityEngine;
   using UnityEditor;
 
   [CustomPropertyDrawer(typeof(AccuracyRangeAttribute))]
@@ -1057,7 +1064,7 @@ namespace Fusion.Editor {
 
       EditorGUI.BeginProperty(r, label, property);
 
-      var range = (AccuracyRangeAttribute)attribute;
+      AccuracyRangeAttribute range = (AccuracyRangeAttribute)attribute;
 
       AccuracyDrawer.OnGUIExtended(r, property, label, range);
 
@@ -1079,6 +1086,7 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using UnityEngine;
   using UnityEditor;
+  using UnityEditor.SceneManagement;
   using System.Linq;
   using System.IO;
   using System;
@@ -1165,7 +1173,7 @@ namespace Fusion.Editor {
     }
 
     static IEnumerable<string> GetAssemblies(AsmDefType types) {
-      var query = Enumerable.Empty<string>();
+      IEnumerable<string> query = Enumerable.Empty<string>();
         
       if (types.HasFlag(AsmDefType.Predefined)) {
         if (types.HasFlag(AsmDefType.Runtime)) {
@@ -1191,7 +1199,7 @@ namespace Fusion.Editor {
           })
           .Select(x => JsonUtility.FromJson<AsmDefData>(File.ReadAllText(x)))
           .Where(x => {
-            var editorOnly = x.includePlatforms.Length == 1 && x.includePlatforms[0] == "Editor";
+            bool editorOnly = x.includePlatforms.Length == 1 && x.includePlatforms[0] == "Editor";
             if (types.HasFlag(AsmDefType.Runtime) && !editorOnly) {
               return true;
             } else if (types.HasFlag(AsmDefType.Editor) && editorOnly) {
@@ -1300,8 +1308,13 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/DoIfAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Reflection;
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public abstract class DoIfAttributeDrawer : ForwardingPropertyDrawer {
@@ -1370,7 +1383,7 @@ namespace Fusion.Editor {
 
     protected override float GetPropertyHeightInternal(SerializedProperty property, GUIContent label) {
       
-      var otherValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
+      double otherValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
 
       if (Attribute.Hide == DrawIfHideType.ReadOnly || CheckDraw(Attribute, otherValue)) {
         return base.GetPropertyHeightInternal(property, label);
@@ -1382,7 +1395,7 @@ namespace Fusion.Editor {
 
     protected override void OnGUIInternal(Rect position, SerializedProperty property, GUIContent label) {
       
-      var otherValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
+      double otherValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
       
       var readOnly = Attribute.Hide == DrawIfHideType.ReadOnly;
       var draw = CheckDraw(Attribute, otherValue);
@@ -1457,7 +1470,7 @@ namespace Fusion.Editor {
         names = property.enumDisplayNames;
 
       if (maskattr.definesZero) {
-        var truncated = new string[names.Length - 1];
+        string[] truncated = new string[names.Length - 1];
         Array.Copy(names, 1, truncated, 0, truncated.Length);
         names = truncated;
       }
@@ -1526,11 +1539,16 @@ namespace Fusion.Editor {
           return EditorGUIUtility.singleLineHeight;
         }
 
-        var wrapper = _pool.Acquire(fieldInfo, attribute, property, SurrogateType);
-        return EditorGUI.GetPropertyHeight(wrapper.Property);
+        var wrapper = _pool.Acquire(fieldInfo, Capacity, property, SurrogateType);
+        try {
+          return EditorGUI.GetPropertyHeight(wrapper.Property);
+        } catch (Exception ex) {
+          FusionEditorLog.ErrorInspector($"Error in GetPropertyHeight for {property.propertyPath}: {ex}");
+          return EditorGUIUtility.singleLineHeight;
+        }
 
       } else {
-        var count = 1;
+        int count = 1;
         if (!EditorGUIUtility.wideMode) {
           count++;
         }
@@ -1544,7 +1562,7 @@ namespace Fusion.Editor {
           this.SetInfo($"[Networked] properties of type {ActualFieldType.FullName} in structs are not yet supported");
           EditorGUI.LabelField(position, label, GUIContent.none);
         } else {
-          var capacity = Capacity;
+          int capacity = Capacity;
           var fixedBufferProperty = GetFixedBufferProperty(property);
 
           Array.Resize(ref _buffer, Math.Max(_buffer.Length, fixedBufferProperty.fixedBufferSize));
@@ -1555,13 +1573,13 @@ namespace Fusion.Editor {
             SetInfo($"Type does not support multi-edit");
             EditorGUI.LabelField(position, label);
           } else {
-            var wrapper = _pool.Acquire(fieldInfo, attribute, property, SurrogateType);
+            var wrapper = _pool.Acquire(fieldInfo, Capacity, property, SurrogateType);
             
             {
-              var surrogateOutdated = false;
+              bool surrogateOutdated = false;
               var targetObjects = property.serializedObject.targetObjects;
               if (targetObjects.Length > 1) {
-                for (var i = 0; i < targetObjects.Length; ++i) {
+                for (int i = 0; i < targetObjects.Length; ++i) {
                   using (var so = new SerializedObject(targetObjects[i])) {
                     using (var sp = so.FindPropertyOrThrow($"{property.propertyPath}.Data")) {
                       if (UpdateSurrogateFromFixedBuffer(sp, wrapper.Surrogates[i], false, _pool.Flush)) {
@@ -1588,7 +1606,11 @@ namespace Fusion.Editor {
             EditorGUI.BeginChangeCheck();
             EditorGUI.BeginProperty(position, label, property);
 
-            EditorGUI.PropertyField(position, wrapper.Property, label, true);
+            try {
+              EditorGUI.PropertyField(position, wrapper.Property, label, true);
+            } catch (Exception ex) {
+              FusionEditorLog.ErrorInspector($"Error in OnGUIInternal for {property.propertyPath}: {ex}");
+            }
 
             EditorGUI.EndProperty();
             if (EditorGUI.EndChangeCheck()) {
@@ -1627,7 +1649,7 @@ namespace Fusion.Editor {
       Debug.Assert(1 == fixedBuffer.fixedBufferSize);
 
       var valueProp = fixedBuffer.GetFixedBufferElementAtIndex(0);
-      var value = valueProp.intValue;
+      int value = valueProp.intValue;
       surrogate.Read(&value, 1);
 
       EditorGUI.BeginProperty(position, label, property);
@@ -1647,28 +1669,28 @@ namespace Fusion.Editor {
         var fixedBuffer = GetFixedBufferProperty(property);
         Debug.Assert(count == fixedBuffer.fixedBufferSize);
 
-        var raw = stackalloc int[count];
-        for (var i = 0; i < count; ++i) {
+        int* raw = stackalloc int[count];
+        for (int i = 0; i < count; ++i) {
           raw[i] = fixedBuffer.GetFixedBufferElementAtIndex(i).intValue;
         }
 
         readerWriter.Read(raw, 1);
 
-        var changed = 0;
+        int changed = 0;
 
         var data = readerWriter.DataProperty;
-        var pdata = (float*)&data;
+        float* pdata = (float*)&data;
 
-        var id = GUIUtility.GetControlID(_multiFieldPrefixId, FocusType.Keyboard, position);
+        int id = GUIUtility.GetControlID(_multiFieldPrefixId, FocusType.Keyboard, position);
         position = UnityInternal.EditorGUI.MultiFieldPrefixLabel(position, id, label, count);
         if (position.width > 1) {
           using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel)) {
-            var w = (position.width - (count - 1) * SpacingSubLabel) / count;
+            float w = (position.width - (count - 1) * SpacingSubLabel) / count;
             var nestedPosition = new Rect(position) { width = w };
 
-            for (var i = 0; i < count; ++i) {
+            for (int i = 0; i < count; ++i) {
               var propLabel = _vectorProperties[i];
-              var prefixWidth = EditorStyles.label.CalcSize(propLabel).x;
+              float prefixWidth = EditorStyles.label.CalcSize(propLabel).x;
               using (new FusionEditorGUI.LabelWidthScope(prefixWidth)) {
                 EditorGUI.BeginChangeCheck();
                 var newValue = propLabel == null ? EditorGUI.FloatField(nestedPosition, pdata[i]) : EditorGUI.FloatField(nestedPosition, propLabel, pdata[i]);
@@ -1686,7 +1708,7 @@ namespace Fusion.Editor {
           readerWriter.DataProperty = data;
           readerWriter.Write(raw, 1);
 
-          for (var i = 0; i < count; ++i) {
+          for (int i = 0; i < count; ++i) {
             if ((changed & (1 << i)) != 0) {
               fixedBuffer.GetFixedBufferElementAtIndex(i).intValue = raw[i];
             }
@@ -1723,7 +1745,7 @@ namespace Fusion.Editor {
     }
 
     private bool UpdateSurrogateFromFixedBuffer(SerializedProperty sp, UnitySurrogateBase surrogate, bool write, bool force) {
-      var count = sp.fixedBufferSize;
+      int count = sp.fixedBufferSize;
       Array.Resize(ref _buffer, Math.Max(_buffer.Length, count));
 
       // need to get to the first property... `GetFixedBufferElementAtIndex` is slow and allocs
@@ -1735,9 +1757,14 @@ namespace Fusion.Editor {
 
       fixed (int* p = _buffer) {
         UnsafeUtility.MemClear(p, count * sizeof(int));
-        surrogate.Write(p, Capacity);
 
-        var i = 0;
+        try {
+          surrogate.Write(p, Capacity);
+        } catch (Exception ex) {
+          SetError($"Failed writing: {ex}");
+        }
+
+        int i = 0;
         if (!force) {
           // find first difference
           for (; i < count; ++i, element.Next(true)) {
@@ -1822,10 +1849,10 @@ namespace Fusion.Editor {
 
       public bool WasUsed { get; private set; }
 
-      public PropertyEntry Acquire(FieldInfo field, PropertyAttribute attribute, SerializedProperty property, Type type) {
+      public PropertyEntry Acquire(FieldInfo field, int capacity, SerializedProperty property, Type type) {
         WasUsed = true;
 
-        var hadNulls = false;
+        bool hadNulls = false;
 
         var key = (type, property.propertyPath, property.serializedObject.targetObjects.Length);
         if (_used.TryGetValue(key, out var entry)) {
@@ -1848,7 +1875,7 @@ namespace Fusion.Editor {
           _wrappersPool.Add(type, pool);
         }
 
-        for (var i = 0; i < wrappers.Length; ++i) {
+        for (int i = 0; i < wrappers.Length; ++i) {
 
           // pop destroyed ones
           while (pool.Count > 0 && !pool.Peek()) {
@@ -1866,6 +1893,7 @@ namespace Fusion.Editor {
           if (wrappers[i].SurrogateType != type) {
             FusionEditorLog.TraceInspector($"Replacing type {wrappers[i].Surrogate?.GetType()} with {type}");
             wrappers[i].Surrogate = (UnitySurrogateBase)Activator.CreateInstance(type);
+            wrappers[i].Surrogate.Init(capacity);
             wrappers[i].SurrogateType = type;
           }
         }
@@ -1914,85 +1942,18 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
   using System.Linq;
+  using System.Reflection;
   using UnityEditor;
   using UnityEngine;
 
-#if UNITY_2021_1_OR_NEWER
-  public abstract class ForwardingPropertyDrawer : PropertyDrawer {
-
-    private bool _initialized;
-    private PropertyDrawer _typePropertyDrawer;
-    private bool _lastDrawer;
-
-    public PropertyDrawer TypePropertyDrawer => _typePropertyDrawer;
-
-    [Obsolete("Derived classes should override and call OnGUIInternal", true)]
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-    public sealed override void OnGUI(Rect position, SerializedProperty prop, GUIContent label) {
-#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
-      EnsureInitialized();
-      OnGUIInternal(position, prop, label);
-    }
-
-    [Obsolete("Derived classes should override and call GetPropertyHeightInternal", true)]
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-    public sealed override float GetPropertyHeight(SerializedProperty prop, GUIContent label) {
-#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
-      EnsureInitialized();
-      return GetPropertyHeightInternal(prop, label);
-    }
-
-    protected virtual float GetPropertyHeightInternal(SerializedProperty property, GUIContent label) {
-      return (_typePropertyDrawer?.GetPropertyHeight(property, label) ?? EditorGUI.GetPropertyHeight(property, label));
-    }
-
-    protected virtual void OnGUIInternal(Rect position, SerializedProperty property, GUIContent label) {
-      if (_typePropertyDrawer != null) {
-        _typePropertyDrawer.OnGUI(position, property, label);
-      } else {
-        FusionEditorGUI.ForwardPropertyField(position, property, label, property.IsArrayProperty() ? true : property.isExpanded, lastDrawer: _lastDrawer);
-      }
-    }
-
-    void EnsureInitialized() {
-      if (_initialized) {
-        return;
-      }
-
-      _initialized = true;
-      _lastDrawer = true;
-
-      if (fieldInfo == null) {
-        return;
-      }
-
-      var fieldAttributes = UnityInternal.ScriptAttributeUtility.GetFieldAttributes(fieldInfo);
-      if (fieldAttributes != null) {
-
-        var propertyDrawerAttributes = fieldAttributes
-        .Where(x => x is MultiPropertyDrawersFixAttribute == false)
-        .Where(x => UnityInternal.ScriptAttributeUtility.GetDrawerTypeForType(x.GetType())?.IsSubclassOf(typeof(PropertyDrawer)) == true)
-        .ToList();
-
-        var index = propertyDrawerAttributes.IndexOf(attribute);
-
-        if (index != propertyDrawerAttributes.Count - 1) {
-          // not the last drawer, ignore
-          _lastDrawer = false;
-          return;
-        }
-      }
-
-      var drawerType = UnityInternal.ScriptAttributeUtility.GetDrawerTypeForType(fieldInfo.FieldType);
-      if (drawerType != null) {
-        TraceField($"Chained type drawer ({drawerType})");
-        _typePropertyDrawer = (PropertyDrawer)Activator.CreateInstance(drawerType);
-        UnityInternal.PropertyDrawer.SetFieldInfo(_typePropertyDrawer, fieldInfo);
-      }
-    }
-#else
+  // Unity 2021.1 introduced support for multiple property drawers,
+  // but Odin does not seem to respect chaining
+#if !UNITY_2021_1_OR_NEWER
+  // in newer Unity versions it is better to simply ignore this attribute
   [CustomPropertyDrawer(typeof(MultiPropertyDrawersFixAttribute))]
+#endif
   public class ForwardingPropertyDrawer : PropertyDrawer {
 
     /// <summary>
@@ -2004,8 +1965,12 @@ namespace Fusion.Editor {
     private ForwardingPropertyDrawer _mainDrawer;
     private List<ForwardingPropertyDrawer> _subDrawers;
     private PropertyDrawer _nextDrawer;
+    private bool _isLastDrawer;
 
     public List<ForwardingPropertyDrawer> PropertyDrawers => _subDrawers;
+    public PropertyDrawer NextDrawer => _nextDrawer;
+    public bool UsesManualChaining { get; private set; }
+
 
     [Obsolete("Derived classes should override and call OnGUIInternal", true)]
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -2048,7 +2013,7 @@ namespace Fusion.Editor {
         if (_nextDrawer != null) {
           _nextDrawer.OnGUI(position, prop, label);
         } else {
-          FusionEditorGUI.ForwardPropertyField(position, prop, label, prop.IsArrayProperty() ? true : prop.isExpanded);
+          FusionEditorGUI.ForwardPropertyField(position, prop, label, prop.IsArrayProperty() ? true : prop.isExpanded, lastDrawer: _isLastDrawer);
         }
       }
     }
@@ -2069,21 +2034,39 @@ namespace Fusion.Editor {
         return;
       }
 
-      Debug.Assert(fieldInfo != null);
       Debug.Assert(attribute != null);
 
       _subDrawers = new List<ForwardingPropertyDrawer>();
       _mainDrawer = this;
       _nextDrawer = null;
 
+      
+      bool isOdin = IsUsingOdinInspector();
+      bool needsManualChaining =
+#if UNITY_2021_1_OR_NEWER
+        isOdin;
+#else
+        true;
+#endif
+
+      UsesManualChaining = needsManualChaining;
+
+      bool isLastDrawer = false;
       bool foundSelf = false;
 
-      var fieldAttributes = UnityInternal.ScriptAttributeUtility.GetFieldAttributes(fieldInfo);
+      var fieldAttributes = fieldInfo != null ? UnityInternal.ScriptAttributeUtility.GetFieldAttributes(fieldInfo) : null;
+
       if (fieldAttributes != null) {
+
+#if UNITY_2021_1_OR_NEWER
+        Debug.Assert(fieldAttributes.OrderBy(x =>  x.order).SequenceEqual(fieldAttributes), $"Expected field attributes to be sorted");
+#else
         Debug.Assert(fieldAttributes.OrderBy(x => -x.order).SequenceEqual(fieldAttributes), $"Expected field attributes to be sorted in reverse order");
+        fieldAttributes.Sort((a, b) => a.order - b.order);
+#endif
         Debug.Assert(fieldAttributes.Count > 0);
 
-        for (int i = fieldAttributes.Count - 1; i >= 0; --i) {
+        for (int i = 0; i < fieldAttributes.Count; ++i) {
 
           var fieldAttribute = fieldAttributes[i];
 
@@ -2099,34 +2082,39 @@ namespace Fusion.Editor {
           }
 
           Debug.Assert(attributeDrawerType.IsSubclassOf(typeof(PropertyDrawer)));
-          Debug.Assert(!foundSelf);
 
           if (fieldAttribute.Equals(attribute)) {
             // self
             _subDrawers.Add(this);
+            Debug.Assert(foundSelf == false);
             foundSelf = true;
+            isLastDrawer = true;
             TraceField($"Found self at {i} ({this})");
             continue;
           }
 
-          // create the drawer
-          var drawer = (PropertyDrawer)Activator.CreateInstance(attributeDrawerType);
-          UnityInternal.PropertyDrawer.SetAttribute(drawer, fieldAttribute);
-          UnityInternal.PropertyDrawer.SetFieldInfo(drawer, fieldInfo);
+          isLastDrawer = false;
+          if (needsManualChaining) {
+            // create the drawer
+            var drawer = (PropertyDrawer)Activator.CreateInstance(attributeDrawerType);
+            UnityInternal.PropertyDrawer.SetAttribute(drawer, fieldAttribute);
+            UnityInternal.PropertyDrawer.SetFieldInfo(drawer, fieldInfo);
 
-          if (drawer is ForwardingPropertyDrawer forwardingDrawer) {
-            // can keep on chaining
-            _subDrawers.Add(forwardingDrawer);
-            forwardingDrawer._mainDrawer = this;
-            TraceField($"Chaining {drawer} for attribute {fieldAttribute}");
-          } else {
-            if (_nextDrawer == null) {
-              TraceField($"The final drawer is {drawer} for attribute {fieldAttribute}");
+            if (drawer is ForwardingPropertyDrawer forwardingDrawer) {
+              // can keep on chaining
+              _subDrawers.Add(forwardingDrawer);
+              forwardingDrawer._mainDrawer = this;
+              TraceField($"Chaining {drawer} for attribute {fieldAttribute}");
             } else {
-              TraceField($"There was a drawer after the final one ({drawer} for {fieldAttribute}), overriding");
+              if (_nextDrawer == null) {
+                TraceField($"The final drawer is {drawer} for attribute {fieldAttribute}");
+              } else {
+                TraceField($"There was a drawer after the final one ({drawer} for {fieldAttribute}), overriding");
+              }
+              _nextDrawer = drawer;
             }
-            _nextDrawer = drawer;
           }
+          
         }
       }
 
@@ -2135,7 +2123,7 @@ namespace Fusion.Editor {
         _subDrawers.Add(this);
       }
 
-      if (_nextDrawer == null) {
+      if (_nextDrawer == null && (needsManualChaining || isLastDrawer) && fieldInfo != null) {
         // try creating type drawer instead
         var typeDrawerType = UnityInternal.ScriptAttributeUtility.GetDrawerTypeForType(fieldInfo.FieldType);
         if (typeDrawerType != null) {
@@ -2144,6 +2132,10 @@ namespace Fusion.Editor {
           TraceField($"Found final drawer is type drawer ({drawer})");
           _nextDrawer = drawer;
         }
+      }
+
+      if (!needsManualChaining && isLastDrawer) {
+        _isLastDrawer = true;
       }
     }
 
@@ -2166,10 +2158,43 @@ namespace Fusion.Editor {
       _nextDrawer = next;
     }
 
-    internal PropertyDrawer GetNextDrawer(PropertyDrawer drawer) {
+    public PropertyDrawer GetNextDrawer(SerializedProperty property) {
+      if (UsesManualChaining) {
+        return GetNextDrawerInner(this);
+      }
+
+      if (NextDrawer != null) {
+        return NextDrawer;
+      }
+
+#if UNITY_2021_1_OR_NEWER
+      var handler = UnityInternal.ScriptAttributeUtility.propertyHandlerCache.GetHandler(property);
+      var drawers = handler.m_PropertyDrawers;
+      var index = drawers.IndexOf(this);
+      if (index >= 0 && index < drawers.Count - 1) {
+        return drawers[index + 1];
+      }
+#endif
+      return null;
+    }
+
+    bool IsUsingOdinInspector() {
+#if ODIN_INSPECTOR
+      var stack = new System.Diagnostics.StackTrace(3);
+      var odinAsm = typeof(Sirenix.OdinInspector.Editor.OdinEditor).Assembly;
+      return stack.GetFrames()
+        .SkipWhile(x => x.GetMethod().DeclaringType != UnityInternal.PropertyHandler.InternalType)
+        .SkipWhile(x => x.GetMethod().DeclaringType.Assembly != odinAsm)
+        .Any();
+#else
+      return true;
+#endif
+    }
+
+    PropertyDrawer GetNextDrawerInner(PropertyDrawer drawer) {
       Debug.Assert(_mainDrawer != null);
       if (_mainDrawer != this) {
-        return _mainDrawer.GetNextDrawer(drawer);
+        return _mainDrawer.GetNextDrawerInner(drawer);
       }
       if (drawer is ForwardingPropertyDrawer forwarding) {
         var index = _subDrawers.IndexOf(forwarding);
@@ -2183,7 +2208,6 @@ namespace Fusion.Editor {
       }
       return null;
     }
-#endif
 
     [System.Diagnostics.Conditional("FUSION_EDITOR_TRACE")]
     private void TraceField(string message) {
@@ -2217,15 +2241,21 @@ namespace Fusion {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/InlineEditorAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
-    using UnityEngine;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(InlineEditorAttribute))]
   public class InlineEditorAttributeDrawer : PropertyDrawer {
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-      var enterChildren = true;
-      var parentDepth = property.depth;
+      bool enterChildren = true;
+      int parentDepth = property.depth;
 
       using (new FusionEditorGUI.PropertyScope(position, label, property)) {
         for (var prop = property; property.NextVisible(enterChildren) && property.depth > parentDepth; enterChildren = false) {
@@ -2240,9 +2270,9 @@ namespace Fusion.Editor {
 
       property.isExpanded = true;
 
-      var result = -EditorGUIUtility.standardVerticalSpacing;
-      var enterChildren = true;
-      var parentDepth = property.depth;
+      float result = -EditorGUIUtility.standardVerticalSpacing;
+      bool enterChildren = true;
+      int parentDepth = property.depth;
 
       for (var prop = property; property.NextVisible(enterChildren) && property.depth > parentDepth; enterChildren = false) {
         result += EditorGUI.GetPropertyHeight(prop) + EditorGUIUtility.standardVerticalSpacing;
@@ -2300,7 +2330,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/InlineHelpAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(InlineHelpAttribute))]
@@ -2325,7 +2356,7 @@ namespace Fusion.Editor {
 
       EnsureInitialized(property);
       
-      var height = base.GetPropertyHeightInternal(property, label);
+      float height = base.GetPropertyHeightInternal(property, label);
       if (height <= 0) {
         return height;
       }
@@ -2342,6 +2373,7 @@ namespace Fusion.Editor {
         ArrayHeightDecorator.Height = value;
       }
     }
+
 
     protected override void OnGUIInternal(Rect position, SerializedProperty property, GUIContent label) {
 
@@ -2360,9 +2392,9 @@ namespace Fusion.Editor {
         return;
       }
 
-      var nextDrawer = FusionEditorGUI.GetNextDrawer(this, property);
+      var nextDrawer = GetNextDrawer(property);
 
-      var hasFoldout = HasFoldout(nextDrawer, property);
+      bool hasFoldout = HasFoldout(nextDrawer, property);
       if (hasFoldout && EditorGUI.indentLevel == 0 && attribute.ButtonPlacement == InlineHelpButtonPlacement.BeforeLabel) {
         // help button won't fit
         ReplaceTooltip(ref label);
@@ -2370,8 +2402,8 @@ namespace Fusion.Editor {
         return;
       }
 
-      var buttonRect = FusionEditorGUI.GetInlineHelpButtonRect(attribute.ButtonPlacement, position, label, hasFoldout);
-      var wasExpanded = FusionEditorGUI.IsHelpExpanded(this, property.propertyPath);
+      Rect buttonRect = FusionEditorGUI.GetInlineHelpButtonRect(attribute.ButtonPlacement, position, label, hasFoldout);
+      bool wasExpanded = FusionEditorGUI.IsHelpExpanded(this, property.propertyPath);
       if (wasExpanded) {
         var helpRect = FusionEditorGUI.GetInlineHelpRect(_helpInfo.Summary);
         FusionEditorGUI.DrawInlineHelp(_helpInfo.Summary, position, helpRect);
@@ -2515,7 +2547,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkBoolDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkBool))]
@@ -2524,7 +2559,7 @@ namespace Fusion.Editor {
       using (new FusionEditorGUI.PropertyScope(position, label, property)) {
         var valueProperty = property.FindPropertyRelativeOrThrow("_value");
         EditorGUI.BeginChangeCheck();
-        var isChecked = EditorGUI.Toggle(position, label, valueProperty.intValue > 0);
+        bool isChecked = EditorGUI.Toggle(position, label, valueProperty.intValue > 0);
         if (EditorGUI.EndChangeCheck()) {
           valueProperty.intValue = isChecked ? 1 : 0;
           valueProperty.serializedObject.ApplyModifiedProperties();
@@ -2598,7 +2633,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabAssetDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Linq;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
   using UnityEditor;
   using UnityEngine;
 
@@ -2632,7 +2669,7 @@ namespace Fusion.Editor {
               DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
 
               if (Event.current.type == EventType.DragPerform) {
-                if (NetworkProjectConfigUtilities.TryGetPrefabAsset(draggedObject.NetworkGuid, out var prefabAsset)) { 
+                if (NetworkProjectConfigUtilities.TryGetPrefabAsset(draggedObject.NetworkGuid, out NetworkPrefabAsset prefabAsset)) { 
                   property.objectReferenceValue = prefabAsset;
                   property.serializedObject.ApplyModifiedProperties();
                 }
@@ -2723,7 +2760,7 @@ namespace Fusion.Editor {
     private void RefreshEditors() {
       Array.Resize(ref _gameObjectEditors, targets.Length);
 
-      var i = 0;
+      int i = 0;
       foreach (NetworkPrefabAsset info in targets) {
         var prefab = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(info.AssetGuid.ToString("N"))) as GameObject;
         if (prefab == null) {
@@ -2736,7 +2773,7 @@ namespace Fusion.Editor {
     }
 
     private void OnDisable() {
-      for (var i = 0; i < _gameObjectEditors.Length; ++i) {
+      for (int i = 0; i < _gameObjectEditors.Length; ++i) {
         if (_gameObjectEditors[i]) {
           DestroyImmediate(_gameObjectEditors[i]);
           _gameObjectEditors[i] = null;
@@ -2766,8 +2803,8 @@ namespace Fusion.Editor {
         EditorGUI.HelpBox(r, $"Prefab not found!\nGuid: {target.AssetGuid}\nPath: {assetPath}", MessageType.Error);
       } else {
 
-        var pickerHeight = EditorGUIUtility.singleLineHeight;
-        var marginBottom = 2.0f;
+        float pickerHeight = EditorGUIUtility.singleLineHeight;
+        float marginBottom = 2.0f;
 
 
         var pathRect = new Rect(r);
@@ -2804,7 +2841,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkPrefabAttribute))]
@@ -2895,7 +2935,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabRefDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkPrefabRef))]
@@ -2994,6 +3037,8 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Reflection;
   using System.Text;
   using UnityEditor;
   using UnityEngine;
@@ -3092,7 +3137,7 @@ namespace Fusion.Editor {
 
       EditorGUI.BeginProperty(position, label, property);
 
-      var hasChanged = false;
+      bool hasChanged = false;
 
       EditorGUI.LabelField(new Rect(position) { height = 17 }, label);
 
@@ -3111,7 +3156,7 @@ namespace Fusion.Editor {
         GUI.Box(dragarea, GUIContent.none, EditorStyles.helpBox);
 
         property.isExpanded = GUI.Toggle(new Rect(position) { xMin = dragarea.xMin + 2, yMin = dragarea.yMin + 2, width = 12, height = 16 }, property.isExpanded, GUIContent.none, EditorStyles.foldout);
-        var isExpanded = property.isExpanded;
+        bool isExpanded = property.isExpanded;
 
         float border = isExpanded ? 4 : 2;
         dragarea.xMin += 18;
@@ -3142,7 +3187,7 @@ namespace Fusion.Editor {
 
         var invertY = (attribute as NormalizedRectAttribute).InvertY;
 
-        var e = Event.current;
+        Event e = Event.current;
         
         const int HANDLE_SIZE = 8;
 
@@ -3291,7 +3336,7 @@ namespace Fusion.Editor {
         const int LABELS_WIDTH = 16;
         const float COMPACT_THRESHOLD = 340f;
 
-        var useCompact = position.width < COMPACT_THRESHOLD;
+        bool useCompact = position.width < COMPACT_THRESHOLD;
 
         var labelwidth = EditorGUIUtility.labelWidth;
         var fieldwidth = (position.width - labelwidth- 3 * SPACING) * 0.25f ;
@@ -3301,7 +3346,7 @@ namespace Fusion.Editor {
           _compactLabelStyle = new GUIStyle(EditorStyles.miniLabel)     { fontSize = 9, alignment = TextAnchor.MiddleLeft, padding = new RectOffset(2, 0, 1, 0) };
           _compactValueStyle = new GUIStyle(EditorStyles.miniTextField) { fontSize = 9, alignment = TextAnchor.MiddleLeft, padding = new RectOffset(2, 0, 1, 0) };
         }
-        var valueStyle = _compactValueStyle;
+        GUIStyle valueStyle = _compactValueStyle;
 
         //if (useCompact) {
         //  if (_compactStyle == null) {
@@ -3314,10 +3359,10 @@ namespace Fusion.Editor {
 
         // Only draw labels when not in compact
         if (!useCompact) {
-          var l1 = new Rect(fieldbase) { x = fieldbase.xMin };
-          var l2 = new Rect(fieldbase) { x = fieldbase.xMin + 1 * (fieldwidth + SPACING) };
-          var l3 = new Rect(fieldbase) { x = fieldbase.xMin + 2 * (fieldwidth + SPACING) };
-          var l4 = new Rect(fieldbase) { x = fieldbase.xMin + 3 * (fieldwidth + SPACING) };
+          Rect l1 = new Rect(fieldbase) { x = fieldbase.xMin };
+          Rect l2 = new Rect(fieldbase) { x = fieldbase.xMin + 1 * (fieldwidth + SPACING) };
+          Rect l3 = new Rect(fieldbase) { x = fieldbase.xMin + 2 * (fieldwidth + SPACING) };
+          Rect l4 = new Rect(fieldbase) { x = fieldbase.xMin + 3 * (fieldwidth + SPACING) };
           GUI.Label(l1, "L:", _compactLabelStyle);
           GUI.Label(l2, "R:", _compactLabelStyle);
           GUI.Label(l3, "T:", _compactLabelStyle);
@@ -3325,10 +3370,10 @@ namespace Fusion.Editor {
         }
 
         // Draw value fields
-        var f1 = new Rect(fieldbase) { x = fieldbase.xMin + 0 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) };
-        var f2 = new Rect(fieldbase) { x = fieldbase.xMin + 1 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 1 * SPACING };
-        var f3 = new Rect(fieldbase) { x = fieldbase.xMin + 2 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 2 * SPACING };
-        var f4 = new Rect(fieldbase) { x = fieldbase.xMin + 3 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 3 * SPACING };
+        Rect f1 = new Rect(fieldbase) { x = fieldbase.xMin + 0 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) };
+        Rect f2 = new Rect(fieldbase) { x = fieldbase.xMin + 1 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 1 * SPACING };
+        Rect f3 = new Rect(fieldbase) { x = fieldbase.xMin + 2 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 2 * SPACING };
+        Rect f4 = new Rect(fieldbase) { x = fieldbase.xMin + 3 * fieldwidth + (useCompact ? 0 : LABELS_WIDTH) + 3 * SPACING };
 
         using (var check = new EditorGUI.ChangeCheckScope()) {
           float newxmin, newxmax, newymin, newymax;
@@ -3401,12 +3446,12 @@ namespace Fusion.Editor {
 
       var attr = attribute as Pow2SliderAttribute;
 
-      var showUnits = attr.Unit != Units.None;
-      var fieldWidth = showUnits ? UnitAttributeDecoratorDrawer.FIELD_WIDTH : 50;
+      bool showUnits = attr.Unit != Units.None;
+      float fieldWidth = showUnits ? UnitAttributeDecoratorDrawer.FIELD_WIDTH : 50;
 
       EditorGUI.LabelField(r, label);
 
-      var labelw = EditorGUIUtility.labelWidth;
+      float labelw = EditorGUIUtility.labelWidth;
 
       int exp;
       if (attr.AllowZero && property.intValue == 0)
@@ -3414,15 +3459,15 @@ namespace Fusion.Editor {
       else
         exp = (int)Math.Log(property.intValue, 2);
 
-      var oldValue = property.intValue;
+      int oldValue = property.intValue;
 
-      var rightRect = new Rect(r) { xMin = r.xMin + EditorGUIUtility.labelWidth + 2 };
-      var r1 = new Rect(rightRect) { xMax = rightRect.xMax - fieldWidth - 4 };
-      var r2 = new Rect(rightRect) { xMin = rightRect.xMax - fieldWidth };
-      var newExp = (int)GUI.HorizontalSlider(r1, exp, attr.MinPower, attr.MaxPower);
+      Rect rightRect = new Rect(r) { xMin = r.xMin + EditorGUIUtility.labelWidth + 2 };
+      Rect r1 = new Rect(rightRect) { xMax = rightRect.xMax - fieldWidth - 4 };
+      Rect r2 = new Rect(rightRect) { xMin = rightRect.xMax - fieldWidth };
+      int newExp = (int)GUI.HorizontalSlider(r1, exp, attr.MinPower, attr.MaxPower);
 
       if (newExp != exp) {
-        var newValue = (attr.AllowZero && newExp == 0) ? 0 : (int)Math.Round(Math.Pow(2, newExp));
+        int newValue = (attr.AllowZero && newExp == 0) ? 0 : (int)Math.Round(Math.Pow(2, newExp));
 
         property.intValue = newValue;
 
@@ -3433,7 +3478,7 @@ namespace Fusion.Editor {
       }
 
       EditorGUI.BeginChangeCheck();
-      var newVal = EditorGUI.DelayedIntField(r2, property.intValue);
+      int newVal = EditorGUI.DelayedIntField(r2, property.intValue);
       if (newVal != property.intValue) {
 
         // Round to the nearest even exponent
@@ -3591,7 +3636,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/ReserveArrayPropertyHeightDecorator.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using UnityEditor;
   using UnityEngine;
 
   internal class ReserveArrayPropertyHeightDecorator : DecoratorDrawer {
@@ -3679,8 +3725,14 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/ResourcePathAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
-    using UnityEngine;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(UnityResourcePathAttribute))]
   public class ResourcePathAttributeDrawer : PropertyDrawerWithErrorHandling {
@@ -3733,7 +3785,10 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using UnityEngine;
   using UnityEditor;
+  using UnityEditor.SceneManagement;
   using System.Linq;
+  using System.IO;
+  using System;
 
   [CanEditMultipleObjects]
   [CustomPropertyDrawer(typeof(ScenePathAttribute))]
@@ -3806,7 +3861,7 @@ namespace Fusion.Editor {
         return;
       }
 
-      var useEnhancedHeader = settings.BackColor != EditorHeaderBackColor.None;
+      bool useEnhancedHeader = settings.BackColor != EditorHeaderBackColor.None;
 
       // ensures exact height correctness (might slightly differ due to scaling)
       position.height = useEnhancedHeader ? 24f : 18;
@@ -3817,7 +3872,7 @@ namespace Fusion.Editor {
 
       if (useEnhancedHeader) {
         using (new FusionEditorGUI.EnabledScope(true)) {
-          var e = Event.current;
+          Event e = Event.current;
           if (e.type == EventType.MouseDown && position.Contains(e.mousePosition)) {
             if (e.clickCount == 1) {
               if (!string.IsNullOrEmpty(settings.Url)) {
@@ -3833,7 +3888,7 @@ namespace Fusion.Editor {
         }
       } else {
         using (new FusionEditorGUI.EnabledScope(false)) {
-          var prop = property.serializedObject.FindProperty("m_Script");
+          SerializedProperty prop = property.serializedObject.FindProperty("m_Script");
           EditorGUI.PropertyField(position, prop);
         }
       }
@@ -3861,10 +3916,15 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/SerializableDictionaryDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Collections.Generic;
+  using System;
+  using System.Collections.Generic;
   using System.Linq;
-    using UnityEditor;
-    using UnityEngine;
+  using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(SerializableDictionary), true)]
   public class SerializableDictionaryDrawer : PropertyDrawerWithErrorHandling {
@@ -3878,7 +3938,7 @@ namespace Fusion.Editor {
         EditorGUI.PropertyField(position, entries, label, true);
         property.isExpanded = entries.isExpanded;
 
-        var error = VerifyDictionary(entries, EntryKeyPropertyPath);
+        string error = VerifyDictionary(entries, EntryKeyPropertyPath);
         if (error != null) {
           SetError(error);
         } else {
@@ -3896,7 +3956,7 @@ namespace Fusion.Editor {
     private static string VerifyDictionary(SerializedProperty prop, string keyPropertyName) {
       Debug.Assert(prop.isArray);
       try {
-        for (var i = 0; i < prop.arraySize; ++i) {
+        for (int i = 0; i < prop.arraySize; ++i) {
           var keyProperty = prop.GetArrayElementAtIndex(i).FindPropertyRelativeOrThrow(keyPropertyName);
           if (!_dictionaryKeyHash.Add(keyProperty)) {
 
@@ -4026,24 +4086,24 @@ namespace Fusion.Editor {
 
       var proptype = property.type;
 
-      var min = attr.Min;
-      var max = attr.Max;
+      double min = attr.Min;
+      double max = attr.Max;
 
-      var realmin = min < max ? min : max;
-      var realmax = min < max ? max : min;
+      double realmin = min < max ? min : max;
+      double realmax = min < max ? max : min;
 
 
       /*if (min != 0 || max != 0) */
       {
 
-        var rightSide1  = new Rect(position) { xMin = position.xMin + EditorGUIUtility.labelWidth + 2 };
-        var rightSide2  = (useInverse) ? new Rect(secondRow) { xMin = secondRow.xMin + EditorGUIUtility.labelWidth + 2 } : default;
-        var sliderRect1 = new Rect(rightSide1) { xMax = rightSide1.xMax - FIELD_WIDTH - 4 };
-        var sliderRect2 = new Rect(rightSide2) { xMax = rightSide2.xMax - FIELD_WIDTH - 4 };
-        var useSlider = (min != 0 || max != 0) && sliderRect1.width > 20;
+        Rect rightSide1  = new Rect(position) { xMin = position.xMin + EditorGUIUtility.labelWidth + 2 };
+        Rect rightSide2  = (useInverse) ? new Rect(secondRow) { xMin = secondRow.xMin + EditorGUIUtility.labelWidth + 2 } : default;
+        Rect sliderRect1 = new Rect(rightSide1) { xMax = rightSide1.xMax - FIELD_WIDTH - 4 };
+        Rect sliderRect2 = new Rect(rightSide2) { xMax = rightSide2.xMax - FIELD_WIDTH - 4 };
+        bool useSlider = (min != 0 || max != 0) && sliderRect1.width > 20;
 
-        var valRect1 = new Rect(rightSide1);
-        var valRect2 = new Rect(rightSide2);
+        Rect valRect1 = new Rect(rightSide1);
+        Rect valRect2 = new Rect(rightSide2);
 
         if (useSlider) {
           var valwidth = rightSide1.xMax - FIELD_WIDTH;
@@ -4055,16 +4115,16 @@ namespace Fusion.Editor {
 
           // Slider is always float based, even for doubles
           if (useSlider) {
-            var isDouble = proptype == "double";
+            bool isDouble = proptype == "double";
 
             // Slider is the same for double and float, it just casts differently at the end.
             EditorGUI.LabelField(position, label, GUIContent.none);
             EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel = 0;
-            var sliderval = GUI.HorizontalSlider(sliderRect1, property.floatValue, (float)min, (float)max);
+            float sliderval = GUI.HorizontalSlider(sliderRect1, property.floatValue, (float)min, (float)max);
             if (EditorGUI.EndChangeCheck()) {
-              var rounded = Math.Round(sliderval, attr.DecimalPlaces);
-              var clamped = (attr.Clamp ? (rounded < realmin ? realmin : (rounded > realmax ? realmax : rounded)) : rounded);
+              double rounded = Math.Round(sliderval, attr.DecimalPlaces);
+              double clamped = (attr.Clamp ? (rounded < realmin ? realmin : (rounded > realmax ? realmax : rounded)) : rounded);
               property.doubleValue = clamped;
               property.serializedObject.ApplyModifiedProperties();
             }
@@ -4072,9 +4132,9 @@ namespace Fusion.Editor {
               EditorGUI.LabelField(secondRow, attr.InverseName);
               EditorGUI.BeginChangeCheck();
               EditorGUI.indentLevel = 0;
-              var sliderinv = 1f / GUI.HorizontalSlider(sliderRect2, property.floatValue, (float)max, (float)min);
-              var val = Math.Round(1d / sliderinv, attr.InverseDecimalPlaces);
-              var clamped = attr.Clamp ? (val < realmin ? realmin : (val > realmax ? realmax : val)) : val;
+              float sliderinv = 1f / GUI.HorizontalSlider(sliderRect2, property.floatValue, (float)max, (float)min);
+              double val = Math.Round(1d / sliderinv, attr.InverseDecimalPlaces);
+              double clamped = attr.Clamp ? (val < realmin ? realmin : (val > realmax ? realmax : val)) : val;
               if (EditorGUI.EndChangeCheck()) {
                 if (isDouble) {
                   property.doubleValue = clamped;
@@ -4088,10 +4148,10 @@ namespace Fusion.Editor {
             // Double editable fields
             if (isDouble) {
               EditorGUI.BeginChangeCheck();
-              var newval = EditorGUI.DelayedDoubleField(valRect1, GUIContent.none, Math.Round(property.doubleValue, MAX_PLACES));
+              double newval = EditorGUI.DelayedDoubleField(valRect1, GUIContent.none, Math.Round(property.doubleValue, MAX_PLACES));
               if (EditorGUI.EndChangeCheck()) {
                 //double rounded = Math.Round(d, places);
-                var clamped = attr.Clamp ? (newval < realmin ? realmin : (newval > realmax ? realmax : newval)) : newval;
+                double clamped = attr.Clamp ? (newval < realmin ? realmin : (newval > realmax ? realmax : newval)) : newval;
                 property.doubleValue = clamped;
                 property.serializedObject.ApplyModifiedProperties();
               }
@@ -4099,7 +4159,7 @@ namespace Fusion.Editor {
               if (useInverse) {
                 EditorGUI.BeginChangeCheck();
                 // Cast to float going into the field rendering, to limit the number of shown characters, but doesn't actually affect the accuracy of the value.
-                var newinv = 1d / EditorGUI.DelayedDoubleField(valRect2, Math.Round(1d / property.doubleValue, MAX_PLACES));
+                double newinv = 1d / EditorGUI.DelayedDoubleField(valRect2, Math.Round(1d / property.doubleValue, MAX_PLACES));
                 if (EditorGUI.EndChangeCheck()) {
                   //double rounded = Math.Round(newinv, attr.InverseDecimalPlaces);
                   double clamped = (float)(attr.Clamp ? (newinv < realmin ? realmin : (newinv > realmax ? realmax : newinv)) : newinv);
@@ -4111,20 +4171,20 @@ namespace Fusion.Editor {
             // Float editable fields
             else {
               EditorGUI.BeginChangeCheck();
-              var newval = EditorGUI.DelayedFloatField(valRect1, property.floatValue);
+              float newval = EditorGUI.DelayedFloatField(valRect1, property.floatValue);
               if (EditorGUI.EndChangeCheck()) {
                 //double rounded = Math.Round(newval, places);
-                var clamped = (float)(attr.Clamp ? (newval < realmin ? realmin : (newval > realmax ? realmax : newval)) : newval);
+                float clamped = (float)(attr.Clamp ? (newval < realmin ? realmin : (newval > realmax ? realmax : newval)) : newval);
                 property.doubleValue = clamped;
                 property.serializedObject.ApplyModifiedProperties();
               }
 
               if (useInverse) {
                 EditorGUI.BeginChangeCheck();
-                var newinv = 1f / EditorGUI.DelayedFloatField(valRect2, 1f / property.floatValue);
+                float newinv = 1f / EditorGUI.DelayedFloatField(valRect2, 1f / property.floatValue);
                 if (EditorGUI.EndChangeCheck()) {
                   //double rounded = Math.Round(newinv, places);
-                  var clamped = (float)(attr.Clamp ? (newinv < realmin ? realmin : (newinv > realmax ? realmax : newinv)) : newinv);
+                  float clamped = (float)(attr.Clamp ? (newinv < realmin ? realmin : (newinv > realmax ? realmax : newinv)) : newinv);
                   property.floatValue = clamped;
                   property.serializedObject.ApplyModifiedProperties();
                 }
@@ -4137,19 +4197,19 @@ namespace Fusion.Editor {
             EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(position, property, label);
             if (EditorGUI.EndChangeCheck()) {
-              var newval = property.doubleValue;
+              double newval = property.doubleValue;
               if (realmin != 0 || realmax != 0) {
-                var clamped = attr.Clamp ? newval < realmin ? realmin : (newval > realmax ? realmax : newval) : newval;
+                double clamped = attr.Clamp ? newval < realmin ? realmin : (newval > realmax ? realmax : newval) : newval;
                 property.doubleValue = clamped;
                 property.serializedObject.ApplyModifiedProperties();
               }
             }
             if (useInverse) {
               EditorGUI.BeginChangeCheck();
-              var newval = 1d / EditorGUI.DelayedFloatField(secondRow, attr.InverseName, (float)Math.Round(1d / property.doubleValue, MAX_PLACES));
+              double newval = 1d / EditorGUI.DelayedFloatField(secondRow, attr.InverseName, (float)Math.Round(1d / property.doubleValue, MAX_PLACES));
               if (EditorGUI.EndChangeCheck()) {
                 if (realmin != 0 || realmax != 0) {
-                  var clamped = attr.Clamp ? newval < realmin ? realmin : (newval > realmax ? realmax : newval) : newval;
+                  double clamped = attr.Clamp ? newval < realmin ? realmin : (newval > realmax ? realmax : newval) : newval;
                   property.doubleValue = clamped;
                 } else {
                   property.doubleValue = newval;
@@ -4175,7 +4235,7 @@ namespace Fusion.Editor {
             // Int slider
             EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel = 0;
-            var sliderval = (int)GUI.HorizontalSlider(sliderRect1, property.intValue, (float)min, (float)max);
+            int sliderval = (int)GUI.HorizontalSlider(sliderRect1, property.intValue, (float)min, (float)max);
             if (EditorGUI.EndChangeCheck()) {
               property.intValue = sliderval;
               property.serializedObject.ApplyModifiedProperties();
@@ -4183,7 +4243,7 @@ namespace Fusion.Editor {
 
             // Int input Field
             EditorGUI.BeginChangeCheck();
-            var i = EditorGUI.DelayedIntField(valRect1, property.intValue);
+            int i = EditorGUI.DelayedIntField(valRect1, property.intValue);
             if (EditorGUI.EndChangeCheck()) {
               property.intValue = (int)(i < realmin ? realmin : (i > realmax ? realmax : i));
               property.serializedObject.ApplyModifiedProperties();
@@ -4195,7 +4255,7 @@ namespace Fusion.Editor {
               // Inverse slider for Ints
               EditorGUI.BeginChangeCheck();
               EditorGUI.indentLevel = 0;
-              var sliderinv = 1f / GUI.HorizontalSlider(sliderRect2, property.intValue, (float)max, (float)min);
+              float sliderinv = 1f / GUI.HorizontalSlider(sliderRect2, property.intValue, (float)max, (float)min);
               if (EditorGUI.EndChangeCheck()) {
                 property.intValue = (int)Math.Round(1f / sliderinv);
                 property.serializedObject.ApplyModifiedProperties();
@@ -4203,10 +4263,10 @@ namespace Fusion.Editor {
 
               // inverse Int field when slider exists
               EditorGUI.BeginChangeCheck();
-              var newinv = 1f / EditorGUI.DelayedFloatField(valRect2, (float)Math.Round(1d / property.intValue, MAX_PLACES));
+              float newinv = 1f / EditorGUI.DelayedFloatField(valRect2, (float)Math.Round(1d / property.intValue, MAX_PLACES));
               if (EditorGUI.EndChangeCheck()) {
-                var val = (int)(1d / newinv);
-                var clamped = (int)(attr.Clamp ? (val < realmin ? realmin : (val > realmax ? realmax : val)) : val);
+                int val = (int)(1d / newinv);
+                int clamped = (int)(attr.Clamp ? (val < realmin ? realmin : (val > realmax ? realmax : val)) : val);
                 property.intValue = clamped;
                 property.serializedObject.ApplyModifiedProperties();
               }
@@ -4218,8 +4278,8 @@ namespace Fusion.Editor {
             EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(position, property, label);
             if (EditorGUI.EndChangeCheck() && (realmin != 0 || realmax != 0)) {
-              var intval = property.intValue;
-              var clamped = attr.Clamp ? (int)(intval < realmin ? realmin : (intval > realmax ? realmax : intval)) : intval;
+              int intval = property.intValue;
+              int clamped = attr.Clamp ? (int)(intval < realmin ? realmin : (intval > realmax ? realmax : intval)) : intval;
               property.intValue = clamped;
               property.serializedObject.ApplyModifiedProperties();
             }
@@ -4228,9 +4288,9 @@ namespace Fusion.Editor {
               EditorGUI.BeginChangeCheck();
               double newval = EditorGUI.DelayedFloatField(secondRow, attr.InverseName, (float)Math.Round(1d / property.intValue, MAX_PLACES));
               if (EditorGUI.EndChangeCheck()) {
-                var rounded = 1d / newval;
+                double rounded = 1d / newval;
                 if (realmin != 0 || realmax != 0) {
-                  var clamped = attr.Clamp ? rounded < realmin ? realmin : (rounded > realmax ? realmax : rounded) : rounded;
+                  double clamped = attr.Clamp ? rounded < realmin ? realmin : (rounded > realmax ? realmax : rounded) : rounded;
                   property.doubleValue = clamped;
                 } else
                   property.doubleValue = rounded;
@@ -4310,7 +4370,7 @@ namespace Fusion.Editor {
         }
       }
 
-      var assetPath = string.Empty;
+      string assetPath = string.Empty;
 
       if (!string.IsNullOrEmpty(guid)) {
         assetPath = AssetDatabase.GUIDToAssetPath(guid);
@@ -4321,7 +4381,7 @@ namespace Fusion.Editor {
         position.width = 40;
         bool buttonPressed;
 
-        var wasEnabled = GUI.enabled;
+        bool wasEnabled = GUI.enabled;
         GUI.enabled = true;
         buttonPressed = GUI.Button(position, "Ping");
         GUI.enabled = wasEnabled;
@@ -4417,9 +4477,9 @@ namespace Fusion.Editor {
       }
 
       // Remove Zero value from the array if need be.
-      var len = removeZero ? rawnames.Length - 1 : rawnames.Length;
+      int len = removeZero ? rawnames.Length - 1 : rawnames.Length;
       names = new string[len];
-      for (var i = 0; i < len; i++) {
+      for (int i = 0; i < len; i++) {
         names[i] = rawnames[FirstIsZero ? (i + 1) : i];
       }
       _nameArrayLookup.Add(fieldInfo.FieldType, names);
@@ -4440,7 +4500,7 @@ namespace Fusion.Editor {
       currentProperty = property;
       var attr = attribute as VersaMaskAttribute;
 
-      var usefoldout = !attr.AlwaysExpanded && UseFoldout(label);
+      bool usefoldout = !attr.AlwaysExpanded && UseFoldout(label);
 
       if (usefoldout) {
         property.isExpanded = EditorGUI.Toggle(new Rect(r) { xMin = r.xMin + EditorGUIUtility.labelWidth, height = LINE_SPACING, width = FOLDOUT_WIDTH }, property.isExpanded, (GUIStyle)"Foldout");
@@ -4458,10 +4518,10 @@ namespace Fusion.Editor {
       maskValue = mask.intValue;
 
       int tempmask;
-      var br = new Rect(r) { xMin = r.xMin + BOX_INDENT };
-      var ir = new Rect(br) { height = LINE_SPACING };
+      Rect br = new Rect(r) { xMin = r.xMin + BOX_INDENT };
+      Rect ir = new Rect(br) { height = LINE_SPACING };
 
-      var labelRect = new Rect(r) { /*xMin = usefoldout ? r.xMin + 14 : r.xMin, */height = LINE_SPACING };
+      Rect labelRect = new Rect(r) { /*xMin = usefoldout ? r.xMin + 14 : r.xMin, */height = LINE_SPACING };
 
        //TODO: Cache most of this in dictionaries to reduce GC
       var namearray = GetStringNames(property, FirstIsZero);
@@ -4480,13 +4540,13 @@ namespace Fusion.Editor {
 
         var ShowMaskBits = attr.ShowBitmask;
 
-        var drawmask = ShowMaskBits ? "" : null;
+        string drawmask = ShowMaskBits ? "" : null;
 
-        var len = namearray.Length;
-        for (var i = 0; i < len; ++i) {
+        int len = namearray.Length;
+        for (int i = 0; i < len; ++i) {
           ir.y += LINE_SPACING;
 
-          var offsetbit = 1 << i;
+          int offsetbit = 1 << i;
 
           if (EditorGUI.ToggleLeft(ir, "", ((mask.intValue & offsetbit) != 0))) {
             tempmask |= offsetbit;
@@ -4560,7 +4620,7 @@ namespace Fusion.Editor {
 
       var attr = attribute as VersaMaskAttribute;
 
-      var expanded = (attr.AlwaysExpanded || (property.isExpanded && UseFoldout(label)));
+      bool expanded = (attr.AlwaysExpanded || (property.isExpanded && UseFoldout(label)));
 
       if (expanded) {
         var stringNames = GetStringNames(property, FirstIsZero);
@@ -4579,7 +4639,11 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/WarnIfAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(WarnIfAttribute))]
@@ -4596,7 +4660,7 @@ namespace Fusion.Editor {
       //property.DrawPropertyUsingFusionAttributes(position, label, fieldInfo);
       base.OnGUIInternal(position, property, label);
      
-      var condValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
+      double condValue = GetCompareValue(property, Attribute.ConditionMember, fieldInfo);
 
       // Try is needed because when first selecting or after recompile, Unity throws errors when trying to inline a element like this.
       try {
@@ -4978,8 +5042,8 @@ namespace Fusion.Editor {
       //};
 
           var tex = new Texture2D(32, 32, TextureFormat.RGBA32, false);
-          for (var x = 0; x < 32; ++x) {
-            for (var y = 0; y < 32; ++y) {
+          for (int x = 0; x < 32; ++x) {
+            for (int y = 0; y < 32; ++y) {
               tex.SetPixel(x, y, EditorGUIUtility.isProSkin ? new Color(1, 1, 1, alphas[x, y]) : new Color(0, 0, 0, alphas[x, y]));
             }
           }
@@ -5033,7 +5097,7 @@ namespace Fusion.Editor {
       get {
         if (_headerTextures == null || _headerTextures[0] == null) {
           _headerTextures = new Texture2D[_headerColors.Length];
-          for(var i = 0; i < _headerColors.Length; ++i) {
+          for(int i = 0; i < _headerColors.Length; ++i) {
             _headerTextures[i] = GenerateRoundedBoxTexture(HEADER_CORNER_RADIUS, new GroupBoxInfo($"Header{i}", _headerColors[i], Color.black), false);
           }
         }
@@ -5045,7 +5109,7 @@ namespace Fusion.Editor {
       get {
         if (_headerTexturesHiRez == null || _headerTexturesHiRez[0] == null) {
           _headerTexturesHiRez = new Texture2D[_headerColors.Length];
-          for (var i = 0; i < _headerColors.Length; ++i) {
+          for (int i = 0; i < _headerColors.Length; ++i) {
             _headerTexturesHiRez[i] = GenerateRoundedBoxTexture(HEADER_CORNER_RADIUS, new GroupBoxInfo($"Header{i}", _headerColors[i], Color.black), true);
           }
         }
@@ -5058,7 +5122,7 @@ namespace Fusion.Editor {
       get {
         if (_groupBoxTextures == null || _groupBoxTextures[0] == null) {
           _groupBoxTextures = new Texture2D[_groupBoxInfo.Length];
-          for (var i = 0; i < _groupBoxInfo.Length; ++i) {
+          for (int i = 0; i < _groupBoxInfo.Length; ++i) {
             _groupBoxTextures[i] = GenerateRoundedBoxTexture(HEADER_CORNER_RADIUS/* + _groupBoxInfo[i].BorderWidth.GetValueOrDefault(1)*/, _groupBoxInfo[i], false);
           }
         }
@@ -5071,7 +5135,7 @@ namespace Fusion.Editor {
       get {
         if (_groupBoxTexturesHiRez == null || _groupBoxTexturesHiRez[0] == null) {
           _groupBoxTexturesHiRez = new Texture2D[_groupBoxInfo.Length];
-          for (var i = 0; i < _groupBoxInfo.Length; ++i) {
+          for (int i = 0; i < _groupBoxInfo.Length; ++i) {
             _groupBoxTexturesHiRez[i] = GenerateRoundedBoxTexture(HEADER_CORNER_RADIUS/* + _groupBoxInfo[i].BorderWidth.GetValueOrDefault(1)*/, _groupBoxInfo[i], true);
           }
         }
@@ -5080,8 +5144,8 @@ namespace Fusion.Editor {
     }
 
     static void OverlayTexture(this Texture2D tex, Texture2D overlay, float opacity) {
-      for (var x = 0; x < tex.width; ++x) {
-        for (var y = 0; y < tex.width; ++y) {
+      for (int x = 0; x < tex.width; ++x) {
+        for (int y = 0; y < tex.width; ++y) {
           var b = tex.GetPixel(x, y);
           var o = overlay.GetPixel(x, y) * new Color(1, 1, 1, opacity);
           var c = Color.Lerp(b, o, o.a);
@@ -5098,10 +5162,10 @@ namespace Fusion.Editor {
       var border = hirez ? info.BorderWidth.GetValueOrDefault(1) * 2 : info.BorderWidth.GetValueOrDefault(1);
 
       var tex = new Texture2D((radius + border) * 2, (radius + border) * 2, TextureFormat.RGBA32, false);
-      var hasOutline = info.OutlineColor != null;
+      bool hasOutline = info.OutlineColor != null;
       var color = info.BackColor.GetValueOrDefault();
       tex.ClearTexture(color * new Color(1, 1, 1, 0));
-      var outlineOnly = color.a == 0;
+      bool outlineOnly = color.a == 0;
 
       if (hasOutline) {
         tex.RenderCircle(radius + border, info.OutlineColor.Value, Blend.Overwrite);
@@ -5123,8 +5187,8 @@ namespace Fusion.Editor {
     }
 
     private static void ClearTexture(this Texture2D tex, Color color) {
-      for(var x = 0; x < tex.width; ++x) {
-        for(var y = 0; y < tex.width; ++y) {
+      for(int x = 0; x < tex.width; ++x) {
+        for(int y = 0; y < tex.width; ++y) {
           tex.SetPixel(x, y, color);
         }
       }
@@ -5148,10 +5212,10 @@ namespace Fusion.Editor {
       var midx = midX.Value;
       var midy = midY.Value;
 
-      for (var x = 0; x < r; ++x) {
-        for (var y = 0; y < r; ++y) {
-          var h = Math.Abs(Math.Sqrt(x * x + y * y));
-          var a = Mathf.Clamp01((float)(r - h));
+      for (int x = 0; x < r; ++x) {
+        for (int y = 0; y < r; ++y) {
+          double h = Math.Abs(Math.Sqrt(x * x + y * y));
+          float a = Mathf.Clamp01((float)(r - h));
 
           var e = tex.GetPixel(midx + x, midy + y);
           var c = color * new Color(1f, 1f, 1f, a);
@@ -5190,10 +5254,10 @@ namespace Fusion.Editor {
       var midx = midX.Value;
       var midy = midY.Value;
 
-      for (var x = 0; x < tex.width; ++x) {
-        for (var y = 0; y < tex.height; ++y) {
-          var h = Math.Abs((Math.Sqrt(x * x + y * y)));
-          var a = Mathf.Clamp01((float)(h - r));
+      for (int x = 0; x < tex.width; ++x) {
+        for (int y = 0; y < tex.height; ++y) {
+          double h = Math.Abs((Math.Sqrt(x * x + y * y)));
+          float a = Mathf.Clamp01((float)(h - r));
           var e = tex.GetPixel(midx + x, midy + y);
           var c = e * new Color(1f, 1f, 1f, a);
           tex.SetPixel(midx + 0 + x, midy + 0 + y, c);
@@ -5206,13 +5270,13 @@ namespace Fusion.Editor {
     }
 
     private static void ApplyAlpha(this Texture2D tex, float alpha) {
-      var midx = tex.width / 2;
-      var midy = tex.height / 2;
+      int midx = tex.width / 2;
+      int midy = tex.height / 2;
 
-      var multiplier = new Color(1, 1, 1, alpha);
+      Color multiplier = new Color(1, 1, 1, alpha);
 
-      for (var x = 0; x < midx; ++x) {
-        for (var y = 0; y < midy; ++y) {
+      for (int x = 0; x < midx; ++x) {
+        for (int y = 0; y < midy; ++y) {
           var e = tex.GetPixel(midx + x, midy + y);
           var c = e * multiplier;
           tex.SetPixel(midx + 0 + x, midy + 0 + y, c);
@@ -5311,9 +5375,9 @@ namespace Fusion.Editor {
     public static GUIStyle GetFusionHeaderBackStyle(int colorIndex) {
 
       if (_fusionHeaderStyles == null || _fusionHeaderStyles[0] == null) {
-        var colorNames = Enum.GetNames(typeof(EditorHeaderBackColor));
+        string[] colorNames = Enum.GetNames(typeof(EditorHeaderBackColor));
         _fusionHeaderStyles = new GUIStyle[colorNames.Length];
-        for (var i = 1; i < colorNames.Length; ++i) {
+        for (int i = 1; i < colorNames.Length; ++i) {
           var style = new GUIStyle(BaseHeaderLabelStyle);
           style.normal.background = HeaderTextures[i];
           style.normal.scaledBackgrounds = new Texture2D[] { HeaderTexturesHiRez[i] };
@@ -5329,9 +5393,9 @@ namespace Fusion.Editor {
     static Texture2D[] _loadedIcons;
     public static Texture2D GetFusionIconTexture(EditorHeaderIcon icon) {
       if (_loadedIcons == null || _loadedIcons[0] == null) {
-        var iconNames = Enum.GetNames(typeof(EditorHeaderIcon));
+        string[] iconNames = Enum.GetNames(typeof(EditorHeaderIcon));
         _loadedIcons = new Texture2D[iconNames.Length];
-        for (var i = 1; i < iconNames.Length; ++i) {
+        for (int i = 1; i < iconNames.Length; ++i) {
           _loadedIcons[i] = Resources.Load<Texture2D>(ICON_PATH + iconNames[i] + "HeaderIcon");
         }
       }
@@ -5345,7 +5409,7 @@ namespace Fusion.Editor {
       if (_groupBoxStyles == null || _groupBoxStyles[0] == null || _groupBoxStyles[0].normal.background == null) {
         var len = Enum.GetNames(typeof(GroupBoxType)).Length;
         _groupBoxStyles = new GUIStyle[len];
-        for (var i = 0; i < len; ++i) {
+        for (int i = 0; i < len; ++i) {
           var info = _groupBoxInfo[i];
           _groupBoxStyles[i] = CreateGroupStyle(i, info);
         }
@@ -5416,7 +5480,7 @@ namespace Fusion.Editor {
         return;
       }
 
-      var window = GetWindow<FusionHubWindow>(true, WINDOW_TITLE, true);
+      FusionHubWindow window = GetWindow<FusionHubWindow>(true, WINDOW_TITLE, true);
       window.position = new Rect(windowPosition, windowSize);
       _showAppIdInWelcome = !IsAppIdValid();
       window.Show();
@@ -5570,7 +5634,7 @@ namespace Fusion.Editor {
         {
           GUILayout.Space(5);
 
-          foreach (var text in items) {
+          foreach (string text in items) {
             GUILayout.Label(string.Format("- {0}.", text), textLabelStyle);
           }
         }
@@ -5621,7 +5685,7 @@ namespace Fusion.Editor {
     }
 
     void DrawLeftNavMenu() {
-      for (var i = 0; i < Sections.Length; ++i) {
+      for (int i = 0; i < Sections.Length; ++i) {
         var section = Sections[i];
         if (DrawNavButton(section, currentSection == i)) {
           // Check if appid is valid whenever we change sections. It no longer needs to be shown on welcome page once it is set.
@@ -5665,7 +5729,7 @@ namespace Fusion.Editor {
       var renderStyle = active.HasValue && active.Value == true ? buttonActiveStyle : GUI.skin.button;
       // Draw text separately (not part of button guiconent) to have control over the space between the icon and the text.
       var rect = EditorGUILayout.GetControlRect(false, height, width.HasValue ? GUILayout.Width(width.Value) : GUILayout.ExpandWidth(true));
-      var clicked = GUI.Button(rect, icon, renderStyle);
+      bool clicked = GUI.Button(rect, icon, renderStyle);
       GUI.Label(new Rect(rect) { xMin = rect.xMin + icon.width + 20 }, description == null ? "<b>" + header +"</b>" : string.Format("<b>{0}</b>\n{1}", header, "<color=#aaaaaa>" + description + "</color>"));
       if (clicked && callback != null) {
         callback.Invoke();
@@ -5816,11 +5880,11 @@ To acquire an App Id:
     /// Converts the enumeration of icons into the array of textures.
     /// </summary>
     private static void ConvertIconEnumToArray() {
-      var isProSkin = EditorGUIUtility.isProSkin;
+      bool isProSkin = EditorGUIUtility.isProSkin;
       // convert icon enum into array of textures
       var icons = Enum.GetValues(typeof(Icon));
       var list = new List<Texture2D>();
-      for (var i = 0; i < icons.Length; ++i) {
+      for (int i = 0; i < icons.Length; ++i) {
         // : indicates two paths, one for dark, and one for light
         var path = ((Icon)i).GetDescription();
         if (path.Contains(":")) {
@@ -5842,7 +5906,7 @@ To acquire an App Id:
 
       ConvertIconEnumToArray();
 
-      var commonTextColor = Color.white;
+      Color commonTextColor = Color.white;
 
       var _guiSkin = FusionHubSkin;
 
@@ -5965,14 +6029,14 @@ To acquire an App Id:
 
             if (currentVersionMatch.Success && lastVersionMatch.Success) {
               Func<MatchCollection, List<string>> itemProcessor = (match) => {
-                var resultList = new List<string>();
-                for (var index = 0; index < match.Count; index++) {
+                List<string> resultList = new List<string>();
+                for (int index = 0; index < match.Count; index++) {
                   resultList.Add(match[index].Groups[2].Value.Trim());
                 }
                 return resultList;
               };
 
-              var mainText = baseText.Substring(currentVersionMatch.Index + currentVersionMatch.Length,
+              string mainText = baseText.Substring(currentVersionMatch.Index + currentVersionMatch.Length,
                   lastVersionMatch.Index - lastVersionMatch.Length - 1).Trim();
 
               releaseHistoryHeader = currentVersionMatch.Value.Trim();
@@ -5997,7 +6061,7 @@ To acquire an App Id:
     }
 
     public static bool Toggle(bool value) {
-      var toggle = new GUIStyle("Toggle") {
+      GUIStyle toggle = new GUIStyle("Toggle") {
         margin = new RectOffset(),
         padding = new RectOffset()
       };
@@ -6089,7 +6153,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/FusionWeaverTriggerImporter.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System.IO;
+  using System.Linq;
+  using UnityEditor;
   using UnityEditor.AssetImporters;
   using UnityEngine;
 
@@ -6208,18 +6274,6 @@ namespace Fusion.Editor {
 
       base.PrepareInspectorGUI();
 
-      // can networked properties be altered for all selected targets?
-      bool? hasStateAuthorityForAllTargets = null;
-      foreach (var target in ValidTargets) {
-        if (target.Object.HasStateAuthority) {
-          hasStateAuthorityForAllTargets = true;
-        } else {
-          hasStateAuthorityForAllTargets = false;
-          break;
-        }
-      }
-
-
       // copy changes from the state
       serializedObject.UpdateIfRequiredOrScript();
       foreach (var target in ValidTargets) {
@@ -6231,8 +6285,19 @@ namespace Fusion.Editor {
 #if ODIN_INSPECTOR && !FUSION_ODIN_DISABLED
       base.DrawDefaultInspector();
 #else
-      var prop = serializedObject.GetIterator();
-      for (var enterChildren = true; prop.NextVisible(enterChildren); enterChildren = false) {
+      // can networked properties be altered for all selected targets?
+      bool? hasStateAuthorityForAllTargets = null;
+      foreach (var target in ValidTargets) {
+        if (target.Object.HasStateAuthority) {
+          hasStateAuthorityForAllTargets = true;
+        } else {
+          hasStateAuthorityForAllTargets = false;
+          break;
+        }
+      }
+
+      SerializedProperty prop = serializedObject.GetIterator();
+      for (bool enterChildren = true; prop.NextVisible(enterChildren); enterChildren = false) {
         var field = UnityInternal.ScriptAttributeUtility.GetFieldInfoFromProperty(prop, out var type);
         var attributes = field?.GetCustomAttributes<DefaultForPropertyAttribute>() ?? Array.Empty<DefaultForPropertyAttribute>();
         if (attributes.Any()) {
@@ -6546,7 +6611,7 @@ namespace Fusion.Editor {
       var simulationBehaviourBuffer = new List<SimulationBehaviour>();
       var networkBehaviourBuffer = new List<NetworkBehaviour>();
 
-      var executionOrderCache = new Dictionary<Type, int>();
+      Dictionary<Type, int> executionOrderCache = new Dictionary<Type, int>();
 
       int GetExecutionOrderWarnIfFailed(MonoBehaviour obj) {
         if (executionOrderCache.TryGetValue(obj.GetType(), out var result)) {
@@ -6563,7 +6628,7 @@ namespace Fusion.Editor {
         return result;
       }
 
-      var dirty = false;
+      bool dirty = false;
 
       using (var pathCache = new TransformPathCache()) {
         root.GetComponentsInChildren(true, networkObjectsBuffer);
@@ -6585,10 +6650,10 @@ namespace Fusion.Editor {
         }).OrderBy(x => x.Path).ToList();
 
         // start from the leaves
-        for (var i = 0; i < networkObjects.Count; ++i) {
+        for (int i = 0; i < networkObjects.Count; ++i) {
           var entry = networkObjects[i];
           var objActive = entry.Object.gameObject.activeInHierarchy;
-          var objExecutionOrder = 0;
+          int objExecutionOrder = 0;
           if (!objActive) {
             objExecutionOrder = GetExecutionOrderWarnIfFailed(entry.Object);
           }
@@ -6597,8 +6662,8 @@ namespace Fusion.Editor {
           networkBehaviourBuffer.Clear();
           simulationBehaviourBuffer.Clear();
 
-          var entryPath = entry.Path.ToString();
-          for (var scriptIndex = networkScripts.Count - 1; scriptIndex >= 0; --scriptIndex) {
+          string entryPath = entry.Path.ToString();
+          for (int scriptIndex = networkScripts.Count - 1; scriptIndex >= 0; --scriptIndex) {
             var scriptEntry = networkScripts[scriptIndex];
             var scriptPath = scriptEntry.Path.ToString();
 
@@ -6614,7 +6679,7 @@ namespace Fusion.Editor {
 
               if (!objActive) {
                 // check if execution order is ok
-                var scriptExecutionOrder = GetExecutionOrderWarnIfFailed(script);
+                int scriptExecutionOrder = GetExecutionOrderWarnIfFailed(script);
 
                 if (objExecutionOrder <= scriptExecutionOrder) {
                   Debug.LogWarning($"{entry.Object?.GetType().FullName} execution order is less or equal than of the script {script?.GetType().FullName}. " +
@@ -6675,17 +6740,17 @@ namespace Fusion.Editor {
         }
 
         // what's left is nested network objects resolution
-        for (var i = 0; i < networkObjects.Count; ++i) {
+        for (int i = 0; i < networkObjects.Count; ++i) {
           var entry = networkObjects[i];
           networkObjectsBuffer.Clear();
 
           // collect descendants; descendants should be continous without gaps here
-          var j = i - 1;
+          int j = i - 1;
           for (; j >= 0 && entry.Path.IsAncestorOf(networkObjects[j].Path); --j) {
             networkObjectsBuffer.Add(networkObjects[j].Object);
           }
 
-          var descendantsBegin = j + 1;
+          int descendantsBegin = j + 1;
           Debug.Assert(networkObjectsBuffer.Count == i - descendantsBegin);
 
           dirty |= Set(entry.Object, ref entry.Object.NestedObjects, networkObjectsBuffer, setDirty);
@@ -6722,7 +6787,7 @@ namespace Fusion.Editor {
           if (!obj.Flags.IsVersionCurrent() || !obj.Flags.IsPrefab() || !obj.NetworkGuid.IsValid) {
             BehaviourEditorUtils.DrawWarnBox("Prefab needs to be reimported.", MessageType.Error);
             if (GUILayout.Button("Reimport")) {
-              var assetPath = PrefabStageUtility.GetPrefabStage(obj.gameObject)?.assetPath ?? AssetDatabase.GetAssetPath(obj.gameObject);
+              string assetPath = PrefabStageUtility.GetPrefabStage(obj.gameObject)?.assetPath ?? AssetDatabase.GetAssetPath(obj.gameObject);
               Debug.Assert(!string.IsNullOrEmpty(assetPath));
               AssetDatabase.ImportAsset(assetPath);
             }
@@ -6769,7 +6834,7 @@ namespace Fusion.Editor {
                 EditorGUILayout.IntField("Word Count", NetworkObject.GetWordCount(obj));
                 this.DrawToggleForProperty(nameof(NetworkObject.IsSceneObject),     obj.IsSceneObject, netObjType);
 
-                var headerIsNull = obj.Header == null;
+                bool headerIsNull = obj.Header == null;
                 this.DrawLabelForProperty(nameof(NetworkObjectHeader.NestingRoot), headerIsNull ? "---" : obj.Header->NestingRoot.ToString(), typeof(NetworkObjectHeader));
                 this.DrawLabelForProperty(nameof(NetworkObjectHeader.NestingKey),  headerIsNull ? "---" : obj.Header->NestingKey.ToString(),  typeof(NetworkObjectHeader));
 
@@ -6896,6 +6961,7 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using System;
   using System.Collections.Generic;
+  using System.Linq;
   using UnityEditor;
   using UnityEditor.Build;
   using UnityEditor.Build.Reporting;
@@ -6921,7 +6987,7 @@ namespace Fusion.Editor {
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths) {
       FusionEditorLog.TraceImport($"Postprocessing imported assets [{importedAssets.Length}]:\n{string.Join("\n", importedAssets)}");
 
-      var configPossiblyDirty = false;
+      bool configPossiblyDirty = false;
 
       foreach (var path in importedAssets) {
         if (!path.EndsWith(".prefab")) {
@@ -7009,7 +7075,7 @@ namespace Fusion.Editor {
       var sw = System.Diagnostics.Stopwatch.StartNew();
 
       try {
-        var dirty = NetworkObjectEditor.BakeHierarchy(stageGo, guid);
+        bool dirty = NetworkObjectEditor.BakeHierarchy(stageGo, guid);
         FusionEditorLog.TraceImport(prefabPath, $"Baking took {sw.Elapsed}, changed: {dirty}");
 
         if (dirty) { 
@@ -7077,7 +7143,7 @@ namespace Fusion.Editor {
       if (change != PlayModeStateChange.ExitingEditMode) {
         return;
       }
-      for (var i = 0; i < EditorSceneManager.sceneCount; ++i) {
+      for (int i = 0; i < EditorSceneManager.sceneCount; ++i) {
         BakeSceneObjects(EditorSceneManager.GetSceneAt(i));
       }
     }
@@ -7088,7 +7154,7 @@ namespace Fusion.Editor {
 
     [MenuItem("Fusion/Bake Scene Objects")]
     public static void BakeSceneObjects() {
-      for (var i = 0; i < SceneManager.sceneCount; ++i) {
+      for (int i = 0; i < SceneManager.sceneCount; ++i) {
         var scene = SceneManager.GetSceneAt(i);
         try {
           BakeSceneObjects(scene);
@@ -7122,7 +7188,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/NetworkProjectConfigAssetEditor.cs
 
 namespace Fusion.Editor {
-    using System.IO;
+  using System.Collections.Generic;
+  using System.IO;
   using UnityEditor;
   using UnityEngine;
 
@@ -7267,6 +7334,7 @@ namespace Fusion.Editor {
 #if UNITY_EDITOR
 
   using System;
+  using System.Text;
   using UnityEditor;
   using UnityEngine;
 
@@ -7485,13 +7553,13 @@ namespace Fusion.Editor {
 
       var modevals = Enum.GetValues(typeof(SimulationModes));
       _modeNames = new string[modevals.Length];
-      for (var i = 0; i < _modeNames.Length; ++i) {
+      for (int i = 0; i < _modeNames.Length; ++i) {
         _modeNames[i] = ((SimulationModes)(1 << i)).GetDescription();
       }
 
       var stagevals = Enum.GetValues(typeof(SimulationStages));
       _stageNames = new string[stagevals.Length];
-      for (var i = 0; i < _stageNames.Length; ++i) {
+      for (int i = 0; i < _stageNames.Length; ++i) {
         // SimulationStages does not have a 1 flag - workaround with +1
         _stageNames[i] = ((SimulationStages)(1 << (i + 1))).GetDescription();
       }
@@ -7502,7 +7570,7 @@ namespace Fusion.Editor {
       if (_sortedNodes == null)
         Init();
 
-      var so = new SerializedObject(this);
+      SerializedObject so = new SerializedObject(this);
 
       EditorGUILayout.LabelField("Use [OrderBefore], [OrderAfter] and [SimulationBehaviour] attributes on SimulationBehaviours to control order and execution.", _helpStyle.Value);
 
@@ -7511,7 +7579,7 @@ namespace Fusion.Editor {
       DrawSubHeader();
       EditorGUILayout.EndVertical();
 
-      var headWidth = GUILayoutUtility.GetLastRect().width;
+      float headWidth = GUILayoutUtility.GetLastRect().width;
 
       _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
       
@@ -7548,7 +7616,7 @@ namespace Fusion.Editor {
       EditorGUILayout.BeginHorizontal();
 
       // Master All/None toggle
-      var r = EditorGUILayout.GetControlRect(false, GUILayout.MaxWidth(40));
+      Rect r = EditorGUILayout.GetControlRect(false, GUILayout.MaxWidth(40));
       if (GUI.Button(r, "All", _toolbarButtonStyle.Value)) {
         _modes = (SimulationModes)(-1);
         _stages = (SimulationStages)(-1);
@@ -7565,7 +7633,7 @@ namespace Fusion.Editor {
       foreach (var flag in Enum.GetValues(typeof(SimulationModes))) {
         var m = (SimulationModes)flag;
         var curr = (_modes & m) != 0;
-        var on = EditorGUILayout.Toggle(curr, GUILayout.Width(COL_WIDTH));
+        bool on = EditorGUILayout.Toggle(curr, GUILayout.Width(COL_WIDTH));
         if (on != curr) {
           if (on)
             _modes |= m;
@@ -7579,7 +7647,7 @@ namespace Fusion.Editor {
       foreach (var flag in Enum.GetValues(typeof(SimulationStages))) {
         var s = (SimulationStages)flag;
         var curr = (_stages & s) != 0;
-        var on = EditorGUILayout.Toggle(curr, GUILayout.Width(COL_WIDTH));
+        bool on = EditorGUILayout.Toggle(curr, GUILayout.Width(COL_WIDTH));
         if (on != curr) {
           if (on)
             _stages |= s;
@@ -7595,13 +7663,13 @@ namespace Fusion.Editor {
 
       EditorGUILayout.BeginHorizontal(_rowStyle.Value, GUILayout.Width(position.width - 20));
 
-      var name = node.Type.Name;
+      string name = node.Type.Name;
 
       var isDefaultModesAndStages = node.SimFlags.modes == OrderNode.ALL_MODES && node.SimFlags.stages == OrderNode.ALL_STAGES;
-      var thisItemIsSelected = _rolloverNode == node;
-      var selectedIsNull = _rolloverNode == null;
-      var isSimulationBehaviour = node.Type == typeof(SimulationBehaviour);
-      var isNetworkBehaviour = node.Type == typeof(NetworkBehaviour);
+      bool thisItemIsSelected = _rolloverNode == node;
+      bool selectedIsNull = _rolloverNode == null;
+      bool isSimulationBehaviour = node.Type == typeof(SimulationBehaviour);
+      bool isNetworkBehaviour = node.Type == typeof(NetworkBehaviour);
 
       var labelstyle =
         (!selectedIsNull && thisItemIsSelected) ? _selectedLabelStyle.Value :
@@ -7612,9 +7680,9 @@ namespace Fusion.Editor {
         isNetworkBehaviour    ? _nbStyle.Value :
         typeof(NetworkBehaviour).IsAssignableFrom(node.Type) ? _nbDerivedLabelStyle.Value : _sbDerivedLabelStyle.Value;
 
-      var back = thisItemIsSelected ? _classLabelButtonSelectedStyle.Value : _classLabelButtonStyle.Value;
+      GUIStyle back = thisItemIsSelected ? _classLabelButtonSelectedStyle.Value : _classLabelButtonStyle.Value;
 
-      var r = EditorGUILayout.GetControlRect(GUILayout.MinWidth(CLASS_WIDTH));
+      Rect r = EditorGUILayout.GetControlRect(GUILayout.MinWidth(CLASS_WIDTH));
 
       // Draw backing button for label
       if (!isSimulationBehaviour && !isNetworkBehaviour && GUI.Button(new Rect(r) { xMax = r.xMax + 4 }, GUIContent.none, back)) {
@@ -7654,10 +7722,10 @@ namespace Fusion.Editor {
 
         using (var h = new EditorGUILayout.HorizontalScope(_flagsGroupStyle.Value, GUILayout.Width(COL_WIDTH * 3))) {
 
-          for (var i = 0; i < _modeNames.Length; ++i) {
+          for (int i = 0; i < _modeNames.Length; ++i) {
             var flag = (SimulationModes)(1 << i);
-            var used = (modes & flag) != 0;
-            var lbl = used ? _modeNames[i] : "--";
+            bool used = (modes & flag) != 0;
+            string lbl = used ? _modeNames[i] : "--";
             EditorGUILayout.LabelField(lbl, gridstyle, GUILayout.Width(COL_WIDTH));
           }
         }
@@ -7667,11 +7735,11 @@ namespace Fusion.Editor {
         using (var h = new EditorGUILayout.HorizontalScope(_flagsGroupStyle.Value, GUILayout.Width(COL_WIDTH * 2))) {
 
           // Stages is missing a 1 value (due to removal), so there are only the flags 2 and 4.
-          for (var i = 0; i < _stageNames.Length; ++i) {
+          for (int i = 0; i < _stageNames.Length; ++i) {
             var flag = (SimulationStages)(1 << (i + 1));
 
-            var used = (stages & flag) != 0;
-            var lbl = used ? _stageNames[i] : "--";
+            bool used = (stages & flag) != 0;
+            string lbl = used ? _stageNames[i] : "--";
             EditorGUILayout.LabelField(lbl, gridstyle, GUILayout.Width(COL_WIDTH));
           }
         }
@@ -7689,7 +7757,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/PhotonAppSettingsEditor.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEditor;
   using Photon.Realtime;
 
   [CustomEditor(typeof(PhotonAppSettings))]
@@ -7762,8 +7833,8 @@ namespace Fusion.Editor {
 
     public static AnimatorController GetController(this Animator a) {
       
-      var rac = a.runtimeAnimatorController;
-      var overrideController = rac as AnimatorOverrideController;
+      RuntimeAnimatorController rac = a.runtimeAnimatorController;
+      AnimatorOverrideController overrideController = rac as AnimatorOverrideController;
 
       /// recurse until no override controller is found
       while (overrideController != null) {
@@ -7821,8 +7892,8 @@ namespace Fusion.Editor {
 
     public static void ExtractNames(AnimatorController ctr, string path, ChildAnimatorState[] states, List<string> namelist) {
       foreach (var st in states) {
-        var name = st.state.name;
-        var layerName = path + "." + st.state.name;
+        string name = st.state.name;
+        string layerName = path + "." + st.state.name;
         if (!namelist.Contains(name)) {
           namelist.Add(name);
         }
@@ -7859,9 +7930,9 @@ namespace Fusion.Editor {
 
     public static void ExtractHashes(AnimatorController ctr, string path, ChildAnimatorState[] states, List<int> hashlist) {
       foreach (var st in states) {
-        var hash = Animator.StringToHash(st.state.name);
-        var fullname = path + "." + st.state.name;
-        var layrhash = Animator.StringToHash(fullname);
+        int hash = Animator.StringToHash(st.state.name);
+        string fullname = path + "." + st.state.name;
+        int layrhash = Animator.StringToHash(fullname);
         if (!hashlist.Contains(hash)) {
           hashlist.Add(hash);
         }
@@ -7933,22 +8004,22 @@ namespace Fusion.Editor {
 
     internal static (int, int, int) GetWordCount(this NetworkMecanimAnimator netAnim, AnimatorSyncSettings settings) {
       /// always get new Animator in case it has changed.
-      var animator = netAnim.Animator;
+      Animator animator = netAnim.Animator;
       if (animator == null)
         animator = netAnim.GetComponent<Animator>();
 
       AnimatorController ac = animator.GetController();
 
-      var param32Count = 0;
-      var paramBoolcount = 0;
+      int param32Count = 0;
+      int paramBoolcount = 0;
 
-      var includeI = (settings & AnimatorSyncSettings.ParameterInts) == AnimatorSyncSettings.ParameterInts;
-      var includeF = (settings & AnimatorSyncSettings.ParameterFloats) == AnimatorSyncSettings.ParameterFloats;
-      var includeB = (settings & AnimatorSyncSettings.ParameterBools) == AnimatorSyncSettings.ParameterBools;
-      var includeT = (settings & AnimatorSyncSettings.ParameterTriggers) == AnimatorSyncSettings.ParameterTriggers;
+      bool includeI = (settings & AnimatorSyncSettings.ParameterInts) == AnimatorSyncSettings.ParameterInts;
+      bool includeF = (settings & AnimatorSyncSettings.ParameterFloats) == AnimatorSyncSettings.ParameterFloats;
+      bool includeB = (settings & AnimatorSyncSettings.ParameterBools) == AnimatorSyncSettings.ParameterBools;
+      bool includeT = (settings & AnimatorSyncSettings.ParameterTriggers) == AnimatorSyncSettings.ParameterTriggers;
 
       var parameters = ac.parameters;
-      for (var i = 0; i < parameters.Length; ++i) {
+      for (int i = 0; i < parameters.Length; ++i) {
         var param = parameters[i];
 
         switch (param.type) {
@@ -7971,7 +8042,7 @@ namespace Fusion.Editor {
         }
       }
 
-      var layerCount = ac.layers.Length;
+      int layerCount = ac.layers.Length;
 
       Debug.Log("Anim Wordcount = " + param32Count + " with bitcount of: " + paramBoolcount);
       return (param32Count, paramBoolcount, layerCount);
@@ -7989,7 +8060,7 @@ namespace Fusion.Editor {
         ) {
 
       /// always get new Animator in case it has changed.
-      var animator = netAnim.Animator;
+      Animator animator = netAnim.Animator;
       if (animator == null)
         animator = netAnim.GetComponent<Animator>();
 
@@ -8004,7 +8075,7 @@ namespace Fusion.Editor {
         if (ac.animationClips == null || ac.animationClips.Length == 0)
           Debug.LogWarning("'" + animator.name + "' has an Animator with no animation clips. Some Animator Controllers require a restart of Unity, or for a Build to be made in order to initialize correctly.");
 
-        var haschanged = false;
+        bool haschanged = false;
 
         ac.GetTriggerNames(tempHashList);
         tempHashList.Insert(0, 0);
@@ -8050,7 +8121,7 @@ namespace Fusion.Editor {
       if (one.Count != two.Count)
         return false;
 
-      for (var i = 0; i < one.Count; i++)
+      for (int i = 0; i < one.Count; i++)
         if (one[i] != two[i])
           return false;
 
@@ -8064,7 +8135,7 @@ namespace Fusion.Editor {
       if (old.Length != temp.Count)
         return false;
 
-      for (var i = 0; i < old.Length; i++)
+      for (int i = 0; i < old.Length; i++)
         if (old[i] != temp[i])
           return false;
 
@@ -8073,7 +8144,7 @@ namespace Fusion.Editor {
 
     private static void CopyNameList(List<string> src, List<string> trg) {
       trg.Clear();
-      for (var i = 0; i < src.Count; i++)
+      for (int i = 0; i < src.Count; i++)
         trg.Add(src[i]);
     }
 
@@ -8090,7 +8161,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
   using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEditor;
 #if UNITY_2021_2_OR_NEWER
   using UnityEditor.SceneManagement;
@@ -8107,7 +8181,7 @@ namespace Fusion.Editor {
         throw new InvalidOperationException($"Not a main asset: {prefab}");
       }
 
-      var path = AssetDatabase.GetAssetPath(prefab);
+      string path = AssetDatabase.GetAssetPath(prefab);
       if (string.IsNullOrEmpty(path)) {
         throw new InvalidOperationException($"Empty path for prefab: {prefab}");
       }
@@ -8201,12 +8275,13 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using System;
   using System.Linq;
+  using System.Reflection;
 
   public static class EnumEditorUtilities {
 
     public static string GetDescription(this Enum GenericEnum) {
-      var genericEnumType = GenericEnum.GetType();
-      var memberInfo = genericEnumType.GetMember(GenericEnum.ToString());
+      Type genericEnumType = GenericEnum.GetType();
+      MemberInfo[] memberInfo = genericEnumType.GetMember(GenericEnum.ToString());
       if ((memberInfo != null && memberInfo.Length > 0)) {
         var _Attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
         if ((_Attribs != null && _Attribs.Count() > 0)) {
@@ -8226,7 +8301,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public static partial class FusionEditorGUI {
@@ -8244,8 +8324,8 @@ namespace Fusion.Editor {
       obj.UpdateIfRequiredOrScript();
 
       // Loop through properties and create one field (including children) for each top level property.
-      var property = obj.GetIterator();
-      var expanded = true;
+      SerializedProperty property = obj.GetIterator();
+      bool expanded = true;
       while (property.NextVisible(expanded)) {
         if ( ScriptPropertyName == property.propertyPath ) {
           if (drawScript) {
@@ -8286,7 +8366,7 @@ namespace Fusion.Editor {
     static (object, string) s_expandedHelp = default;
 
     internal static Rect GetInlineHelpButtonRect(InlineHelpButtonPlacement buttonPlacement, Rect position, GUIContent label, bool expectFoldout = true) {
-      var size = InlineHelpStyle.ButtonSize;
+      float size = InlineHelpStyle.ButtonSize;
       switch (buttonPlacement) {
         case InlineHelpButtonPlacement.BeforeLabel: {
             var buttonRect = new Rect(position.x - size, position.y + ((16 - size) / 2) + 1, size, size);
@@ -8316,7 +8396,7 @@ namespace Fusion.Editor {
     }
 
     internal static bool DrawInlineHelpButton(Rect buttonRect, bool state, bool doButton = true, bool doIcon = true) {
-      var result = false;
+      bool result = false;
       if (doButton) {
         EditorGUIUtility.AddCursorRect(buttonRect, MouseCursor.Link);
         using (GUI.enabled ? null : new FusionEditorGUI.EnabledScope(true)) {
@@ -8356,7 +8436,7 @@ namespace Fusion.Editor {
       using (new FusionEditorGUI.EnabledScope(true)) {
         if (Event.current.type == EventType.Repaint) {
 
-          var extraPadding = 0;
+          int extraPadding = 0;
           // main bar
           var rect = new Rect() {
             xMin = LEFT_HELP_INDENT,
@@ -8377,7 +8457,7 @@ namespace Fusion.Editor {
           FusionGUIStyles.GetStyle(FusionGUIStyles.GroupBoxType.InlineHelpOuter).Draw(orect, false, false, false, false);
 
           if (helpRect.height > 0) {
-            var irect = new Rect(helpRect) {
+            Rect irect = new Rect(helpRect) {
               x = rect.x,
               y = propertyRect.yMax - helpRect.height,
             };
@@ -8404,9 +8484,9 @@ namespace Fusion.Editor {
     /// </summary>
     internal static GUIContent DrawInlineHelp(this PropertyInlineHelpInfo help, Rect rect, BehaviourEditor editor) {
       if (help.Summary != null) {
-        var path = help.Label.text;
-        var buttonRect = GetInlineHelpButtonRect(InlineHelpButtonPlacement.BeforeLabel, rect, GUIContent.none, false);
-        var wasExpanded = IsHelpExpanded(editor, path);
+        string path = help.Label.text;
+        Rect buttonRect = GetInlineHelpButtonRect(InlineHelpButtonPlacement.BeforeLabel, rect, GUIContent.none, false);
+        bool wasExpanded = IsHelpExpanded(editor, path);
 
         if (wasExpanded) {
           var helpRect = GetInlineHelpRect(help.Summary);
@@ -8500,10 +8580,10 @@ namespace Fusion.Editor {
       }
 
 
-      var enterChildren = true;
+      bool enterChildren = true;
       for (var sp = serializedObject.GetIterator(); sp.NextVisible(enterChildren); enterChildren = sp.isExpanded) {
 
-        var acceptProperty = false;
+        bool acceptProperty = false;
 
         // early out check
         if (sp.IsArrayProperty()) {
@@ -8706,24 +8786,7 @@ namespace Fusion.Editor {
       return index;
     }
 
-    public static PropertyDrawer GetNextDrawer(PropertyDrawer drawer, SerializedProperty property) {
-#if UNITY_2021_1_OR_NEWER
-      if (drawer is ForwardingPropertyDrawer forwarding) {
-        return forwarding.TypePropertyDrawer;
-      }
 
-      var handler = UnityInternal.ScriptAttributeUtility.propertyHandlerCache.GetHandler(property);
-      var drawers = handler.m_PropertyDrawers;
-      var index = drawers.IndexOf(drawer);
-      if (index < 0 || index >= drawers.Count - 1) {
-        return null;
-      } else { 
-        return drawers[index + 1];
-      }
-#else
-      return (drawer as ForwardingPropertyDrawer)?.GetNextDrawer(drawer);
-#endif
-    }
 
     private class PropertyDrawerOrderComparer : IComparer<PropertyDrawer> {
       public static readonly PropertyDrawerOrderComparer Instance = new PropertyDrawerOrderComparer();
@@ -8745,7 +8808,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.Odin.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
 #if ODIN_INSPECTOR && !FUSION_ODIN_DISABLED
@@ -8883,6 +8951,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEditor;
   using UnityEngine;
 
@@ -9033,7 +9105,7 @@ namespace Fusion.Editor {
     }
 
     public static bool BeginBox(string headline = null, int indentLevel = 1, bool? foldout = null) {
-      var result = true;
+      bool result = true;
       GUILayout.BeginVertical(EditorStyles.helpBox);
       if (!string.IsNullOrEmpty(headline)) {
         if (foldout.HasValue) {
@@ -9114,7 +9186,7 @@ namespace Fusion.Editor {
 
       var acronym = GenerateAcronym(type, prefixToSkip);
       var content = new GUIContent(acronym, tooltip ?? type.FullName);
-      var controlID = GUIUtility.GetControlID(_thumbnailFieldHash, FocusType.Passive, position);
+      int controlID = GUIUtility.GetControlID(_thumbnailFieldHash, FocusType.Passive, position);
 
       if (Event.current.type == EventType.Repaint) {
         var originalColor = GUI.backgroundColor;
@@ -9134,9 +9206,9 @@ namespace Fusion.Editor {
 
     static Color GeneratePastelColor(int seed) {
       var rng = new System.Random(seed);
-      var r = rng.Next(256) + 128;
-      var g = rng.Next(256) + 128;
-      var b = rng.Next(256) + 128;
+      int r = rng.Next(256) + 128;
+      int g = rng.Next(256) + 128;
+      int b = rng.Next(256) + 128;
 
       r = Mathf.Min(r / 2, 255);
       g = Mathf.Min(g / 2, 255);
@@ -9147,7 +9219,7 @@ namespace Fusion.Editor {
     }
 
     static string GenerateAcronym(Type type, string prefixToStrip) {
-      var acronymBuilder = new StringBuilder();
+      StringBuilder acronymBuilder = new StringBuilder();
 
       var str = type.Name;
       if (!string.IsNullOrEmpty(prefixToStrip)) {
@@ -9156,7 +9228,7 @@ namespace Fusion.Editor {
         }
       }
 
-      for (var i = 0; i < str.Length; ++i) {
+      for (int i = 0; i < str.Length; ++i) {
         var c = str[i];
         if (i != 0 && char.IsLower(c)) {
           continue;
@@ -9238,7 +9310,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.Utils.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public static partial class FusionEditorGUI {
@@ -9391,7 +9468,9 @@ namespace Fusion.Editor {
       Debug.Log($"{InspectorPrefix} {msg}");
     }
 
-
+    public static void ErrorInspector(string msg) {
+      Debug.LogError($"{InspectorPrefix} {msg}");
+    }
   }
 }
 
@@ -9414,16 +9493,16 @@ namespace Fusion.Editor {
       const int SPACER = 4;
       const float MIN_SLIDER_WIDTH = 64;
 
-      var logmin = (float)Math.Log10(min);
-      var logmax = (float)Math.Log10(max);
-      var logzro = (float)Math.Log10(zero);
-      var logval = (float)Math.Log10(value < zero ? min : value);
+      float logmin = (float)Math.Log10(min);
+      float logmax = (float)Math.Log10(max);
+      float logzro = (float)Math.Log10(zero);
+      float logval = (float)Math.Log10(value < zero ? min : value);
 
       float logres;
       Rect sliderect;
       float labelWidth;
 
-      var showSlider = false;
+      bool showSlider = false;
 
       if (label == null) {
         labelWidth = 0;
@@ -9434,7 +9513,7 @@ namespace Fusion.Editor {
       }
       else {
         labelWidth = EditorGUIUtility.labelWidth;
-        var labelrect = new Rect(r) { width = labelWidth };
+        Rect labelrect = new Rect(r) { width = labelWidth };
         sliderect = new Rect(r) { xMin = r.xMin + SPACER + EditorGUIUtility.labelWidth + extraSpace, xMax = r.xMax - VAL_WIDTH };
         showSlider = sliderect.width > MIN_SLIDER_WIDTH;
 
@@ -9446,18 +9525,18 @@ namespace Fusion.Editor {
       // If slider moved, return the new value.
       if (showSlider && logres != logval) {
 
-        var newval = (float)Math.Pow(10, logres);
+        float newval = (float)Math.Pow(10, logres);
 
         if (newval < zero) {
           return 0;
         }
 
-        var rounded = RoundAndClamp(newval, min, max, places);
+        float rounded = RoundAndClamp(newval, min, max, places);
         return rounded;
       }
 
-      var fieldXMin = showSlider ? r.xMax /*+ SPACER */+ SPACER - VAL_WIDTH : r.xMin + labelWidth + /*SPACER +*/ extraSpace;
-      var valuerect = new Rect(r) { xMin = fieldXMin };
+      float fieldXMin = showSlider ? r.xMax /*+ SPACER */+ SPACER - VAL_WIDTH : r.xMin + labelWidth + /*SPACER +*/ extraSpace;
+      Rect valuerect = new Rect(r) { xMin = fieldXMin };
       var holdindent =  EditorGUI.indentLevel;
       EditorGUI.indentLevel = 0;
       var val = EditorGUI.FloatField(valuerect, value < zero ? 0 : value);
@@ -9497,6 +9576,7 @@ namespace Fusion.Editor {
 
   using UnityEditor;
   using UnityEngine;
+  using UnityEngine.SceneManagement;
   using System.Collections.Generic;
   using Fusion.Photon.Realtime;
   using System.Linq;
@@ -9550,7 +9630,7 @@ namespace Fusion.Editor {
     }
 
     internal static void RetryEnsurePhotonAppSettingsExists() {
-      var photonSettings = PhotonAppSettings.Instance;
+      PhotonAppSettings photonSettings = PhotonAppSettings.Instance;
 
       if (photonSettings)
         return;
@@ -9600,8 +9680,8 @@ namespace Fusion.Editor {
       if (AssetDatabase.IsValidFolder(folder))
         return folder;
 
-      var parent = "";
-      var split = folder.Split('\\', '/');
+      string parent = "";
+      string[] split = folder.Split('\\', '/');
       foreach(var f in split) {
         // First folder split should be "Assets", which always exists.
         if (f == "Assets" && parent == "") {
@@ -9633,7 +9713,7 @@ namespace Fusion.Editor {
 
 
       photonConfig = ScriptableObject.CreateInstance<PhotonAppSettings>();
-      var folder = EnsureConfigFolderExists();
+      string folder = EnsureConfigFolderExists();
       AssetDatabase.CreateAsset(photonConfig, folder + "/" + PhotonAppSettings.ExpectedAssetName);
       PhotonAppSettings.Instance = photonConfig;
       EditorUtility.SetDirty(photonConfig);
@@ -9686,8 +9766,8 @@ namespace Fusion.Editor {
 
       var json = EditorJsonUtility.ToJson(config, true);
 
-      var path = GetGlobalConfigPath();
-      var existingJson = File.ReadAllText(path);
+      string path = GetGlobalConfigPath();
+      string existingJson = File.ReadAllText(path);
       
       if (!string.Equals(json, existingJson)) {
         AssetDatabase.MakeEditable(path);
@@ -9755,7 +9835,7 @@ namespace Fusion.Editor {
 
         if (candidates.Length > 0) {
           FusionEditorLog.WarnConfig($"AssetDatabase did not find any config, but a raw glob found these:\n{string.Join("\n", candidates)}");
-          for (var i = 0; i < candidates.Length; ++i) {
+          for (int i = 0; i < candidates.Length; ++i) {
             candidates[i] = PathUtils.MakeSane(candidates[i]);
           }
         }
@@ -9828,7 +9908,7 @@ namespace Fusion.Editor {
     private static string[] GetEnabledBuildScenes() {
       var scenes = new List<string>();
 
-      for (var i = 0; i < EditorBuildSettings.scenes.Length; ++i) {
+      for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i) {
         var scene = EditorBuildSettings.scenes[i];
         if (scene.enabled && string.IsNullOrEmpty(scene.path) == false) {
           scenes.Add(scene.path);
@@ -9850,6 +9930,7 @@ namespace Fusion.Editor {
 
   using System.Collections.Generic;
   using UnityEngine;
+  using UnityEditor;
   using Fusion;
 
   public static class NetworkRunnerUtilities {
@@ -9859,7 +9940,7 @@ namespace Fusion.Editor {
     public static NetworkRunner[] FindActiveRunners() {
       var runners = Object.FindObjectsOfType<NetworkRunner>();
       reusableRunnerList.Clear();
-      for (var i = 0; i < runners.Length; ++i) {
+      for (int i = 0; i < runners.Length; ++i) {
         if (runners[i].IsRunning)
           reusableRunnerList.Add(runners[i]);
       }
@@ -9872,7 +9953,7 @@ namespace Fusion.Editor {
     public static void FindActiveRunners(List<NetworkRunner> nonalloc) {
       var runners = Object.FindObjectsOfType<NetworkRunner>();
       nonalloc.Clear();
-      for (var i = 0; i < runners.Length; ++i) {
+      for (int i = 0; i < runners.Length; ++i) {
         if (runners[i].IsRunning)
           nonalloc.Add(runners[i]);
       }
@@ -9890,6 +9971,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
 
   public static class PathUtils {
     public static bool MakeRelativeToFolder(String path, String folder, out String result) {
@@ -9998,12 +10083,12 @@ namespace Fusion.Editor {
 
     public static T CreateMethodDelegate<T>(this Type type, string methodName, BindingFlags flags, Type delegateType, params DelegateSwizzle[] fallbackSwizzles) where T : Delegate {
       try {
-        var method = GetMethodOrThrow(type, methodName, flags, delegateType, fallbackSwizzles, out var swizzle);
+        MethodInfo method = GetMethodOrThrow(type, methodName, flags, delegateType, fallbackSwizzles, out var swizzle);
 
         var delegateParameters = typeof(T).GetMethod("Invoke").GetParameters();
         var parameters = new List<ParameterExpression>();
 
-        for (var i = 0; i < delegateParameters.Length; ++i) {
+        for (int i = 0; i < delegateParameters.Length; ++i) {
           parameters.Add(Expression.Parameter(delegateParameters[i].ParameterType, $"param_{i}"));
         }
 
@@ -10045,7 +10130,7 @@ namespace Fusion.Editor {
         var delegateParameters = typeof(T).GetMethod("Invoke").GetParameters();
         var parameters = new List<ParameterExpression>();
 
-        for (var i = 0; i < delegateParameters.Length; ++i) {
+        for (int i = 0; i < delegateParameters.Length; ++i) {
           parameters.Add(Expression.Parameter(delegateParameters[i].ParameterType, $"param_{i}"));
         }
 
@@ -10064,7 +10149,7 @@ namespace Fusion.Editor {
           }
         }
 
-        var newExpression = Expression.New(constructor, convertedParameters);
+        NewExpression newExpression = Expression.New(constructor, convertedParameters);
         var l = Expression.Lambda(typeof(T), newExpression, parameters);
         var del = l.Compile();
         return (T)del;
@@ -10233,7 +10318,7 @@ namespace Fusion.Editor {
     }
 
     private static Delegate CreateMethodDelegateInternal(this Type type, string name, BindingFlags flags, Type delegateType) {
-      var method = GetMethodOrThrow(type, name, flags, delegateType);
+      MethodInfo method = GetMethodOrThrow(type, name, flags, delegateType);
       return System.Delegate.CreateDelegate(delegateType, null, method);
     }
 
@@ -10268,7 +10353,7 @@ namespace Fusion.Editor {
 
       if (swizzles != null) {
         foreach (var swizzle in swizzles) {
-          var swizzled = swizzle.Swizzle(allDelegateParameters);
+          Type[] swizzled = swizzle.Swizzle(allDelegateParameters);
           constructor = type.GetConstructor(flags, null, swizzled, null);
           if (constructor != null) {
             firstMatchingSwizzle = swizzle;
@@ -10298,7 +10383,7 @@ namespace Fusion.Editor {
 
       if (swizzles != null) {
         foreach (var swizzle in swizzles) {
-          var swizzled = swizzle.Swizzle(allDelegateParameters);
+          Type[] swizzled = swizzle.Swizzle(allDelegateParameters);
           if (!flags.HasFlag(BindingFlags.Static) && swizzled[0] != type) {
             throw new InvalidOperationException();
           }
@@ -10372,7 +10457,7 @@ namespace Fusion.Editor {
     private static StaticAccessor<T> CreateStaticAccessorInternal<T>(MemberInfo fieldOrProperty) {
       try {
         var valueParameter = Expression.Parameter(typeof(T), "value");
-        var canWrite = true;
+        bool canWrite = true;
 
         UnaryExpression valueExpression;
         MemberExpression memberExpression;
@@ -10414,7 +10499,7 @@ namespace Fusion.Editor {
         var instanceExpression = Expression.Convert(instanceParameter, fieldOrProperty.DeclaringType);
 
         var valueParameter = Expression.Parameter(typeof(T), "value");
-        var canWrite = true;
+        bool canWrite = true;
 
         UnaryExpression valueExpression;
         MemberExpression memberExpression;
@@ -10471,9 +10556,9 @@ namespace Fusion.Editor {
       }
 
       public T[] Swizzle<T>(T[] inputTypes) {
-        var result = new T[_args.Length];
+        T[] result = new T[_args.Length];
 
-        for (var i = 0; i < _args.Length; ++i) {
+        for (int i = 0; i < _args.Length; ++i) {
           result[i] = inputTypes[_args[i]];
         }
 
@@ -10669,9 +10754,9 @@ namespace Fusion.Editor {
       public int GetHashCode(SerializedProperty p) {
 
         bool enterChildren;
-        var isFirst = true;
-        var hashCode = 0;
-        var minDepth = p.depth + 1;
+        bool isFirst = true;
+        int hashCode = 0;
+        int minDepth = p.depth + 1;
 
         do {
 
@@ -10752,15 +10837,15 @@ namespace Fusion.Editor {
     /// <param name="property"></param>
     /// <returns></returns>
     public static int GetIndexOfDrawerObject(this SerializedProperty property, bool reportError = true) {
-      var path = property.propertyPath;
+      string path = property.propertyPath;
 
-      var start = path.IndexOf("[") + 1;
-      var len = path.IndexOf("]") - start;
+      int start = path.IndexOf("[") + 1;
+      int len = path.IndexOf("]") - start;
 
       if (len < 1)
         return -1;
 
-      var index = -1;
+      int index = -1;
       if ((len > 0 && Int32.TryParse(path.Substring(path.IndexOf("[") + 1, len), out index)) == false && reportError) {
         UnityEngine.Debug.Log("Attempted to find the index of a non-array serialized property.");
       }
@@ -10811,7 +10896,7 @@ namespace Fusion.Editor {
     private static int[] _temp = Array.Empty<int>();
 
     internal static bool UpdateFixedBuffer(this SerializedProperty sp, Action<int[], int> fill, Action<int[], int> update, bool write,  bool force = false) {
-      var count = sp.fixedBufferSize;
+      int count = sp.fixedBufferSize;
       Array.Resize(ref _temp, Math.Max(_temp.Length, count));
 
       // need to get to the first property... `GetFixedBufferElementAtIndex` is slow and allocs
@@ -10828,7 +10913,7 @@ namespace Fusion.Editor {
 
         fill(_temp, count);
 
-        var i = 0;
+        int i = 0;
         if (!force) {
           // find the first difference
           for (; i < count; ++i, element.Next(true)) {
@@ -10926,7 +11011,7 @@ namespace Fusion.Editor {
     public override string ToString() {
       var builder = new StringBuilder();
       fixed (ushort* levels = Indices) {
-        for (var i = 0; i < Depth && i < MaxDepth; ++i) {
+        for (int i = 0; i < Depth && i < MaxDepth; ++i) {
           if (i > 0) {
             builder.Append("/");
           }
@@ -10945,8 +11030,8 @@ namespace Fusion.Editor {
 
     private int CompareToDepthUnchecked(TransformPath* other, int depth) {
       fixed (ushort* indices = Indices) {
-        for (var i = 0; i < depth && i < MaxDepth; ++i) {
-          var diff = (int)indices[i] - (int)other->Indices[i];
+        for (int i = 0; i < depth && i < MaxDepth; ++i) {
+          int diff = (int)indices[i] - (int)other->Indices[i];
           if (diff != 0) {
             return diff;
           }
@@ -10963,7 +11048,7 @@ namespace Fusion.Editor {
     }
     private int GetHashCode(int hash) {
       fixed (ushort* indices = Indices) {
-        for (var i = 0; i < Depth && i < MaxDepth; ++i) {
+        for (int i = 0; i < Depth && i < MaxDepth; ++i) {
           hash = hash * 31 + indices[i];
         }
       }
@@ -10993,11 +11078,11 @@ namespace Fusion.Editor {
       }
       _siblingIndexStack.Reverse();
 
-      var result = new TransformPath() {
+      TransformPath result = new TransformPath() {
         Depth = checked((ushort)_siblingIndexStack.Count)
       };
 
-      var current = &result;
+      TransformPath* current = &result;
       for (int i = 0, j = 0; i < _siblingIndexStack.Count; ++i, ++j) {
         Debug.Assert(j <= TransformPath.MaxDepth, $"{j}");
 
@@ -11034,7 +11119,10 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using System;
   using System.Collections.Generic;
+  using System.Linq;
   using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEngine;
 
   using static Fusion.Editor.ReflectionUtils;
@@ -11231,7 +11319,7 @@ namespace Fusion.Editor {
       }
     }
 
-      [InitializeOnLoad]
+    [InitializeOnLoad]
     public static class EditorApplication {
       public static readonly Action Internal_CallAssetLabelsHaveChanged = typeof(UnityEditor.EditorApplication).CreateMethodDelegate<Action>(nameof(Internal_CallAssetLabelsHaveChanged));
     }
@@ -11258,6 +11346,26 @@ namespace Fusion.Editor {
 
       private static readonly InstanceAccessor<int> _objectSelectorID = Statics.InternalType.CreateFieldAccessor<int>(nameof(objectSelectorID));
       public int objectSelectorID => _objectSelectorID.GetValue(_instance);
+    }
+
+    [InitializeOnLoad]
+    public class InspectorWindow {
+      public static readonly Type InternalType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.InspectorWindow", true);
+      public static readonly InstanceAccessor<bool> _isLockedAccessor = InternalType.CreatePropertyAccessor<bool>(nameof(isLocked));
+
+      UnityEditor.EditorWindow _instance;
+
+      public InspectorWindow(UnityEditor.EditorWindow instance) {
+        if (instance == null) {
+          throw new ArgumentNullException(nameof(instance));
+        }
+        _instance = instance;
+      }
+
+      public bool isLocked {
+        get => _isLockedAccessor.GetValue(_instance);
+        set => _isLockedAccessor.SetValue(_instance, value);
+      }
     }
   }
 }
@@ -11329,9 +11437,9 @@ namespace Fusion.Editor {
 
 
     static string GetDirectoryPath(this Assembly assembly) {
-      var codeBase = assembly.CodeBase;
-      var uri = new UriBuilder(codeBase);
-      var path = Uri.UnescapeDataString(uri.Path);
+      string codeBase = assembly.CodeBase;
+      UriBuilder uri = new UriBuilder(codeBase);
+      string path = Uri.UnescapeDataString(uri.Path);
       return Path.GetDirectoryName(path);
     }
 
@@ -11346,7 +11454,7 @@ namespace Fusion.Editor {
       }
 
       string directoryPath = assembly.GetDirectoryPath();
-      var xmlFilePath = Path.Combine(directoryPath, assembly.GetName().Name + ".xml");
+      string xmlFilePath = Path.Combine(directoryPath, assembly.GetName().Name + ".xml");
       string xmlContents;
 
       if (File.Exists(xmlFilePath)) {
@@ -11441,7 +11549,7 @@ namespace Fusion.Editor {
         summary = Regexes.XmlEmphasizeBrackets.Replace(summary, "$1");
 
       } else {
-        var colorstring = proSkin ? "<color=#FFEECC>$1</color>" : "<color=#664400>$1</color>";
+        string colorstring = proSkin ? "<color=#FFEECC>$1</color>" : "<color=#664400>$1</color>";
         summary = Regexes.SeeWithCref.Replace(summary, colorstring);
         summary = Regexes.See.Replace(summary, colorstring);
       }

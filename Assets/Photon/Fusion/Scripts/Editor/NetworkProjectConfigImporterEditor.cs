@@ -48,14 +48,14 @@ namespace Fusion.Editor {
     private static void VersionInfoGUI() {
       if (_allVersionInfo == null || _allVersionInfo == "") {
         var asms = System.AppDomain.CurrentDomain.GetAssemblies();
-        for (var i = 0; i < asms.Length; ++i) {
+        for (int i = 0; i < asms.Length; ++i) {
           var asm = asms[i];
           var asmname = asm.FullName;
           if (asmname.StartsWith("Fusion.Runtime,")) {
             _version = NetworkRunner.BuildType + ": " + System.Diagnostics.FileVersionInfo.GetVersionInfo(asm.Location).ProductVersion;
           }
           if (asmname.StartsWith("Fusion.") || asmname.StartsWith("Fusion,")) {
-            var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(asm.Location).ToString();
+            string fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(asm.Location).ToString();
             _allVersionInfo += asmname.Substring(0, asmname.IndexOf(",")) + ": " + fvi + " " + "\n";
           }
         }
@@ -75,7 +75,7 @@ namespace Fusion.Editor {
       base.Apply();
 
       if (assetTarget != null) {
-        for (var i = 0; i < extraDataTargets.Length; ++i) {
+        for (int i = 0; i < extraDataTargets.Length; ++i) {
           var importer = GetImporter(i);
           var wrapper = GetConfigWrapper(i);
 

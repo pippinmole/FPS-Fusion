@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEngine;
 
 /// <summary>
@@ -57,16 +58,16 @@ public static class FusionScalableIMGUI
   /// <returns>Returns (height, width, padding, top-margin, left-box-margin) values applied to the GuiSkin</returns>
   public static (float, float, int, int, float) ScaleGuiSkinToScreenHeight() {
 
-    var isVerticalAspect = Screen.height > Screen.width;
-    var isSuperThin = Screen.height / Screen.width > (17f / 9f);
+    bool isVerticalAspect = Screen.height > Screen.width;
+    bool isSuperThin = Screen.height / Screen.width > (17f / 9f);
 
-    var height = Screen.height * .08f;
-    var width = System.Math.Min(Screen.width * .9f, Screen.height * .6f);
-    var padding = (int)(height / 4);
-    var margin = (int)(height / 8);
-    var boxLeft = (Screen.width - width) * .5f;
+    float height = Screen.height * .08f;
+    float width = System.Math.Min(Screen.width * .9f, Screen.height * .6f);
+    int padding = (int)(height / 4);
+    int margin = (int)(height / 8);
+    float boxLeft = (Screen.width - width) * .5f;
 
-    var fontsize = (int)(isSuperThin ? (width - (padding * 2)) * .07f : height * .4f);
+    int fontsize = (int)(isSuperThin ? (width - (padding * 2)) * .07f : height * .4f);
     var margins = new RectOffset(0, 0, margin, margin);
 
     _scalableSkin.button.fontSize = fontsize;

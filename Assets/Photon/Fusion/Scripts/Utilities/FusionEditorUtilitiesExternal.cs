@@ -12,7 +12,7 @@ namespace Fusion.Editor {
 
     public static void AddSceneToBuildSettings(this Scene scene) {
       var buildScenes = EditorBuildSettings.scenes;
-      var isInBuildScenes = false;
+      bool isInBuildScenes = false;
       foreach (var bs in buildScenes) {
         if (bs.path == scene.path) {
           isInBuildScenes = true;
@@ -30,7 +30,7 @@ namespace Fusion.Editor {
 
     public static bool TryGetSceneIndexInBuildSettings(this Scene scene, out int index) {
       var buildScenes = EditorBuildSettings.scenes;
-      for (var i = 0; i < buildScenes.Length; ++i) {
+      for (int i = 0; i < buildScenes.Length; ++i) {
         var bs = buildScenes[i];
         if (bs.path == scene.path) {
           index = i;

@@ -16,8 +16,8 @@ public class PlayerStatEntry : MonoBehaviour {
     [SerializeField] private Color _firstColor = new(34, 45, 57, 255);
     [SerializeField] private Color _secondColor = new(47, 62, 78, 255);
 
-    private static NetworkDictionary<PlayerRef, FirstPersonController> Players => LobbyManager.Instance.Players;
-    private FirstPersonController PlayerController => Players[_player];
+    private static NetworkDictionary<PlayerRef, PlayerController> Players => LobbyManager.Instance.Players;
+    private PlayerController PlayerController => Players[_player];
     
     private PlayerRef _player;
     private Image _image;

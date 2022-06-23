@@ -1,29 +1,25 @@
 using Fusion;
 using UnityEngine;
 
-public class FirstPersonCamera : NetworkBehaviour, IBeforeUpdate {
+public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
 
     [SerializeField] private Transform _cameraRoot;
+    [SerializeField] private Camera _camera;
     [SerializeField] private float _topClamp = 90.0f;
     [SerializeField] private float _bottomClamp = -90.0f;
 
     [Networked] public Angle Yaw { get; set; }
     [Networked] public Angle Pitch { get; set; }
     
-    // private FirstPersonController _controller;
-    // private FirstPersonInput _input;
-    private FirstPersonHealth _health;
+    private PlayerHealth _health;
 
     private Angle _yawDelta;
     private Angle _pitchDelta;
 
     private void Awake() {
-        // _controller = GetComponent<FirstPersonController>();
-        // _input = GetComponent<FirstPersonInput>();
-
-        _health = GetComponent<FirstPersonHealth>();
+        _health = GetComponent<PlayerHealth>();
         
-        _cameraRoot.gameObject.SetActive(false);
+        _camera.gameObject.SetActive(false);
     }
 
     public override void Render() {
@@ -36,7 +32,7 @@ public class FirstPersonCamera : NetworkBehaviour, IBeforeUpdate {
             pitch = CheckAndClamp((float) pitch);
 
             _cameraRoot.transform.rotation = Quaternion.Euler((float) pitch, (float) yaw, 0.0f);
-            _cameraRoot.gameObject.SetActive(Object.HasInputAuthority);
+            _camera.gameObject.SetActive(Object.HasInputAuthority);
         }
     }
 
@@ -45,7 +41,7 @@ public class FirstPersonCamera : NetworkBehaviour, IBeforeUpdate {
         _pitchDelta -= Input.GetAxis("Mouse Y");
     }
 
-    public void YawAndPitch(FirstPersonInput.NetworkInputData input) {
+    public void YawAndPitch(PlayerInput.NetworkInputData input) {
         Pitch += (float) input.PitchDelta;
         Pitch = CheckAndClamp((float) Pitch);
         

@@ -282,7 +282,7 @@ public abstract class FusionGraphBase : Fusion.Behaviour, IFusionStatsView {
     var obj = _statSourceType == Stats.StatSourceTypes.NetworkObject ? _fusionStats?.Object : null;
 
     if (obj) {
-      var nonStateAuthOnly = (flags & Stats.StatFlags.ValidOnStateAuthority) == 0;
+      bool nonStateAuthOnly = (flags & Stats.StatFlags.ValidOnStateAuthority) == 0;
       if (nonStateAuthOnly && obj.HasStateAuthority) {
         StatSourceInfo.InvalidReason = "NON STATE AUTH ONLY";
         return;
@@ -290,12 +290,12 @@ public abstract class FusionGraphBase : Fusion.Behaviour, IFusionStatsView {
     }
 
     if (runner) {
-      var clientOnly = (flags & Stats.StatFlags.ValidOnServer) == 0;
+      bool clientOnly = (flags & Stats.StatFlags.ValidOnServer) == 0;
       if (clientOnly && runner.IsClient == false) {
         StatSourceInfo.InvalidReason = "CLIENT ONLY";
         return;
       }
-      var ecOnly = (flags & Stats.StatFlags.ValidWithDeltaSnapshot) == 0;
+      bool ecOnly = (flags & Stats.StatFlags.ValidWithDeltaSnapshot) == 0;
       if (ecOnly && runner.Config.Simulation.ReplicationMode == SimulationConfig.StateReplicationModes.DeltaSnapshots) {
         StatSourceInfo.InvalidReason = "EC MODE ONLY";
         return;

@@ -2,6 +2,25 @@
 
 ## Nightly
 
+### Build 519 (Jun 22, 2022)
+
+**Improvements**
+
+- `FixedBufferPropertyAttributeDrawer` error handling
+
+**Bug Fixes**
+
+- Fixed: `NetworkCharacterControllerPrototype` initialization during `Spawned` causing objects to glitch when spawned on clients
+- Fixed: `NetworkArrays` not being properly initialized when inspecting a struct in the inspector
+- Fixed: Some drawers not being used when using Odin inspector
+- Fixed: Assertion raised for some properties when using Odin inspector
+
+### Build 518 (Jun 20, 2022)
+
+**Bug Fixes**
+
+- Fixed: Warning about `hasStateAuthorityForAllTargets` variable being unused
+
 ### Build 516 (Jun 16, 2022)
 
 **What's New**

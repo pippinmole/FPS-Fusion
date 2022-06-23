@@ -139,13 +139,13 @@ public class FusionStatsObjectIds : Fusion.Behaviour, IFusionStatsView {
 
     if (obj.IsValid) {
 
-      var hasInputAuth = obj.HasInputAuthority;
+      bool hasInputAuth = obj.HasInputAuthority;
       if (_previousHasInputAuth != hasInputAuth) {
         _inputAuthBackImage.color = hasInputAuth ? _inputAuthColor : _noneAuthColor;
         _previousHasInputAuth = hasInputAuth;
       }
 
-      var hasStateAuth = obj.HasStateAuthority || obj.Runner.IsServer;
+      bool hasStateAuth = obj.HasStateAuthority || obj.Runner.IsServer;
       if (_previousHasStateAuth != hasStateAuth) {
         _stateAuthBackImage.color = hasStateAuth ? _stateAuthColor : _noneAuthColor;
         _previousHasStateAuth = hasStateAuth;
@@ -164,7 +164,7 @@ public class FusionStatsObjectIds : Fusion.Behaviour, IFusionStatsView {
       }
     }
 
-    var objectId = obj.Id.Raw;
+    uint objectId = obj.Id.Raw;
     if (objectId != _previousObjectIdValue) {
       _objectIdLabel.text = objectId.ToString();
       _previousObjectIdValue = objectId;

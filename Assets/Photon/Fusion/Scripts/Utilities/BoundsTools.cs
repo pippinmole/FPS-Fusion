@@ -36,9 +36,9 @@ namespace Fusion.Editor {
         return new Bounds();
       }
 
-      var bothtype = factorIn == BoundsType.Both;
-      var rendtype = bothtype || factorIn == BoundsType.MeshRenderer;
-      var colltype = bothtype || factorIn == BoundsType.Collider;
+      bool bothtype = factorIn == BoundsType.Both;
+      bool rendtype = bothtype || factorIn == BoundsType.MeshRenderer;
+      bool colltype = bothtype || factorIn == BoundsType.Collider;
 
       // Clear the reusables so they have counts of zero
       meshFilters.Clear();
@@ -49,7 +49,7 @@ namespace Fusion.Editor {
 #if !DISABLE_PHYSICS_2D
       validColliders2D.Clear();
 #endif
-      var myBoundsCount = 0;
+      int myBoundsCount = 0;
 
       // Find all of the MeshRenderers and Colliders (as specified)
       if (rendtype) {
@@ -85,8 +85,8 @@ namespace Fusion.Editor {
 
       // Add any MeshRenderer attached to the found MeshFilters to their own list.
       // We want the MeshRenderer for its bounds, but only if there is a MeshFilter, otherwise there is a risk of a 0,0,0
-      for (var i = 0; i < meshFilters.Count; i++) {
-        var mr = meshFilters[i].GetComponent<Renderer>();
+      for (int i = 0; i < meshFilters.Count; i++) {
+        Renderer mr = meshFilters[i].GetComponent<Renderer>();
 
         if (mr && (mr.enabled || includeInactive)) {
           if (!meshRenderers.Contains(mr))
@@ -95,7 +95,7 @@ namespace Fusion.Editor {
       }
 
       // Collect only the valid colliders (ignore inactive if not includeInactive)
-      for (var i = 0; i < colliders.Count; i++) {
+      for (int i = 0; i < colliders.Count; i++) {
         if (colliders[i].enabled || includeInactive)
           if (colliders[i])
             validColliders.Add(colliders[i]);
@@ -104,7 +104,7 @@ namespace Fusion.Editor {
 #if !DISABLE_PHYSICS_2D
 
       // Collect only the valid colliders (ignore inactive if not includeInactive)
-      for (var i = 0; i < colliders2D.Count; i++) {
+      for (int i = 0; i < colliders2D.Count; i++) {
         if (colliders2D[i] && colliders2D[i].enabled || includeInactive)
           // 2d colliders arrive as null but present in scene changes, test for null
           if (colliders2D[i])
@@ -145,23 +145,23 @@ namespace Fusion.Editor {
       else
         return new Bounds();
 
-      for (var i = 0; i < spriteRenderers.Count; i++) {
+      for (int i = 0; i < spriteRenderers.Count; i++) {
         myBoundsCount++;
         compositeBounds.Encapsulate(spriteRenderers[i].bounds);
       }
 
       // Encapsulate all outer found bounds into that. We will be adding the root to itself, but no biggy, this only runs once.
-      for (var i = 0; i < meshRenderers.Count; i++) {
+      for (int i = 0; i < meshRenderers.Count; i++) {
         myBoundsCount++;
         compositeBounds.Encapsulate(meshRenderers[i].bounds);
       }
 
-      for (var i = 0; i < validColliders.Count; i++) {
+      for (int i = 0; i < validColliders.Count; i++) {
         myBoundsCount++;
         compositeBounds.Encapsulate(validColliders[i].bounds);
       }
 #if !DISABLE_PHYSICS_2D
-      for (var i = 0; i < validColliders2D.Count; i++) {
+      for (int i = 0; i < validColliders2D.Count; i++) {
         myBoundsCount++;
         if (validColliders2D[i])
           compositeBounds.Encapsulate(validColliders2D[i].bounds);

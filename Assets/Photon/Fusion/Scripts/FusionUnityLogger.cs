@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -46,7 +48,7 @@ namespace Fusion {
     public Func<object, int> GetColor { get; set; }
 
     public FusionUnityLogger() {
-      var isDarkMode = false;
+      bool isDarkMode = false;
 #if UNITY_EDITOR
       isDarkMode = UnityEditor.EditorGUIUtility.isProSkin;
 #endif
@@ -158,7 +160,7 @@ namespace Fusion {
       g = Mathf.Clamp(g, 0, 255);
       b = Mathf.Clamp(b, 0, 255);
 
-      var rgb = (r << 16) | (g << 8) | b;
+      int rgb = (r << 16) | (g << 8) | b;
       return rgb;
     }
 

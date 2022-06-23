@@ -104,7 +104,7 @@ namespace Fusion.Assistants {
       // Add NetworkDebugRunner if missing
       var nds = FusionAssistants.EnsureExistsInScene<NetworkDebugStart>("Prototype Network Start");
 
-      var nr = nds.RunnerPrefab == null ? null : nds.RunnerPrefab.TryGetComponent<NetworkRunner>(out var found) ? found : null;
+      NetworkRunner nr = nds.RunnerPrefab == null ? null : nds.RunnerPrefab.TryGetComponent<NetworkRunner>(out var found) ? found : null;
       // Add NetworkRunner to scene if the DebugStart doesn't have one as a prefab set already.
       if (nr == null) {
 
@@ -166,7 +166,7 @@ namespace Fusion.Assistants {
     [MenuItem("Fusion/GameObject/Setup/Add AudioListener Handling", false, FusionAssistants.PRIORITY_LOW)]
     [MenuItem("GameObject/Fusion/Setup/Add AudioListener Handling", false, FusionAssistants.PRIORITY)]
     public static void HandleAudioListeners() {
-      var count = 0;
+      int count = 0;
       foreach (var listener in Object.FindObjectsOfType<AudioListener>()) {
         count++;
         listener.EnsureComponentHasVisibilityNode();
