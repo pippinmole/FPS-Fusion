@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: -4505736697243038649, guid: 91a649fe9d2c6cf42bfedfa1412a687d,
     type: 3}
+  _shotDelaySeconds: 0.2
+  _range: 75
+  _damage: 45
+  _mask:
+    serializedVersion: 2
+    m_Bits: 4294967295

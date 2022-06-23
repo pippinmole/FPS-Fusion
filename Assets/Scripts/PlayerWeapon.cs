@@ -11,19 +11,14 @@ public class PlayerWeapon : NetworkBehaviour {
     [SerializeField] private List<WeaponTemplate> _weapons = new();
     [SerializeField] private Material _tracerMaterial;
     
-    [Networked(OnChanged = nameof(OnWeaponIndexChanged))] 
-    public int WeaponIndex { get; set; }
+    [Networked(OnChanged = nameof(OnWeaponIndexChanged))]
+    private int WeaponIndex { get; set; }
     [Networked] private float Cooldown { get; set; }
+    
+    private WeaponTemplate CurrentWeaponTemplate => _weapons[WeaponIndex - 1];
 
     private Weapon _currentWeapon;
-    private WeaponTemplate _currentWeaponTemplate;
-    
-    private HitboxManager _hitboxManager;
     private readonly List<LagCompensatedHit> _hitBuffer = new();
-    
-    private void Awake() {
-        _hitboxManager = FindObjectOfType<HitboxManager>();
-    }
     
     public override void Spawned() {
         base.Spawned();
@@ -50,25 +45,23 @@ public class PlayerWeapon : NetworkBehaviour {
 
         if ( GetInput(out PlayerInput.NetworkInputData input) ) {
             if ( input.WeaponIndex != -1 ) {
-                SetWeapon(input.WeaponIndex);
+                UpdateWeapon(input.WeaponIndex);
             }
 
             if ( input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) && Cooldown <= 0f ) {
-                if ( WeaponIndex == -1 || _currentWeaponTemplate == null ) return;
+                if ( WeaponIndex == -1 || CurrentWeaponTemplate == null ) return;
 
                 Cooldown = Shoot(Runner, this);
             }
         }
     }
-    
-    public void SetWeapon(int index) {
+
+    private void UpdateWeapon(int index) {
         if ( index == -1 ) return;
         if ( index == WeaponIndex ) return;
         
         ClearWeapon();
         CreateWeapon(index);
-
-        // WeaponIndex = index;
     }
 
     private void ClearWeapon() {
@@ -86,6 +79,7 @@ public class PlayerWeapon : NetworkBehaviour {
 
         try {
             var weapon = _weapons[index - 1];
+            
             // Spawn new weapon
             _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity);
             _currentWeapon.transform.SetParent(_weaponRoot);
@@ -105,11 +99,8 @@ public class PlayerWeapon : NetworkBehaviour {
     /// <param name="runner"></param>
     /// <param name="owner"></param>
     /// <returns></returns>
-    public float Shoot(NetworkRunner runner, PlayerWeapon owner) {
-        // Raycast
-        // if ( runner.Stage != SimulationStages.Resimulate ) {
-
-        var w = _currentWeaponTemplate;
+    private float Shoot(NetworkRunner runner, PlayerWeapon owner) {
+        var w = CurrentWeaponTemplate;
         if ( w == null ) return -1f;
 
         var originTransform = owner.GetComponent<PlayerCamera>().GetCameraRoot();
@@ -120,7 +111,7 @@ public class PlayerWeapon : NetworkBehaviour {
 
         const HitOptions options = HitOptions.SubtickAccuracy;
 
-        _hitboxManager.RaycastAll(origin, direction, w.Range, owner.Object.InputAuthority, _hitBuffer, w.Mask,
+        runner.LagCompensation.RaycastAll(origin, direction, w.Range, owner.Object.InputAuthority, _hitBuffer, w.Mask,
             true, options);
 
         // Filter hit buffer
@@ -159,7 +150,7 @@ public class PlayerWeapon : NetworkBehaviour {
         Destroy(myLine, duration);
     }
 
-    private void DealDamage(NetworkRunner runner, LagCompensatedHit hit, PlayerWeapon owner, float damage) {
+    private static void DealDamage(NetworkRunner runner, LagCompensatedHit hit, PlayerWeapon owner, float damage) {
         if ( hit.Type == HitType.Hitbox ) {
             hit.GameObject = hit.Hitbox.Root.gameObject;
         }
@@ -195,10 +186,7 @@ public class PlayerWeapon : NetworkBehaviour {
     }
 
     private void WeaponIndexChanged() {
-        
-        Debug.Log($"Changed index to {WeaponIndex}");
-        
-        SetWeapon(WeaponIndex);
+        UpdateWeapon(WeaponIndex);
     }
 }
 

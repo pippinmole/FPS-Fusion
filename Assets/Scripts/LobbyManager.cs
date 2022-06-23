@@ -126,11 +126,11 @@ public class LobbyManager : NetworkBehaviour, INetworkRunnerCallbacks {
             var spawnPoint = _spawnManager.GetNextSpawnPoint(Runner, player);
             var playerObject = Runner.Spawn(_playerPrefab, spawnPoint.position, Quaternion.identity, player);
             
-            playerObject.GetComponent<NetworkCharacterControllerPrototype>().TeleportToPosition(spawnPoint.position);
+            // playerObject.GetComponent<NetworkCharacterControllerPrototype>().TeleportToPosition(spawnPoint.position);
             
             Debug.Log($"Spawning player at {spawnPoint.position}");
             
-            playerObject.Object.AssignInputAuthority(player);
+            // playerObject.Object.AssignInputAuthority(player);
             
             Players.Set(player, playerObject);
         }

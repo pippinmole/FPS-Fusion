@@ -692,13 +692,13 @@ GameObject:
   - component: {fileID: 8616685848737228371}
   - component: {fileID: 135756641613574980}
   - component: {fileID: 135756641613574981}
-  - component: {fileID: 1785301069312527810}
   - component: {fileID: 4017769323236467230}
   - component: {fileID: 7059430512680573544}
   - component: {fileID: 7193105921843311116}
   - component: {fileID: 3743914120431868706}
   - component: {fileID: 1516542196}
   - component: {fileID: 6538591480105141159}
+  - component: {fileID: 1556222720}
   m_Layer: 10
   m_Name: PlayerCapsule
   m_TagString: Player
@@ -757,14 +757,8 @@ MonoBehaviour:
   _interpolationDataSource: 0
   MoveSpeed: 4
   SprintSpeed: 6
-  JumpHeight: 1.2
   JumpTimeout: 0.1
   FallTimeout: 0.15
-  GroundedOffset: 0.7
-  GroundedRadius: 0.5
-  GroundLayers:
-    serializedVersion: 2
-    m_Bits: 513
   _Kills: 0
   _Deaths: 0
 --- !u!114 &135756641613574980
@@ -791,13 +785,13 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 8616685848737228371}
   - {fileID: 135756641613574981}
-  - {fileID: 1785301069312527810}
   - {fileID: 4017769323236467230}
   - {fileID: 7059430512680573544}
   - {fileID: 7193105921843311116}
   - {fileID: 3743914120431868706}
   - {fileID: 1516542196}
   - {fileID: 6538591480105141159}
+  - {fileID: 1556222720}
   SimulationBehaviours: []
 --- !u!114 &135756641613574981
 MonoBehaviour:
@@ -813,40 +807,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _sensitivity: 4
---- !u!114 &1785301069312527810
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8616685848737228372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 378411a89480da345945c2f888327a2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  InterpolationSpace: 1
-  InterpolationTarget: {fileID: 5393215578589016641}
-  InterpolateErrorCorrection: 1
-  InterpolatedErrorCorrectionSettings:
-    MinRate: 3.3
-    MaxRate: 10
-    PosBlendStart: 0.25
-    PosBlendEnd: 1
-    PosMinCorrection: 0.025
-    PosTeleportDistance: 2
-    RotBlendStart: 0.1
-    RotBlendEnd: 0.5
-    RotTeleportRadians: 1.5
-  gravity: -15
-  jumpImpulse: 8
-  acceleration: 10
-  braking: 10
-  maxSpeed: 2
-  rotationSpeed: 1
-  _IsGrounded: 0
-  _Velocity: {x: 0, y: 0, z: 0}
 --- !u!114 &4017769323236467230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -882,7 +842,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 76edfce642622ea42b394f2e9af8c76b, type: 2}
   - {fileID: 11400000, guid: acfe119eaded4154fbae1b490896b007, type: 2}
   _tracerMaterial: {fileID: 2100000, guid: c8efe9e7023433e46a04c3f3cfe66f89, type: 2}
-  _WeaponIndex: -1
 --- !u!114 &7193105921843311116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -947,3 +906,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _respawnTimer: 5
+--- !u!114 &1556222720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8616685848737228372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd04ee60b19eecf43a102472dedf5235, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  InterpolationSpace: 0
+  InterpolationTarget: {fileID: 5393215578589016641}
+  InterpolateErrorCorrection: 1
+  InterpolatedErrorCorrectionSettings:
+    MinRate: 3.3
+    MaxRate: 10
+    PosBlendStart: 0.25
+    PosBlendEnd: 1
+    PosMinCorrection: 0.025
+    PosTeleportDistance: 2
+    RotBlendStart: 0.1
+    RotBlendEnd: 0.5
+    RotTeleportRadians: 1.5
+  _jumpHeight: 1.2
+  _gravity: -20
+  _groundedOffset: -0.14
+  _groundedRadius: 0.5
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 513
+  _acceleration: 10
+  _braking: 10
+  _maxSpeed: 2
+  _IsGrounded: 0
+  _Velocity: {x: 0, y: 0, z: 0}
