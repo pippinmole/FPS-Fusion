@@ -2,6 +2,13 @@
 
 ## Nightly
 
+### Build 520 (Jun 23, 2022)
+
+**Bug Fixes**
+
+- Fixed: Errors in Unity 2021+ when inspecting `AssembliesToWeave` and `Prefabs` in `NetworkPrefabConfig`
+- Fixed: Issue on the lag-compensated structure that could eventually cause an `InvalidOperationException` when adding a `HitboxRoot` to the BVH
+
 ### Build 519 (Jun 22, 2022)
 
 **Improvements**

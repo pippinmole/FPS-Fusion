@@ -1,3 +1,3 @@
-build: 1.1.2 Nightly 519
-date: 2022-06-22 20:34:05
-git: main (85ad019f)
+build: 1.1.2 Nightly 520
+date: 2022-06-23 20:34:15
+git: main (1d1fab97)

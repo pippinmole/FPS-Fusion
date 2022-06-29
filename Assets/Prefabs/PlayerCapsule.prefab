@@ -755,9 +755,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  MoveSpeed: 4
-  SprintSpeed: 6
-  JumpTimeout: 0.1
+  _moveSpeed: 5.5
+  _sprintSpeed: 8
   FallTimeout: 0.15
   _Kills: 0
   _Deaths: 0
@@ -824,6 +823,7 @@ MonoBehaviour:
   _camera: {fileID: 1556008952}
   _topClamp: 90
   _bottomClamp: -90
+  _sensitivity: 0.5
 --- !u!114 &7059430512680573544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -932,15 +932,14 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
-  _jumpHeight: 1.2
+  _jumpHeight: 0.8
   _gravity: -20
-  _groundedOffset: -0.14
+  _groundedOffset: 0.72
   _groundedRadius: 0.5
   _groundLayers:
     serializedVersion: 2
     m_Bits: 513
   _acceleration: 10
   _braking: 10
-  _maxSpeed: 2
-  _IsGrounded: 0
-  _Velocity: {x: 0, y: 0, z: 0}
+  _IsGrounded: 1
+  _Velocity: {x: 0.002, y: 0, z: -0.002}

@@ -90,6 +90,7 @@ MonoBehaviour:
   _killDeathRatioText: {fileID: 8908846389498719047}
   _firstColor: {r: 0.18431373, g: 0.24313726, b: 0.30588236, a: 1}
   _secondColor: {r: 0.13333334, g: 0.1764706, b: 0.22352941, a: 1}
+  _image: {fileID: 725477548}
 --- !u!222 &725477549
 CanvasRenderer:
   m_ObjectHideFlags: 0
