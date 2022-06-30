@@ -30,9 +30,9 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
     [SerializeField] private float _matchTimeInSeconds = 120f;
     [SerializeField] private PlayerController _playerPrefab;
     
-    public static event Action<List<PlayerRef>> Connected; 
-    public static event Action<PlayerRef> PlayerJoined;
-    public static event Action<PlayerRef> PlayerLeft;
+    public static event Action<NetworkRunner, List<PlayerRef>> Connected; 
+    public static event Action<NetworkRunner, PlayerRef> PlayerJoined;
+    public static event Action<NetworkRunner, PlayerRef> PlayerLeft;
 
     public static event Action<EGameState> GameStateChanged;
 
@@ -59,7 +59,7 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
         var players = new List<PlayerRef>();
         foreach ( var (player, _) in Players ) players.Add(player);
 
-        Connected?.Invoke(players);
+        Connected?.Invoke(Runner, players);
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
@@ -123,7 +123,7 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
         Players.Add(player, null);
         
-        PlayerJoined?.Invoke(player);
+        PlayerJoined?.Invoke(Runner, player);
     }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
         if ( !Players.ContainsKey(player) ) return;
@@ -134,7 +134,7 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
         }
         
         Players.Remove(player);
-        PlayerLeft?.Invoke(player);
+        PlayerLeft?.Invoke(Runner, player);
     }
     
     public void OnInput(NetworkRunner runner, NetworkInput input) { }

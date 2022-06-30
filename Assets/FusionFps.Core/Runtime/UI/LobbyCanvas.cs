@@ -62,11 +62,11 @@ public class LobbyCanvas : MonoBehaviour {
         }
     }
 
-    private void UpdateBoard(List<PlayerRef> players) {
+    private void UpdateBoard(NetworkRunner runner, List<PlayerRef> players) {
         // TODO: Maybe clear the board here?
         
         foreach ( var player in players ) {
-            AddPlayer(player);
+            AddPlayer(runner, player);
         }
     }
 
@@ -93,7 +93,7 @@ public class LobbyCanvas : MonoBehaviour {
         _startScreen.gameObject.SetActive(SessionManager.ConnectionStatus == ConnectionStatus.Disconnected);
     }
 
-    private void RemovePlayer(PlayerRef player) {
+    private void RemovePlayer(NetworkRunner runner, PlayerRef player) {
         if ( !ListItems.ContainsKey(player) )
             return;
 
@@ -104,7 +104,7 @@ public class LobbyCanvas : MonoBehaviour {
         ListItems.Remove(player);
     }
 
-    private void AddPlayer(PlayerRef player) {
+    private void AddPlayer(NetworkRunner runner, PlayerRef player) {
         if ( ListItems.ContainsKey(player) ) {
             var toRemove = ListItems[player];
             Destroy(toRemove.gameObject);
