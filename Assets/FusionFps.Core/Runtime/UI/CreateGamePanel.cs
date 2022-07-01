@@ -5,7 +5,6 @@ using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -21,7 +20,11 @@ public class CreateGamePanel : MonoBehaviour {
     private const int MinimumSessionNameLength = 3;
     private const int MaximumSessionNameLength = 25;
 
+    private ISessionManager _sessionManager;
+    
     private void Awake() {
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        
         SetupMapDropdown();
         
         _createGameLoadingCircle.SetActive(false);
@@ -61,7 +64,7 @@ public class CreateGamePanel : MonoBehaviour {
 
         _createGameLoadingCircle.SetActive(true);
         
-        var result = await SessionManager.Instance.CreateSession(sessionName, sessionProperties);
+        var result = await _sessionManager.CreateSession(sessionName, sessionProperties);
         
         _createGameLoadingCircle.SetActive(false);
         

@@ -1,4 +1,6 @@
+using System;
 using Fusion;
+using FusionFps.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,11 +16,14 @@ public class PlayerStatEntry : MonoBehaviour {
     [SerializeField] private Color _firstColor = new(34, 45, 57, 255);
     [SerializeField] private Color _secondColor = new(47, 62, 78, 255);
 
-    private static NetworkDictionary<PlayerRef, PlayerController> Players => MatchManager.Instance.Players;
-    private PlayerController PlayerController => Players[_player];
-    
+    private IMatchManager _matchManager;
     private PlayerRef _player;
+    
     [SerializeField] private Image _image;
+
+    private void Awake() {
+        _matchManager = SingletonProvider.Get<IMatchManager>();
+    }
 
     public void Set(int number, PlayerRef player) {
         _player = player;
@@ -27,10 +32,10 @@ public class PlayerStatEntry : MonoBehaviour {
     }
 
     private void Update() {
-        if ( !MatchManager.Instance.IsRunning )
+        if ( !_matchManager.IsRunning )
             return;
         
-        var player = PlayerController;
+        var player = _matchManager.Players[_player];
         
         _nameText.SetText(_player.ToString());
 

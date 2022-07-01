@@ -1,6 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Fusion;
+using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,23 +14,27 @@ public class NewLobbyCanvas : MonoBehaviour {
     [SerializeField] private GameObject _joinGamePanel;
     [SerializeField] private ModalWindowManager _exitGameModal;
 
+    private ISessionManager _sessionManager;
+
     private void Awake() {
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        
         _createGameButton.onClick.AddListener(CreateGameClicked);
         _joinGameButton.onClick.AddListener(JoinGameClicked);
         _exitGameButton.onClick.AddListener(ExitGameClicked);
 
-        SessionManager.SessionJoined += OnSessionJoined;
-        SessionManager.SessionLeft += OnSessionLeft;
+        _sessionManager.SessionJoined += OnSessionJoined;
+        _sessionManager.SessionLeft += OnSessionLeft;
     }
 
     private void OnDestroy() {
-        SessionManager.SessionJoined -= OnSessionJoined;
-        SessionManager.SessionLeft -= OnSessionLeft;
+        _sessionManager.SessionJoined -= OnSessionJoined;
+        _sessionManager.SessionLeft -= OnSessionLeft;
     }
 
     private void Update() {
-        _joinGameButton.interactable = !SessionManager.IsBusy;
-        _createGameButton.interactable = !SessionManager.IsBusy;
+        _joinGameButton.interactable = !_sessionManager.IsBusy;
+        _createGameButton.interactable = !_sessionManager.IsBusy;
     }
 
     private void CreateGameClicked() {
@@ -43,7 +46,7 @@ public class NewLobbyCanvas : MonoBehaviour {
         _createGamePanel.SetActive(false);
         _joinGamePanel.SetActive(true);
 
-        await SessionManager.Instance.StartClient();
+        await _sessionManager.StartClient();
     }
 
     private void OnSessionJoined(NetworkRunner runner) {
@@ -59,7 +62,7 @@ public class NewLobbyCanvas : MonoBehaviour {
     }
 
     public void CloseGame() {
-        SessionManager.Instance.Shutdown();
+        _sessionManager.Shutdown();
         
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

@@ -1,4 +1,5 @@
 using Fusion;
+using FusionFps.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,9 +11,12 @@ public class SessionListObject : MonoBehaviour {
     [SerializeField] private TMP_Text _playerCountText;
     [SerializeField] private TMP_Text _pingText;
 
+    private ISessionManager _sessionManager;
     private SessionInfo _session;
     
     private void Awake() {
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        
         _button.onClick.AddListener(JoinServer);
     }
 
@@ -25,6 +29,6 @@ public class SessionListObject : MonoBehaviour {
 
     private void JoinServer() {
         Debug.Log($"Attempting to join session {_session.Name}");
-        SessionManager.Instance.JoinSession(_session.Name);
+        _sessionManager.JoinSession(_session.Name);
     }
 }

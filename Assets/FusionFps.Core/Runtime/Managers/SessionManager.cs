@@ -15,26 +15,43 @@ public enum ConnectionStatus {
 }
 
 namespace FusionFps.Core {
-    public class SessionManager : MonoBehaviour, INetworkRunnerCallbacks {
 
-        public static ConnectionStatus ConnectionStatus = ConnectionStatus.Disconnected;
+    public interface ISessionManager {
+        public event Action<List<SessionInfo>> SessionListUpdated;
+        public event Action<NetworkRunner> SessionJoined;
+        public event Action<NetworkRunner> SessionLeft;
+        public event Action<NetworkRunner> SessionCreated;
+        public event Action<NetworkRunner> SessionDestroyed;
+        public event Action<NetworkRunner, ShutdownReason> RunnerShutdown;
+        public event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
+        
+        bool IsBusy { get; }
+        ConnectionStatus ConnectionStatus { get; }
 
-        public static event Action<List<SessionInfo>> SessionListUpdated;
-        public static event Action<NetworkRunner> SessionJoined;
-        public static event Action<NetworkRunner> SessionLeft;
-        public static event Action<NetworkRunner> SessionCreated;
-        public static event Action<NetworkRunner> SessionDestroyed;
-        public static event Action<NetworkRunner, ShutdownReason> RunnerShutdown;
-        public static event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
+        Task<StartGameResult> CreateSession(string lobbyName, Dictionary<string, SessionProperty> sessionProperties);
+        Task<StartGameResult> StartClient();
+        Task<StartGameResult> JoinSession(string session);
+        Task Shutdown();
+    }
+    
+    internal class SessionManager : MonoBehaviour, ISessionManager, INetworkRunnerCallbacks {
+        
+        public event Action<List<SessionInfo>> SessionListUpdated;
+        public event Action<NetworkRunner> SessionJoined;
+        public event Action<NetworkRunner> SessionLeft;
+        public event Action<NetworkRunner> SessionCreated;
+        public event Action<NetworkRunner> SessionDestroyed;
+        public event Action<NetworkRunner, ShutdownReason> RunnerShutdown;
+        public event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
 
-        public static bool IsBusy { get; private set; }
-
-        public static SessionManager Instance;
+        public ConnectionStatus ConnectionStatus { get; private set; } = ConnectionStatus.Disconnected;
+        public bool IsBusy { get; private set; }
 
         private NetworkRunner _runner;
 
         private void Awake() {
-            Instance = this;
+            // Register accessor method for singleton
+            SingletonProvider.AddSingleton<ISessionManager>(() => this);
         }
 
         private async Task SetupRunner(GameMode mode) {
@@ -184,10 +201,8 @@ namespace FusionFps.Core {
 
             _runner = null;
         }
-
         public void OnInput(NetworkRunner runner, NetworkInput input) { }
         public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-
         public void OnConnectedToServer(NetworkRunner runner) {
             Debug.Log("connected to server...");
             SetConnectionStatus(ConnectionStatus.Connected);

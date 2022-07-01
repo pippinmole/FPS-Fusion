@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using Fusion;
+using FusionFps.Core;
 using UnityEngine;
 
 public class SessionListUI : MonoBehaviour {
@@ -9,18 +9,22 @@ public class SessionListUI : MonoBehaviour {
     [SerializeField] private Transform _sessionListParent;
     [SerializeField] private GameObject _loadingCircle;
     [SerializeField] private GameObject _noSessionsFound;
+
+    private ISessionManager _sessionManager;
     
     private void Awake() {
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        
         // _loadingCircle.SetActive(true);
         _noSessionsFound.SetActive(false);
         
-        SessionManager.SessionListUpdated += UpdateSessionList;
-        SessionManager.ConnectionStatusChanged += OnConnectionStatusChanged;
+        _sessionManager.SessionListUpdated += UpdateSessionList;
+        _sessionManager.ConnectionStatusChanged += OnConnectionStatusChanged;
     }
     
     private void OnDestroy() {
-        SessionManager.SessionListUpdated -= UpdateSessionList;
-        SessionManager.ConnectionStatusChanged -= OnConnectionStatusChanged;
+        _sessionManager.SessionListUpdated -= UpdateSessionList;
+        _sessionManager.ConnectionStatusChanged -= OnConnectionStatusChanged;
     }
 
     private void OnConnectionStatusChanged(NetworkRunner runner, ConnectionStatus connectionStatus) {

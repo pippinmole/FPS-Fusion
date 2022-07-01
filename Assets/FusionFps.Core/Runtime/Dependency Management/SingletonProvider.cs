@@ -3,22 +3,22 @@ using System.Collections.Generic;
 
 namespace FusionFps.Core {
     public static class SingletonProvider {
-        private static readonly Dictionary<Type, Func<object>> instanceAccessors = new();
+        private static readonly Dictionary<Type, Func<object>> InstanceAccessors = new();
 
         public static void Clear() {
-            instanceAccessors.Clear();
+            InstanceAccessors.Clear();
         }
 
         public static void AddSingleton<T>(Func<T> accessorMethod, bool overwriteIfAccessorExists = true)
             where T : class {
             if ( accessorMethod == null ) return;
-            if ( !overwriteIfAccessorExists && instanceAccessors.ContainsKey(typeof(T)) ) return;
+            if ( !overwriteIfAccessorExists && InstanceAccessors.ContainsKey(typeof(T)) ) return;
 
-            instanceAccessors[typeof(T)] = accessorMethod;
+            InstanceAccessors[typeof(T)] = accessorMethod;
         }
 
         public static T Get<T>() where T : class {
-            if ( instanceAccessors.TryGetValue(typeof(T), out Func<object> accessorMethod) ) {
+            if ( InstanceAccessors.TryGetValue(typeof(T), out Func<object> accessorMethod) ) {
                 return accessorMethod?.Invoke() as T;
             }
 

@@ -1,4 +1,6 @@
 using System;
+using Fusion;
+using FusionFps.Core;
 using TMPro;
 using UnityEngine;
 
@@ -10,11 +12,18 @@ public class IngameUI : MonoBehaviour {
     [SerializeField] private Transform _deathScreen;
     [SerializeField] private TMP_Text _deathCountdownText;
 
+    private IMatchManager _matchManager;
     private PlayerController _player;
     private PlayerHealth _health;
-    
-    public void Setup(PlayerController player) {
+    private NetworkRunner _runner;
+
+    private void Awake() {
+        _matchManager = SingletonProvider.Get<IMatchManager>();
+    }
+
+    public void Setup(PlayerController player, NetworkRunner runner) {
         _player = player;
+        _runner = runner;
         _health = player.GetComponent<PlayerHealth>();
 
         _health.HealthUpdated += UpdateHealthText;
@@ -40,16 +49,14 @@ public class IngameUI : MonoBehaviour {
 
     private void UpdateRoundTimer() {
         if ( _roundTimerText == null ) return;
-        
-        var lobbyManager = MatchManager.Instance;
 
-        switch ( lobbyManager.GameState ) {
-            case MatchManager.EGameState.LobbyConnected:
+        switch ( _matchManager.GameState ) {
+            case EGameState.LobbyConnected:
                 _roundTimerText.SetText("");
                 break;
-            case MatchManager.EGameState.GameInProgress:
-                var timer = lobbyManager.GameData.Countdown;
-                var secondsLeft = timer.RemainingTime(lobbyManager.Runner);
+            case EGameState.GameInProgress:
+                var timer = _matchManager.GameData.Countdown;
+                var secondsLeft = timer.RemainingTime(_runner);
 
                 _roundTimerText.SetText(secondsLeft == null
                     ? "0:00"

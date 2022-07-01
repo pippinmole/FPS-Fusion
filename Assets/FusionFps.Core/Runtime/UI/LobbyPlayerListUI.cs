@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using FusionFps.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,13 +16,19 @@ public class LobbyPlayerListUI : MonoBehaviour {
     [SerializeField] private GameObject _lobbyObject;
     [SerializeField] private Button _startGameButton;
 
+    private IMatchManager _matchManager;
+    private ISessionManager _sessionManager;
+    
     private void Awake() {
-        MatchManager.Connected += UpdateBoard;
-        MatchManager.PlayerJoined += AddPlayer;
-        MatchManager.PlayerLeft += RemovePlayer;
+        _matchManager = SingletonProvider.Get<IMatchManager>();
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        
+        _matchManager.Connected += UpdateBoard;
+        _matchManager.PlayerJoined += AddPlayer;
+        _matchManager.PlayerLeft += RemovePlayer;
 
-        SessionManager.SessionJoined += OnSessionJoined;
-        SessionManager.SessionLeft += OnSessionLeft;
+        _sessionManager.SessionJoined += OnSessionJoined;
+        _sessionManager.SessionLeft += OnSessionLeft;
         
         ClearParent(_entryParent);
         
@@ -32,22 +39,22 @@ public class LobbyPlayerListUI : MonoBehaviour {
     }
     
     private void OnDestroy() {
-        MatchManager.Connected -= UpdateBoard;
-        MatchManager.PlayerJoined -= AddPlayer;
-        MatchManager.PlayerLeft -= RemovePlayer;
+        _matchManager.Connected -= UpdateBoard;
+        _matchManager.PlayerJoined -= AddPlayer;
+        _matchManager.PlayerLeft -= RemovePlayer;
         
-        SessionManager.SessionJoined -= OnSessionJoined;
-        SessionManager.SessionLeft -= OnSessionLeft;
+        _sessionManager.SessionJoined -= OnSessionJoined;
+        _sessionManager.SessionLeft -= OnSessionLeft;
 
         _listItems = new Dictionary<PlayerRef, LobbyPlayerEntry>();
     }
 
     private void StartGameClicked() {
-        MatchManager.Instance.LoadSessionMap();
+        _matchManager.LoadSessionMap();
     }
 
     public void LeaveGame() {
-        SessionManager.Instance.Shutdown();
+        _sessionManager.Shutdown();
     }
 
     private void OnSessionJoined(NetworkRunner runner) {

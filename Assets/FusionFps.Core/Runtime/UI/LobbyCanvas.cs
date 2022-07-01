@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
-using TMPro;
+using FusionFps.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,33 +19,39 @@ public class LobbyCanvas : MonoBehaviour {
 
     [SerializeField] private Button _startGameButton;
     [SerializeField] private Button _leaveGameButton;
+
+    private IMatchManager _matchManager;
+    private ISessionManager _sessionManager;
     
     private void Awake() {
-        MatchManager.Connected += UpdateBoard;
-        MatchManager.PlayerJoined += AddPlayer;
-        MatchManager.PlayerLeft += RemovePlayer;
+        _matchManager = SingletonProvider.Get<IMatchManager>();
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
         
-        MatchManager.GameStateChanged += UpdateButtons;
+        _matchManager.Connected += UpdateBoard;
+        _matchManager.PlayerJoined += AddPlayer;
+        _matchManager.PlayerLeft += RemovePlayer;
+        
+        _matchManager.GameStateChanged += UpdateButtons;
 
-        SessionManager.SessionListUpdated += UpdateSessionList;
+        _sessionManager.SessionListUpdated += UpdateSessionList;
 
-        _startGameButton.onClick.AddListener(() => MatchManager.Instance.StartGame());
-        _leaveGameButton.onClick.AddListener(() => SessionManager.Instance.Shutdown());
+        _startGameButton.onClick.AddListener(() => _matchManager.StartGame());
+        _leaveGameButton.onClick.AddListener(() => _sessionManager.Shutdown());
     }
     
-    private void UpdateButtons(MatchManager.EGameState state) {
+    private void UpdateButtons(EGameState state) {
         
         Debug.Log($"State changed to {state}");
         
         switch ( state ) {
-            case MatchManager.EGameState.None:
+            case EGameState.None:
                 _playerStatScreen.gameObject.SetActive(false);
                 break;
-            case MatchManager.EGameState.LobbyConnected:
+            case EGameState.LobbyConnected:
                 _playerStatScreen.gameObject.SetActive(true);
-                _startGameButton.gameObject.SetActive(MatchManager.Instance.Runner.IsServer);
+                _startGameButton.gameObject.SetActive(_matchManager.IsServer);
                 break;
-            case MatchManager.EGameState.GameInProgress:
+            case EGameState.GameInProgress:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);
@@ -79,20 +84,20 @@ public class LobbyCanvas : MonoBehaviour {
     }
 
     private void OnDestroy() {
-        MatchManager.Connected -= UpdateBoard;
-        MatchManager.PlayerJoined -= AddPlayer;
-        MatchManager.PlayerLeft -= RemovePlayer;
+        _matchManager.Connected -= UpdateBoard;
+        _matchManager.PlayerJoined -= AddPlayer;
+        _matchManager.PlayerLeft -= RemovePlayer;
 
-        MatchManager.GameStateChanged -= UpdateButtons;
+        _matchManager.GameStateChanged -= UpdateButtons;
         
-        SessionManager.SessionListUpdated -= UpdateSessionList;
+        _sessionManager.SessionListUpdated -= UpdateSessionList;
         
-        _startGameButton.onClick.RemoveListener(() => MatchManager.Instance.StartGame());
-        _leaveGameButton.onClick.RemoveListener(() => SessionManager.Instance.Shutdown());
+        _startGameButton.onClick.RemoveListener(() => _matchManager.StartGame());
+        _leaveGameButton.onClick.RemoveListener(() => _sessionManager.Shutdown());
     }
 
     private void Update() {
-        _startScreen.gameObject.SetActive(SessionManager.ConnectionStatus == ConnectionStatus.Disconnected);
+        _startScreen.gameObject.SetActive(_sessionManager.ConnectionStatus == ConnectionStatus.Disconnected);
     }
 
     private void RemovePlayer(NetworkRunner runner, PlayerRef player) {

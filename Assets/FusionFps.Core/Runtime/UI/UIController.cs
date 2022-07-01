@@ -17,7 +17,7 @@ public class UIController : NetworkBehaviour {
 
         if ( Object.HasInputAuthority ) {
             _ui = Instantiate(_uiPrefab);
-            _ui.Setup(_player);
+            _ui.Setup(_player, Runner);
         }
     }
 

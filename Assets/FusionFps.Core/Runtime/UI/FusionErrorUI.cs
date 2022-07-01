@@ -8,13 +8,16 @@ using UnityEngine.SceneManagement;
 public class FusionErrorUI : MonoBehaviour {
 
     [SerializeField] private ModalWindowManager _errorModal;
+
+    private ISessionManager _sessionManager;
     
     private void Awake() {
-        SessionManager.RunnerShutdown += OnRunnerShutdown;
+        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _sessionManager.RunnerShutdown += OnRunnerShutdown;
     }
 
     private void OnDestroy() {
-        SessionManager.RunnerShutdown -= OnRunnerShutdown;
+        _sessionManager.RunnerShutdown -= OnRunnerShutdown;
     }
 
     private void OnRunnerShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {
