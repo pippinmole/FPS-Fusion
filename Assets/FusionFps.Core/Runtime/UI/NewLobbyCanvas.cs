@@ -17,7 +17,7 @@ public class NewLobbyCanvas : MonoBehaviour {
     private ISessionManager _sessionManager;
 
     private void Awake() {
-        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         _createGameButton.onClick.AddListener(CreateGameClicked);
         _joinGameButton.onClick.AddListener(JoinGameClicked);

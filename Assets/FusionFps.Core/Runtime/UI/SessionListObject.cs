@@ -15,7 +15,7 @@ public class SessionListObject : MonoBehaviour {
     private SessionInfo _session;
     
     private void Awake() {
-        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         _button.onClick.AddListener(JoinServer);
     }

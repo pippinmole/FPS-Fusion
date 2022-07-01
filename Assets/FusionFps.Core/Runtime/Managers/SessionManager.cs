@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Fusion;
 using Fusion.Sockets;
@@ -43,7 +44,7 @@ namespace FusionFps.Core {
         public event Action<NetworkRunner> SessionDestroyed;
         public event Action<NetworkRunner, ShutdownReason> RunnerShutdown;
         public event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
-
+        
         public ConnectionStatus ConnectionStatus { get; private set; } = ConnectionStatus.Disconnected;
         public bool IsBusy { get; private set; }
 
@@ -51,7 +52,7 @@ namespace FusionFps.Core {
 
         private void Awake() {
             // Register accessor method for singleton
-            SingletonProvider.AddSingleton<ISessionManager>(() => this);
+            ServiceProvider.AddSingleton<ISessionManager>(() => this);
         }
 
         private async Task SetupRunner(GameMode mode) {
@@ -141,6 +142,8 @@ namespace FusionFps.Core {
             if ( _runner == null )
                 throw new InvalidOperationException("Cannot join a session without a runner!");
 
+            await SetupRunner(GameMode.Client);
+            
             var args = new StartGameArgs {
                 GameMode = GameMode.Client,
                 SessionName = session,

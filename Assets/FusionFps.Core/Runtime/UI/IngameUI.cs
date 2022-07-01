@@ -18,7 +18,7 @@ public class IngameUI : MonoBehaviour {
     private NetworkRunner _runner;
 
     private void Awake() {
-        _matchManager = SingletonProvider.Get<IMatchManager>();
+        _matchManager = ServiceProvider.Get<IMatchManager>();
     }
 
     public void Setup(PlayerController player, NetworkRunner runner) {

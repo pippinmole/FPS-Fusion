@@ -20,8 +20,8 @@ public class LobbyPlayerListUI : MonoBehaviour {
     private ISessionManager _sessionManager;
     
     private void Awake() {
-        _matchManager = SingletonProvider.Get<IMatchManager>();
-        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _matchManager = ServiceProvider.Get<IMatchManager>();
+        _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         _matchManager.Connected += UpdateBoard;
         _matchManager.PlayerJoined += AddPlayer;
@@ -116,7 +116,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
     
     private void UpdateLobbyTitleText(NetworkRunner runner) {
         var players = runner.ActivePlayers.Count();
-        var maxPlayers = runner.Simulation.MaxConnections;
+        var maxPlayers = runner.Simulation.Config.DefaultPlayers;
 
         _lobbyTitleText.SetText($"Lobby ({players}/{maxPlayers})");
     }

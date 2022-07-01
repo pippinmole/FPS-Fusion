@@ -58,7 +58,7 @@ namespace FusionFps.Core {
         private PlayerSpawnManager _spawnManager;
 
         private void Awake() {
-            SingletonProvider.AddSingleton<IMatchManager>(() => this);
+            ServiceProvider.AddSingleton<IMatchManager>(() => this);
 
             _spawnManager = FindObjectOfType<PlayerSpawnManager>();
         }

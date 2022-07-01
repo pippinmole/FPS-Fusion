@@ -14,10 +14,10 @@ namespace FusionFps.Core {
 
         void DemonstrateMethods() {
             // Register accessor method for singleton:
-            SingletonProvider.AddSingleton<IMessenger>(() => Messenger.Instance);
+            ServiceProvider.AddSingleton<IMessenger>(() => Messenger.Instance);
             
             // Retrieve singleton instance for interface type:
-            var messenger = SingletonProvider.Get<IMessenger>();
+            var messenger = ServiceProvider.Get<IMessenger>();
         }
     }
 }

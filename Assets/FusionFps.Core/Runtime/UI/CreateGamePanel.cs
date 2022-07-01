@@ -23,7 +23,7 @@ public class CreateGamePanel : MonoBehaviour {
     private ISessionManager _sessionManager;
     
     private void Awake() {
-        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         SetupMapDropdown();
         

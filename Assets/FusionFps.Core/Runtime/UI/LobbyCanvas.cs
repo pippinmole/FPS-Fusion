@@ -24,8 +24,8 @@ public class LobbyCanvas : MonoBehaviour {
     private ISessionManager _sessionManager;
     
     private void Awake() {
-        _matchManager = SingletonProvider.Get<IMatchManager>();
-        _sessionManager = SingletonProvider.Get<ISessionManager>();
+        _matchManager = ServiceProvider.Get<IMatchManager>();
+        _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         _matchManager.Connected += UpdateBoard;
         _matchManager.PlayerJoined += AddPlayer;

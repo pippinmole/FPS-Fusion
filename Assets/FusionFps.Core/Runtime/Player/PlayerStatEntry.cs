@@ -22,7 +22,7 @@ public class PlayerStatEntry : MonoBehaviour {
     [SerializeField] private Image _image;
 
     private void Awake() {
-        _matchManager = SingletonProvider.Get<IMatchManager>();
+        _matchManager = ServiceProvider.Get<IMatchManager>();
     }
 
     public void Set(int number, PlayerRef player) {

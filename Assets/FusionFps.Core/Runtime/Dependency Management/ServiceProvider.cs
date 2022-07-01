@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace FusionFps.Core {
-    public static class SingletonProvider {
+    public static class ServiceProvider {
         private static readonly Dictionary<Type, Func<object>> InstanceAccessors = new();
 
         public static void Clear() {
