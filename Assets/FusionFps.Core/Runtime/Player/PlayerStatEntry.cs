@@ -14,7 +14,7 @@ public class PlayerStatEntry : MonoBehaviour {
     [SerializeField] private Color _firstColor = new(34, 45, 57, 255);
     [SerializeField] private Color _secondColor = new(47, 62, 78, 255);
 
-    private static NetworkDictionary<PlayerRef, PlayerController> Players => GameManager.Instance.Players;
+    private static NetworkDictionary<PlayerRef, PlayerController> Players => MatchManager.Instance.Players;
     private PlayerController PlayerController => Players[_player];
     
     private PlayerRef _player;
@@ -27,7 +27,7 @@ public class PlayerStatEntry : MonoBehaviour {
     }
 
     private void Update() {
-        if ( !GameManager.Instance.IsRunning )
+        if ( !MatchManager.Instance.IsRunning )
             return;
         
         var player = PlayerController;

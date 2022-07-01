@@ -1,10 +1,8 @@
 {
-    "name": "FusionFps.Runtime",
+    "name": "Michsky.Core",
     "rootNamespace": "",
     "references": [
-        "GUID:6055be8ebefd69e48b49212b09b47b2f",
-        "GUID:4d449a4732e064d26a3069f2cfd88917",
-        "GUID:975906615ef91c649a8a8e0fb2e39ca5"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

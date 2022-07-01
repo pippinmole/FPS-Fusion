@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fusion;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,31 +22,31 @@ public class LobbyCanvas : MonoBehaviour {
     [SerializeField] private Button _leaveGameButton;
     
     private void Awake() {
-        GameManager.Connected += UpdateBoard;
-        GameManager.PlayerJoined += AddPlayer;
-        GameManager.PlayerLeft += RemovePlayer;
+        MatchManager.Connected += UpdateBoard;
+        MatchManager.PlayerJoined += AddPlayer;
+        MatchManager.PlayerLeft += RemovePlayer;
         
-        GameManager.GameStateChanged += UpdateButtons;
+        MatchManager.GameStateChanged += UpdateButtons;
 
         SessionManager.SessionListUpdated += UpdateSessionList;
 
-        _startGameButton.onClick.AddListener(() => GameManager.Instance.StartGame());
+        _startGameButton.onClick.AddListener(() => MatchManager.Instance.StartGame());
         _leaveGameButton.onClick.AddListener(() => SessionManager.Instance.Shutdown());
     }
     
-    private void UpdateButtons(GameManager.EGameState state) {
+    private void UpdateButtons(MatchManager.EGameState state) {
         
         Debug.Log($"State changed to {state}");
         
         switch ( state ) {
-            case GameManager.EGameState.None:
+            case MatchManager.EGameState.None:
                 _playerStatScreen.gameObject.SetActive(false);
                 break;
-            case GameManager.EGameState.LobbyConnected:
+            case MatchManager.EGameState.LobbyConnected:
                 _playerStatScreen.gameObject.SetActive(true);
-                _startGameButton.gameObject.SetActive(GameManager.Instance.Runner.IsServer);
+                _startGameButton.gameObject.SetActive(MatchManager.Instance.Runner.IsServer);
                 break;
-            case GameManager.EGameState.GameInProgress:
+            case MatchManager.EGameState.GameInProgress:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);
@@ -77,15 +79,15 @@ public class LobbyCanvas : MonoBehaviour {
     }
 
     private void OnDestroy() {
-        GameManager.Connected -= UpdateBoard;
-        GameManager.PlayerJoined -= AddPlayer;
-        GameManager.PlayerLeft -= RemovePlayer;
+        MatchManager.Connected -= UpdateBoard;
+        MatchManager.PlayerJoined -= AddPlayer;
+        MatchManager.PlayerLeft -= RemovePlayer;
 
-        GameManager.GameStateChanged -= UpdateButtons;
+        MatchManager.GameStateChanged -= UpdateButtons;
         
         SessionManager.SessionListUpdated -= UpdateSessionList;
         
-        _startGameButton.onClick.RemoveListener(() => GameManager.Instance.StartGame());
+        _startGameButton.onClick.RemoveListener(() => MatchManager.Instance.StartGame());
         _leaveGameButton.onClick.RemoveListener(() => SessionManager.Instance.Shutdown());
     }
 

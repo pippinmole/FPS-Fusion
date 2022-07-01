@@ -8,7 +8,7 @@ using UnityEngine;
 /// This is the store of all networked data pertaining to the game state. This 'Game State' is referring to time between
 /// starting a game from the lobby, and the finish of a game (and back to the lobby).
 /// </summary>
-public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
+public class MatchManager : NetworkBehaviour, INetworkRunnerCallbacks {
     
     public struct GameStateData : INetworkStruct {
         public TickTimer Countdown { get; set; }
@@ -36,9 +36,8 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
 
     public static event Action<EGameState> GameStateChanged;
 
-    public static GameManager Instance;
+    public static MatchManager Instance;
     
-    private NetworkRunner _runner;
     private PlayerSpawnManager _spawnManager;
 
     private void Awake() {
@@ -83,6 +82,15 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
             // Reset the state of the game
             GameState = EGameState.LobbyConnected;
         }
+    }
+
+    public void LoadSessionMap() {
+        Debug.Log($"SessionProperties IsReady: {Runner.SessionInfo.IsValid}");
+        
+        var sessionProperties = Runner.SessionInfo.Properties;
+        var mapBuildIndex = (int) sessionProperties["mapBuildIndex"];
+
+        Runner.SetActiveScene(mapBuildIndex);
     }
     
     private void SpawnAllPlayers() {
@@ -132,7 +140,7 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
         if ( controller != null ) {
             runner.Despawn(controller.Object);
         }
-        
+
         Players.Remove(player);
         PlayerLeft?.Invoke(Runner, player);
     }
@@ -153,7 +161,7 @@ public class GameManager : NetworkBehaviour, INetworkRunnerCallbacks {
     public void OnSceneLoadDone(NetworkRunner runner) { }
     public void OnSceneLoadStart(NetworkRunner runner) { }
 
-    private static void OnGameStateChanged(Changed<GameManager> changed) {
+    private static void OnGameStateChanged(Changed<MatchManager> changed) {
         GameStateChanged?.Invoke(changed.Behaviour.GameState);
     }
 }

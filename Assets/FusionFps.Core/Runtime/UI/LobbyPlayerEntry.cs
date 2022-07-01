@@ -20,9 +20,10 @@ public class LobbyPlayerEntry : MonoBehaviour {
     }
 
     private void KickPlayerPressed() {
-        Debug.Log($"Attempting to kick player: {_player}");
         if ( !_player.IsValid ) return;
         if ( _runner.IsServer && _runner.LocalPlayer == _player ) return;
+        
+        Debug.Log($"Attempting to kick player: {_player}");
         
         _runner.Disconnect(_player);
     }

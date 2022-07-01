@@ -41,13 +41,13 @@ public class IngameUI : MonoBehaviour {
     private void UpdateRoundTimer() {
         if ( _roundTimerText == null ) return;
         
-        var lobbyManager = GameManager.Instance;
+        var lobbyManager = MatchManager.Instance;
 
         switch ( lobbyManager.GameState ) {
-            case GameManager.EGameState.LobbyConnected:
+            case MatchManager.EGameState.LobbyConnected:
                 _roundTimerText.SetText("");
                 break;
-            case GameManager.EGameState.GameInProgress:
+            case MatchManager.EGameState.GameInProgress:
                 var timer = lobbyManager.GameData.Countdown;
                 var secondsLeft = timer.RemainingTime(lobbyManager.Runner);
 

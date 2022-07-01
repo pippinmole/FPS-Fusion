@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
@@ -10,21 +11,26 @@ public class SessionListUI : MonoBehaviour {
     [SerializeField] private GameObject _noSessionsFound;
     
     private void Awake() {
-        _loadingCircle.SetActive(true);
+        // _loadingCircle.SetActive(true);
         _noSessionsFound.SetActive(false);
         
         SessionManager.SessionListUpdated += UpdateSessionList;
+        SessionManager.ConnectionStatusChanged += OnConnectionStatusChanged;
     }
-
+    
     private void OnDestroy() {
         SessionManager.SessionListUpdated -= UpdateSessionList;
+        SessionManager.ConnectionStatusChanged -= OnConnectionStatusChanged;
+    }
+
+    private void OnConnectionStatusChanged(NetworkRunner runner, ConnectionStatus connectionStatus) {
+        _loadingCircle.SetActive(connectionStatus is ConnectionStatus.Connecting);
+        // _loadingCircle.SetActive(false);
     }
 
     private void UpdateSessionList(List<SessionInfo> sessions) {
-        _loadingCircle.SetActive(false);
+        // _loadingCircle.SetActive(false);
         _noSessionsFound.SetActive(sessions.Count <= 0);
-        
-        Debug.Log($"SessionListUpdated with length {sessions.Count}");
         
         ClearParent(_sessionListParent);
 

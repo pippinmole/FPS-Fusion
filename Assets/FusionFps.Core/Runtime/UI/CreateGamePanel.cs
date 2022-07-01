@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Fusion;
+using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -21,7 +25,7 @@ public class CreateGamePanel : MonoBehaviour {
         SetupMapDropdown();
         
         _createGameLoadingCircle.SetActive(false);
-        _startSessionButton.onClick.AddListener(StartSession);
+        _startSessionButton.onClick.AddListener(async () => await StartSession());
     }
 
     private void SetupMapDropdown() {
@@ -34,11 +38,12 @@ public class CreateGamePanel : MonoBehaviour {
         }
     }
     
-    private async void StartSession() {
+    private async Task StartSession() {
         var (isSterile, description) = SanitiseSessionData();
         if ( !isSterile ) {
             // _sanitiseModal.windowDescription.SetText(description);
             _sanitiseModal.descriptionText = description;
+            _sanitiseModal.UpdateUI();
             _sanitiseModal.OpenWindow();
             return;
         }
@@ -47,18 +52,25 @@ public class CreateGamePanel : MonoBehaviour {
             ? "session_" + Random.Range(0, 99999)
             : _sessionNameInput.text;
         var mapIndex = _mapList.GetMap(_mapDropdown.index);
-        
+
+        var sessionProperties = new Dictionary<string, SessionProperty> {
+            { "mapBuildIndex", mapIndex }
+        };
+
         Debug.Log($"Creating game with scene index: {mapIndex}");
 
         _createGameLoadingCircle.SetActive(true);
         
-        await SessionManager.Instance.CreateSession(sessionName);
+        var result = await SessionManager.Instance.CreateSession(sessionName, sessionProperties);
         
         _createGameLoadingCircle.SetActive(false);
         
-        Debug.Log("Created session");
-        
+        if ( !result.Ok ) {
+            return;
+        }
+
         // Close this menu and open the lobby list
+        gameObject.SetActive(false);
     }
 
     private (bool, string) SanitiseSessionData() {
