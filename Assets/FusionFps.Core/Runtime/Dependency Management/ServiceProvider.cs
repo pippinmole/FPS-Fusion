@@ -22,7 +22,7 @@ namespace FusionFps.Core {
                 return accessorMethod?.Invoke() as T;
             }
 
-            return default(T);
+            return default;
         }
     }
 }
