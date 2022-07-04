@@ -47,7 +47,7 @@ namespace FusionFps.Core {
         
         public ConnectionStatus ConnectionStatus { get; private set; } = ConnectionStatus.Disconnected;
         public bool IsBusy { get; private set; }
-
+        
         private NetworkRunner _runner;
 
         private void Awake() {

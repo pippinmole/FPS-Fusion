@@ -15,11 +15,11 @@ public class SessionListUI : MonoBehaviour {
     private void Awake() {
         _sessionManager = ServiceProvider.Get<ISessionManager>();
         
-        // _loadingCircle.SetActive(true);
-        _noSessionsFound.SetActive(false);
-        
         _sessionManager.SessionListUpdated += UpdateSessionList;
         _sessionManager.ConnectionStatusChanged += OnConnectionStatusChanged;
+        
+        // _loadingCircle.SetActive(true);
+        _noSessionsFound.SetActive(false);
     }
     
     private void OnDestroy() {

@@ -11,7 +11,7 @@ namespace FusionFps.Core {
         NetworkDictionary<PlayerRef, PlayerController> Players { get; }
         bool IsRunning { get; }
         bool IsServer { get; }
-        
+
         event Action<NetworkRunner, List<PlayerRef>> Connected;
         event Action<NetworkRunner, PlayerRef> PlayerJoined;
         event Action<NetworkRunner, PlayerRef> PlayerLeft;
@@ -62,7 +62,7 @@ namespace FusionFps.Core {
 
             _spawnManager = FindObjectOfType<PlayerSpawnManager>();
         }
-
+        
         public override void Spawned() {
             base.Spawned();
 
@@ -102,8 +102,6 @@ namespace FusionFps.Core {
         }
 
         public void LoadSessionMap() {
-            Debug.Log($"SessionProperties IsReady: {Runner.SessionInfo.IsValid}");
-
             var sessionProperties = Runner.SessionInfo.Properties;
             var mapBuildIndex = (int) sessionProperties["mapBuildIndex"];
 

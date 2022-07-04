@@ -59,9 +59,7 @@ public class CreateGamePanel : MonoBehaviour {
         var sessionProperties = new Dictionary<string, SessionProperty> {
             { "mapBuildIndex", mapIndex }
         };
-
-        Debug.Log($"Creating game with scene index: {mapIndex}");
-
+        
         _createGameLoadingCircle.SetActive(true);
         
         var result = await _sessionManager.CreateSession(sessionName, sessionProperties);

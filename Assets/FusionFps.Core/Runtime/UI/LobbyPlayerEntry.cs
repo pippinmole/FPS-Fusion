@@ -28,14 +28,14 @@ public class LobbyPlayerEntry : MonoBehaviour {
         _runner.Disconnect(_player);
     }
 
-    public async Task Set(NetworkRunner runner, PlayerRef player) {
+    public void Set(NetworkRunner runner, PlayerRef player) {
         _runner = runner;
         _player = player;
 
         var isSelf = _runner.LocalPlayer == _player;
         _kickPlayerButton.interactable = _runner.IsServer && !isSelf;
 
-        await SetSteamProfile(0);
+        SetSteamProfile(0);
     }
 
     private async Task SetSteamProfile(uint steamId) {
