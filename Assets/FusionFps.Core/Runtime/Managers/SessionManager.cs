@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Fusion;
+using Fusion.Photon.Realtime;
 using Fusion.Sockets;
+using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,6 +29,7 @@ namespace FusionFps.Core {
         public event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
         
         bool IsBusy { get; }
+        bool IsInSession { get; }
         ConnectionStatus ConnectionStatus { get; }
 
         Task<StartGameResult> CreateSession(string lobbyName, Dictionary<string, SessionProperty> sessionProperties);
@@ -44,10 +47,12 @@ namespace FusionFps.Core {
         public event Action<NetworkRunner> SessionDestroyed;
         public event Action<NetworkRunner, ShutdownReason> RunnerShutdown;
         public event Action<NetworkRunner, ConnectionStatus> ConnectionStatusChanged;
-        
+
         public ConnectionStatus ConnectionStatus { get; private set; } = ConnectionStatus.Disconnected;
+        public bool IsInSession => ConnectionStatus is ConnectionStatus.Connected;
         public bool IsBusy { get; private set; }
-        
+
+        private AuthTicket _authTicket;
         private NetworkRunner _runner;
 
         private void Awake() {
@@ -75,17 +80,13 @@ namespace FusionFps.Core {
 
             await SetupRunner(GameMode.Host);
 
-            var sceneManager = _runner.GetComponents(typeof(MonoBehaviour)).OfType<INetworkSceneManager>()
-                .FirstOrDefault();
-            if ( sceneManager == null ) {
-                // Debug.Log($"NetworkRunner does not have any component implementing {nameof(INetworkSceneManager)} interface, adding {nameof(NetworkSceneManagerDefault)}.",
-                //     _runner);
-                sceneManager = _runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
-            }
+            var sceneManager = _runner.GetComponent<INetworkSceneManager>() ??
+                               _runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
 
             //
-            // Remember: You need to provide a scene index for scene objects to attach to FUN
+            // Remember: You need to provide a scene index for scene objects to attach to FUN in that scene
             //
+            var steamAuth = GetSteamAuthenticationValues();
             var args = new StartGameArgs {
                 GameMode = GameMode.Host,
                 Address = NetAddress.Any(27015),
@@ -94,7 +95,8 @@ namespace FusionFps.Core {
                 SessionProperties = sessionProperties,
                 SceneManager = sceneManager,
                 PlayerCount = 8,
-                DisableClientSessionCreation = true
+                DisableClientSessionCreation = true,
+                AuthValues = steamAuth
             };
 
             Debug.Log($"Starting game with game mode {args.GameMode}");
@@ -109,6 +111,8 @@ namespace FusionFps.Core {
                 SessionJoined?.Invoke(_runner);
             } else {
                 Debug.LogError($"Failed to Start: {result.ShutdownReason}");
+
+                await Shutdown();
             }
 
             IsBusy = false;
@@ -143,17 +147,47 @@ namespace FusionFps.Core {
                 throw new InvalidOperationException("Cannot join a session without a runner!");
 
             await SetupRunner(GameMode.Client);
-            
+
+            var steamAuth = GetSteamAuthenticationValues();
             var args = new StartGameArgs {
                 GameMode = GameMode.Client,
                 SessionName = session,
+                AuthValues = steamAuth
             };
+
+            Debug.Log($"Joining session {session} with auth ticket type of {steamAuth.AuthType}");
 
             var result = await _runner.StartGame(args);
 
+            if ( result.Ok ) { } else {
+                await Shutdown();
+            }
+            
             IsBusy = false;
 
             return result;
+        }
+
+        private AuthenticationValues GetSteamAuthenticationValues() {
+            var auth = GetSteamAuthTicket();
+            var authValues = new AuthenticationValues();
+            authValues.UserId = SteamClient.SteamId.ToString();
+            authValues.AuthType = CustomAuthenticationType.Steam;
+            authValues.AddAuthParameter("ticket", auth);
+            return authValues;
+        }
+        
+        private string GetSteamAuthTicket() {
+            _authTicket ??= SteamUser.GetAuthSessionTicket();
+            
+            var ticketString = new StringBuilder();
+            foreach ( var b in _authTicket.Data ) {
+                ticketString.AppendFormat("{0:x2}", b);
+            }
+
+            ticketString[0] = ' ';
+
+            return ticketString.ToString();
         }
 
         private void SetConnectionStatus(ConnectionStatus status) {
@@ -195,6 +229,12 @@ namespace FusionFps.Core {
             //
             // RoomPlayer.Players.Clear();
 
+            // Clear steam ticket data
+            if ( _authTicket != null ) {
+                _authTicket.Cancel();
+                _authTicket = null;
+            }
+            
             if ( _runner )
                 Destroy(_runner.gameObject);
 
@@ -217,7 +257,14 @@ namespace FusionFps.Core {
         }
 
         public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request,
-            byte[] token) { }
+            byte[] token) {
+
+            // var playerToken = new PlayerConnectionToken(token);
+            // Debug.Log($"Player connecting with steam id: {playerToken.SteamId}");
+
+            // authenticate the token before accepting
+            
+        }
 
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
         public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }

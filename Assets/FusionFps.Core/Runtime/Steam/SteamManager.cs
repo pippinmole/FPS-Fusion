@@ -1,4 +1,5 @@
 using System;
+using Fusion;
 using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using Steamworks;
@@ -8,14 +9,13 @@ namespace FusionFps.Steamworks {
     public class SteamManager : MonoBehaviour {
 
         [SerializeField] private ModalWindowManager _errorConnectingPanel;
+        [SerializeField] private uint _appId = 1086540;
 
         private void Awake() {
             try {
+                SteamClient.Init(_appId);
+
                 Debug.Log("[SteamManager] Initialized Steam Client successfully");
-
-                
-                SteamClient.Init(480);
-
             }
             catch ( Exception e ) {
                 // Something went wrong - it's one of these:

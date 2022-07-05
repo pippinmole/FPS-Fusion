@@ -27,8 +27,6 @@ public class SteamFriendsList : MonoBehaviour {
     }
 
     private void UpdateList() {
-        Debug.Log("[SteamFriendsList] Updating steam friends list");
-        
         ClearParent(_parent);
 
         var friends = SteamFriends.GetFriends()
@@ -38,8 +36,6 @@ public class SteamFriendsList : MonoBehaviour {
         foreach ( var friend in friends ) {
             var obj = Instantiate(_prefab, _parent);
             obj.Set(friend);
-            
-            Debug.Log($"Setting {friend.Name} {friend.State}");
         }
     }
 

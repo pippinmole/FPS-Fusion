@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Fusion;
+using Steamworks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,10 +14,12 @@ public class LobbyPlayerEntry : MonoBehaviour {
     [SerializeField] private Button _kickPlayerButton;
 
     private NetworkRunner _runner;
+    private Friend _friend;
     private PlayerRef _player;
 
     private void Awake() {
         _kickPlayerButton.onClick.AddListener(KickPlayerPressed);
+        _steamProfileButton.onClick.AddListener(OpenSteamProfile);
     }
 
     private void KickPlayerPressed() {
@@ -36,6 +39,11 @@ public class LobbyPlayerEntry : MonoBehaviour {
         _kickPlayerButton.interactable = _runner.IsServer && !isSelf;
 
         SetSteamProfile(0);
+    }
+    
+    private void OpenSteamProfile() {
+        Debug.Log("Open steam profile page");
+        SteamFriends.OpenUserOverlay(_friend.Id, "chat");
     }
 
     private async Task SetSteamProfile(uint steamId) {

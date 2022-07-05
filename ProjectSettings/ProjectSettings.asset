@@ -47,7 +47,7 @@ PlayerSettings:
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
   m_StereoRenderingPath: 0
-  m_ActiveColorSpace: 1
+  m_ActiveColorSpace: 0
   m_MTRendering: 1
   mipStripping: 0
   numberOfMipsStripped: 0
@@ -598,7 +598,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    Standalone: STARTER_ASSETS_PACKAGES_CHECKED;FUSION_WEAVER
+    Standalone: STARTER_ASSETS_PACKAGES_CHECKED;FUSION_WEAVER;PLATFORM_WIN64;PLATFORM_WIN;PLATFORM_64
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
