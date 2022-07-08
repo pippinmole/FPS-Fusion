@@ -41,6 +41,21 @@ public class SteamFriendItemUI : MonoBehaviour {
         SetStatusBarColor();
         SetSteamProfile(friend.Id);
     }
+    
+    private async Task InviteToLobby() {
+        if ( Time.realtimeSinceStartup - _timeInvited < SECONDS_COOLDOWN ) return;
+        
+        if ( !_sessionManager.IsInSession ) {
+            // Create session
+            await _sessionManager.CreateSession("lobby", new Dictionary<string, SessionProperty>());   
+        }
+
+        // Invite player
+        var success = _friend.InviteToGame("Hey! Join my lobby :)");
+        Debug.Log(success ? "Successfully sent steam message" : "Failed to send steam message");
+
+        _timeInvited = Time.realtimeSinceStartup;
+    }
 
     private async Task SetSteamProfile(SteamId steamId) {
         var result = await SteamFriends.GetSmallAvatarAsync(steamId);
@@ -52,21 +67,6 @@ public class SteamFriendItemUI : MonoBehaviour {
     private void OpenSteamProfile() {
         Debug.Log("Open steam profile page");
         SteamFriends.OpenUserOverlay(_friend.Id, "chat");
-    }
-
-    private async Task InviteToLobby() {
-        if ( Time.realtimeSinceStartup - _timeInvited < SECONDS_COOLDOWN ) return;
-        
-        if ( !_sessionManager.IsInSession ) {
-            // Create session
-            await _sessionManager.CreateSession("lobby", new Dictionary<string, SessionProperty>());   
-        }
-
-        // Invite player
-        var success = _friend.InviteToGame("");
-        Debug.Log(success ? "Successfully sent steam message" : "Failed to send steam message");
-
-        _timeInvited = Time.realtimeSinceStartup;
     }
 
     private void SetStatusBarColor() {

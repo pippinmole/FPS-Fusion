@@ -16,9 +16,11 @@ namespace FusionFps.Core {
         event Action<NetworkRunner, PlayerRef> PlayerJoined;
         event Action<NetworkRunner, PlayerRef> PlayerLeft;
         event Action<EGameState> GameStateChanged;
+        event Action<NetworkRunner> MatchLoaded; 
 
         void LoadSessionMap();
         void StartGame();
+        void OnMatchLoaded();
     }
 
     public struct GameStateData : INetworkStruct {
@@ -52,15 +54,12 @@ namespace FusionFps.Core {
         public event Action<NetworkRunner, List<PlayerRef>> Connected;
         public event Action<NetworkRunner, PlayerRef> PlayerJoined;
         public event Action<NetworkRunner, PlayerRef> PlayerLeft;
+        public event Action<NetworkRunner> MatchLoaded; 
 
         public event Action<EGameState> GameStateChanged;
-
-        private PlayerSpawnManager _spawnManager;
-
+        
         private void Awake() {
             ServiceProvider.AddSingleton<IMatchManager>(() => this);
-
-            _spawnManager = FindObjectOfType<PlayerSpawnManager>();
         }
         
         public override void Spawned() {
@@ -102,15 +101,17 @@ namespace FusionFps.Core {
         }
 
         public void LoadSessionMap() {
+            if ( !Runner.IsServer ) return;
+
             var sessionProperties = Runner.SessionInfo.Properties;
             var mapBuildIndex = (int) sessionProperties["mapBuildIndex"];
 
             Runner.SetActiveScene(mapBuildIndex);
         }
 
-        private void SpawnAllPlayers() {
+        private void SpawnAllPlayers(PlayerSpawnManager spawnManager) {
             foreach ( var (player, _) in Players ) {
-                var spawnPoint = _spawnManager.GetNextSpawnPoint(Runner, player);
+                var spawnPoint = spawnManager.GetNextSpawnPoint(Runner, player);
                 var playerObject = Runner.Spawn(_playerPrefab, spawnPoint.position, Quaternion.identity, player);
 
                 Debug.Log($"Spawning player at {spawnPoint.position}");
@@ -133,7 +134,8 @@ namespace FusionFps.Core {
             if ( !Runner.IsServer ) return;
             if ( GameState != EGameState.LobbyConnected ) return;
 
-            SpawnAllPlayers();
+            var spawnManager = FindObjectOfType<PlayerSpawnManager>();            
+            SpawnAllPlayers(spawnManager);
 
             GameState = EGameState.GameInProgress;
             GameData = new GameStateData {
@@ -141,6 +143,13 @@ namespace FusionFps.Core {
             };
 
             Debug.Log($"Match is set to end on tick {GameData.Countdown.TargetTick}");
+        }
+
+        public void OnMatchLoaded() {
+            // Start the game
+            StartGame();
+            
+            MatchLoaded?.Invoke(Runner);
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
@@ -173,7 +182,10 @@ namespace FusionFps.Core {
         public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
         public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) { }
         public void OnSceneLoadDone(NetworkRunner runner) { }
-        public void OnSceneLoadStart(NetworkRunner runner) { }
+
+        public void OnSceneLoadStart(NetworkRunner runner) {
+            Debug.Log("Loaded scene");
+        }
 
         private static void OnGameStateChanged(Changed<MatchManager> changed) {
             changed.Behaviour.GameStateChanged?.Invoke(changed.Behaviour.GameState);

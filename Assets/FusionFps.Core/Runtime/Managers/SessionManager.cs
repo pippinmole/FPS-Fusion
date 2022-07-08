@@ -72,8 +72,7 @@ namespace FusionFps.Core {
             _runner.AddCallbacks(this);
         }
 
-        public async Task<StartGameResult> CreateSession(string lobbyName,
-            Dictionary<string, SessionProperty> sessionProperties) {
+        public async Task<StartGameResult> CreateSession(string lobbyName, Dictionary<string, SessionProperty> sessionProperties) {
             IsBusy = true;
 
             SetConnectionStatus(ConnectionStatus.Connecting);
@@ -185,7 +184,7 @@ namespace FusionFps.Core {
                 ticketString.AppendFormat("{0:x2}", b);
             }
 
-            ticketString[0] = ' ';
+            // ticketString[0] = ' ';
 
             return ticketString.ToString();
         }
@@ -230,10 +229,10 @@ namespace FusionFps.Core {
             // RoomPlayer.Players.Clear();
 
             // Clear steam ticket data
-            if ( _authTicket != null ) {
-                _authTicket.Cancel();
-                _authTicket = null;
-            }
+            // if ( _authTicket != null ) {
+            //     _authTicket.Cancel();
+            //     _authTicket = null;
+            // }
             
             if ( _runner )
                 Destroy(_runner.gameObject);
@@ -257,15 +256,7 @@ namespace FusionFps.Core {
         }
 
         public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request,
-            byte[] token) {
-
-            // var playerToken = new PlayerConnectionToken(token);
-            // Debug.Log($"Player connecting with steam id: {playerToken.SteamId}");
-
-            // authenticate the token before accepting
-            
-        }
-
+            byte[] token) { }
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
         public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
 
