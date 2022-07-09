@@ -52,6 +52,8 @@ namespace FusionFps.Core {
         public bool IsInSession => ConnectionStatus is ConnectionStatus.Connected;
         public bool IsBusy { get; private set; }
 
+        [SerializeField] private ushort _port = 27271;
+        
         private AuthTicket _authTicket;
         private NetworkRunner _runner;
 
@@ -61,8 +63,14 @@ namespace FusionFps.Core {
         }
 
         private async Task SetupRunner(GameMode mode) {
-            if ( _runner != null ) {
-                Debug.LogWarning("A runner exists when trying to create another, destroying.");
+            //
+            // This is a small hack - basically a 'Client' will not be established as a client if they are on the 
+            // server list.
+            //
+
+            if ( (_runner != null && _runner.GameMode != mode) || (_runner != null && _runner.GameMode == 0 && mode == GameMode.Client) ) {
+                Debug.LogWarning(
+                    $"A runner exists when trying to create another in mode {mode} (Current mode: {_runner.GameMode}), destroying.");
                 await Shutdown();
             }
 
@@ -88,7 +96,7 @@ namespace FusionFps.Core {
             var steamAuth = GetSteamAuthenticationValues();
             var args = new StartGameArgs {
                 GameMode = GameMode.Host,
-                Address = NetAddress.Any(27015),
+                Address = NetAddress.Any(_port),
                 Scene = SceneManager.GetActiveScene().buildIndex,
                 SessionName = lobbyName,
                 SessionProperties = sessionProperties,
@@ -151,7 +159,9 @@ namespace FusionFps.Core {
             var args = new StartGameArgs {
                 GameMode = GameMode.Client,
                 SessionName = session,
+#if !DEVELOPMENT_BUILD && !UNITY_EDITOR
                 AuthValues = steamAuth
+#endif
             };
 
             Debug.Log($"Joining session {session} with auth ticket type of {steamAuth.AuthType}");
