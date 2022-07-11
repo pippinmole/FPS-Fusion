@@ -21,7 +21,8 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
         public const uint ButtonShoot = 1 << 2;
 
         public uint Buttons;
-
+        public uint OneShots;
+        
         public Vector2 Move;
 
         public Angle YawDelta;
@@ -29,9 +30,7 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
 
         public int WeaponIndex;
 
-        public uint OneShots;
-
-        public bool IsUp(uint button) => IsDown(button) == false;
+        public bool IsUp(uint button) => !IsDown(button);
         public bool IsDown(uint button) => (Buttons & button) == button;
 
         public bool IsDownThisFrame(uint button) => (OneShots & button) == button;

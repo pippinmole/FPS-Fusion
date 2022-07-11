@@ -2,22 +2,27 @@ using Fusion;
 using UnityEngine;
 
 public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
-
+    
     [SerializeField] private Transform _cameraRoot;
     [SerializeField] private Camera _camera;
     [SerializeField] private float _topClamp = 90.0f;
     [SerializeField] private float _bottomClamp = -90.0f;
     [SerializeField] private float _sensitivity = 0.6f;
     
-    [Networked] public Angle Yaw { get; set; }
-    [Networked] public Angle Pitch { get; set; }
-    
+    [Networked] private Angle Yaw { get; set; }
+    [Networked] private Angle Pitch { get; set; }
+
+    public Angle CameraYaw => Yaw + _yawDelta;
+    public Angle CameraPitch => Pitch + _pitchDelta;
+
+    private PlayerController _controller;
     private PlayerHealth _health;
     private Angle _yawDelta;
     private Angle _pitchDelta;
 
     private void Awake() {
         _health = GetComponent<PlayerHealth>();
+        _controller = GetComponent<PlayerController>();
         
         _camera.gameObject.SetActive(false);
     }
@@ -25,15 +30,13 @@ public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
     public override void Render() {
         base.Render();
 
-        if ( _health.IsAlive ) {
-            var yaw = Yaw + _yawDelta;
-            var pitch = Pitch + _pitchDelta;
+        if ( _health.IsAlive && _controller.CanMove ) {
+            var pitch = CheckAndClamp((float) CameraPitch);
 
-            pitch = CheckAndClamp((float) pitch);
-
-            _cameraRoot.transform.rotation = Quaternion.Euler((float) pitch, (float) yaw, 0.0f);
-            _camera.gameObject.SetActive(Object.HasInputAuthority);
+            _cameraRoot.rotation = Quaternion.Euler(pitch, (float) CameraYaw, 0.0f);
         }
+        
+        _camera.gameObject.SetActive(Object.HasInputAuthority);
     }
 
     public void BeforeUpdate() {

@@ -54,14 +54,25 @@ public class IngameUI : MonoBehaviour {
             case EGameState.LobbyConnected:
                 _roundTimerText.SetText("");
                 break;
+            case EGameState.WaitingForPlayers:
+                var timer1 = _matchManager.WaitForPlayersTimer;
+                var secondsLeft1 = timer1.RemainingTime(_runner);
+
+                if ( !secondsLeft1.HasValue )
+                    return;
+
+                _roundTimerText.SetText($"Waiting for Players \n {(int) secondsLeft1 / 60}:{secondsLeft1 % 60:00}");
+                break;
             case EGameState.GameInProgress:
-                var timer = _matchManager.GameData.Countdown;
+                var timer = _matchManager.Countdown;
                 var secondsLeft = timer.RemainingTime(_runner);
 
                 _roundTimerText.SetText(secondsLeft == null
                     ? "0:00"
                     : $"{(int) secondsLeft / 60}:{secondsLeft % 60:00}");
                 
+                break;
+            case EGameState.None:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

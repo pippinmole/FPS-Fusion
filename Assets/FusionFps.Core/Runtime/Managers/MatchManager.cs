@@ -7,7 +7,8 @@ using UnityEngine;
 namespace FusionFps.Core {
     public interface IMatchManager {
         EGameState GameState { get; }
-        GameStateData GameData { get; set; }
+        TickTimer WaitForPlayersTimer { get; }
+        TickTimer Countdown { get; }
         NetworkDictionary<PlayerRef, PlayerController> Players { get; }
         bool IsRunning { get; }
         bool IsServer { get; }
@@ -19,17 +20,13 @@ namespace FusionFps.Core {
         event Action<NetworkRunner> MatchLoaded; 
 
         void LoadSessionMap();
-        void StartGame();
         void OnMatchLoaded();
-    }
-
-    public struct GameStateData : INetworkStruct {
-        public TickTimer Countdown { get; set; }
     }
 
     public enum EGameState {
         None,
         LobbyConnected,
+        WaitingForPlayers,
         GameInProgress
     }
     
@@ -42,19 +39,21 @@ namespace FusionFps.Core {
         [Networked(OnChanged = nameof(OnGameStateChanged))]
         public EGameState GameState { get; private set; } = EGameState.None;
 
-        [Networked] public GameStateData GameData { get; set; }
+        [Networked] public TickTimer WaitForPlayersTimer { get; private set; }
+        [Networked] public TickTimer Countdown { get; private set; }
         [Networked] public NetworkDictionary<PlayerRef, PlayerController> Players { get; }
 
         public bool IsRunning => Object != null && Object.IsValid;
         public bool IsServer => Runner != null && Runner.IsServer; 
 
         [SerializeField] private float _matchTimeInSeconds = 120f;
+        [SerializeField] private float _waitForPlayersTimer = 15f;
         [SerializeField] private PlayerController _playerPrefab;
 
         public event Action<NetworkRunner, List<PlayerRef>> Connected;
         public event Action<NetworkRunner, PlayerRef> PlayerJoined;
         public event Action<NetworkRunner, PlayerRef> PlayerLeft;
-        public event Action<NetworkRunner> MatchLoaded; 
+        public event Action<NetworkRunner> MatchLoaded;
 
         public event Action<EGameState> GameStateChanged;
         
@@ -87,8 +86,20 @@ namespace FusionFps.Core {
         public override void FixedUpdateNetwork() {
             base.FixedUpdateNetwork();
 
+            // Handle wait for players timer
+            if ( WaitForPlayersTimer.ExpiredOrNotRunning(Runner) && GameState == EGameState.WaitingForPlayers ) {
+                if ( !Runner.IsServer ) return;
+
+                GameState = EGameState.GameInProgress;
+                Countdown = TickTimer.CreateFromSeconds(Runner, _matchTimeInSeconds);
+
+                SetAllPlayers(true);
+                
+                Debug.Log($"Match is set to end on tick {Countdown.TargetTick}");
+            }
+            
             // Handle game ending
-            if ( GameData.Countdown.ExpiredOrNotRunning(Runner) && GameState == EGameState.GameInProgress ) {
+            if ( Countdown.ExpiredOrNotRunning(Runner) && GameState == EGameState.GameInProgress ) {
                 // End game
                 Debug.Log($"Match ended on tick {(int) Runner.Simulation.Tick}");
 
@@ -106,18 +117,35 @@ namespace FusionFps.Core {
             var sessionProperties = Runner.SessionInfo.Properties;
             var mapBuildIndex = (int) sessionProperties["mapBuildIndex"];
 
+            GameState = EGameState.WaitingForPlayers;
+            WaitForPlayersTimer = TickTimer.CreateFromSeconds(Runner, _waitForPlayersTimer);
+            
             Runner.SetActiveScene(mapBuildIndex);
         }
 
         private void SpawnAllPlayers(PlayerSpawnManager spawnManager) {
             foreach ( var (player, _) in Players ) {
-                var spawnPoint = spawnManager.GetNextSpawnPoint(Runner, player);
-                var playerObject = Runner.Spawn(_playerPrefab, spawnPoint.position, Quaternion.identity, player);
-
-                Debug.Log($"Spawning player at {spawnPoint.position}");
-
-                Players.Set(player, playerObject);
+                SpawnPlayer(spawnManager, player);
             }
+        }
+
+        private void SetAllPlayers(bool active) {
+            foreach ( var (_, controller) in Players ) {
+                if ( controller == null ) continue;
+
+                controller.CanMove = active;
+            }
+        }
+
+        private void SpawnPlayer(PlayerSpawnManager spawnManager, PlayerRef player) {
+            var spawnPoint = spawnManager.GetNextSpawnPoint(Runner, player);
+            var playerObject = Runner.Spawn(_playerPrefab, spawnPoint.position, Quaternion.identity, player);
+
+            playerObject.CanMove = false;
+            
+            Debug.Log($"Spawning player at {spawnPoint.position}");
+
+            Players.Set(player, playerObject);
         }
 
         private void DespawnAllPlayers() {
@@ -130,33 +158,29 @@ namespace FusionFps.Core {
             }
         }
 
-        public void StartGame() {
-            if ( !Runner.IsServer ) return;
-            if ( GameState != EGameState.LobbyConnected ) return;
-
-            var spawnManager = FindObjectOfType<PlayerSpawnManager>();            
-            SpawnAllPlayers(spawnManager);
-
-            GameState = EGameState.GameInProgress;
-            GameData = new GameStateData {
-                Countdown = TickTimer.CreateFromSeconds(Runner, _matchTimeInSeconds)
-            };
-
-            Debug.Log($"Match is set to end on tick {GameData.Countdown.TargetTick}");
-        }
-
         public void OnMatchLoaded() {
-            // Start the game
-            StartGame();
-            
+            if ( Object.HasStateAuthority ) {
+                var spawnManager = FindObjectOfType<PlayerSpawnManager>();
+                SpawnAllPlayers(spawnManager);
+            }
+
             MatchLoaded?.Invoke(Runner);
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
             Players.Add(player, null);
-
             PlayerJoined?.Invoke(Runner, player);
+
+            if ( GameState == EGameState.GameInProgress ) {
+                // Spawn them as a spectator
+                throw new NotImplementedException();
+            } else if ( GameState == EGameState.WaitingForPlayers ) {
+                // Spawn them as a player
+                var spawnManager = FindObjectOfType<PlayerSpawnManager>();
+                SpawnPlayer(spawnManager, player);
+            }
         }
+        
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
             if ( !Players.ContainsKey(player) ) return;
 

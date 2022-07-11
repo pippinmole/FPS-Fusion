@@ -53,6 +53,7 @@ namespace FusionFps.Core {
         public bool IsBusy { get; private set; }
 
         [SerializeField] private ushort _port = 27271;
+        [SerializeField] private bool _steamAuth = true;
         
         private AuthTicket _authTicket;
         private NetworkRunner _runner;
@@ -103,7 +104,7 @@ namespace FusionFps.Core {
                 SceneManager = sceneManager,
                 PlayerCount = 8,
                 DisableClientSessionCreation = true,
-                AuthValues = steamAuth
+                AuthValues = _steamAuth ? steamAuth : null
             };
 
             Debug.Log($"Starting game with game mode {args.GameMode}");
@@ -153,6 +154,8 @@ namespace FusionFps.Core {
             if ( _runner == null )
                 throw new InvalidOperationException("Cannot join a session without a runner!");
 
+            IsBusy = true;
+            
             await SetupRunner(GameMode.Client);
 
             var steamAuth = GetSteamAuthenticationValues();
@@ -160,7 +163,7 @@ namespace FusionFps.Core {
                 GameMode = GameMode.Client,
                 SessionName = session,
 #if !DEVELOPMENT_BUILD && !UNITY_EDITOR
-                AuthValues = steamAuth
+                AuthValues = _steamAuth ? steamAuth : null
 #endif
             };
 

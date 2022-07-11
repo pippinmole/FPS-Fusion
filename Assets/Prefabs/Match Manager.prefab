@@ -50,6 +50,7 @@ MonoBehaviour:
   _Players:
     _items: []
   _matchTimeInSeconds: 120
+  _waitForPlayersTimer: 20
   _playerPrefab: {fileID: 8616685848737228371, guid: c5efc39a8aaf6e64ea40e9ad573e9b47,
     type: 3}
 --- !u!114 &69473127183055446

@@ -1,24 +1,35 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using UnityEngine;
 
-[OrderAfter(typeof(HitboxManager))]
+[OrderAfter(typeof(HitboxManager), typeof(NetworkTransform))]
 public class PlayerWeapon : NetworkBehaviour {
     
-    [SerializeField] private Transform _weaponRoot; 
+    [SerializeField] private Transform _weaponRoot;
+    [SerializeField] private Transform _weaponParent;
     [SerializeField] private List<WeaponTemplate> _weapons = new();
     [SerializeField] private Material _tracerMaterial;
     
     [Networked(OnChanged = nameof(OnWeaponIndexChanged))]
     private int WeaponIndex { get; set; }
     [Networked] private float Cooldown { get; set; }
+    [Networked] private PlayerInput.NetworkInputData Input { get; set; }
     
-    private WeaponTemplate CurrentWeaponTemplate => _weapons[WeaponIndex - 1];
+    private WeaponTemplate CurrentWeaponTemplate => WeaponIndex == -1 ? null : _weapons[WeaponIndex - 1];
 
-    private Weapon _currentWeapon;
     private readonly List<LagCompensatedHit> _hitBuffer = new();
     
+    private Weapon _currentWeapon;
+    private PlayerCamera _camera;
+    private NetworkTransform _networkTransform;
+    
+    private void Awake() {
+        _camera = GetComponent<PlayerCamera>();
+        _networkTransform = GetComponent<NetworkTransform>();
+    }
+
     public override void Spawned() {
         base.Spawned();
 
@@ -26,7 +37,17 @@ public class PlayerWeapon : NetworkBehaviour {
 
         if ( Object.HasInputAuthority ) {
             Cursor.lockState = CursorLockMode.Locked;
+        } else {
+            // We want to parent the weapon root to the interpolation transform so that the weapon moves smoothly.
+            _weaponRoot.SetParent(_networkTransform.InterpolationTarget);
         }
+    }
+
+    public override void Render() {
+        base.Render();
+
+        _weaponRoot.rotation =
+            Quaternion.Euler((float) _camera.CameraPitch, (float) _camera.CameraYaw, _weaponRoot.rotation.z);
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
@@ -39,28 +60,27 @@ public class PlayerWeapon : NetworkBehaviour {
 
     public override void FixedUpdateNetwork() {
         base.FixedUpdateNetwork();
-        
+
         Cooldown -= Runner.DeltaTime;
 
         if ( GetInput(out PlayerInput.NetworkInputData input) ) {
-            if ( input.WeaponIndex != -1 ) {
-                UpdateWeapon(input.WeaponIndex);
-            }
+            Input = input;
+        }
 
-            if ( input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) && Cooldown <= 0f ) {
-                if ( WeaponIndex == -1 || CurrentWeaponTemplate == null ) return;
+        if ( Input.WeaponIndex != -1 && Input.WeaponIndex != WeaponIndex ) {
+            WeaponIndex = Input.WeaponIndex;
+        }
 
-                Cooldown = Shoot(Runner, this);
-            }
+        if ( Input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) && Cooldown <= 0f ) {
+            if ( WeaponIndex == -1 || CurrentWeaponTemplate == null ) return;
+
+            Cooldown = Shoot(Runner, this);
         }
     }
 
-    private void UpdateWeapon(int index) {
-        if ( index == -1 ) return;
-        if ( index == WeaponIndex ) return;
-        
+    private void SetWeapon() {
         ClearWeapon();
-        CreateWeapon(index);
+        CreateWeapon();
     }
 
     private void ClearWeapon() {
@@ -72,23 +92,21 @@ public class PlayerWeapon : NetworkBehaviour {
         _currentWeapon = null;
     }
 
-    private void CreateWeapon(int index) {
-        if ( index == -1 ) return;
-        if ( index > _weapons.Count ) return;
+    private void CreateWeapon() {
+        if ( WeaponIndex == -1 ) return;
+        if ( WeaponIndex > _weapons.Count ) return;
 
         try {
-            var weapon = _weapons[index - 1];
+            var weapon = _weapons[WeaponIndex - 1];
             
             // Spawn new weapon
             _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity);
-            _currentWeapon.transform.SetParent(_weaponRoot);
+            _currentWeapon.transform.SetParent(_weaponParent);
             _currentWeapon.transform.localPosition = Vector3.zero;
             _currentWeapon.transform.localRotation = Quaternion.identity;
-
-            WeaponIndex = index;
         }
         catch {
-            Debug.LogError($"Error with weapon index of {index}");
+            Debug.LogError($"Error with weapon index of {WeaponIndex}");
         }
     }
 
@@ -181,11 +199,7 @@ public class PlayerWeapon : NetworkBehaviour {
     }
 
     private static void OnWeaponIndexChanged(Changed<PlayerWeapon> changed) {
-        changed.Behaviour.WeaponIndexChanged();
-    }
-
-    private void WeaponIndexChanged() {
-        UpdateWeapon(WeaponIndex);
+        changed.Behaviour.SetWeapon();
     }
 }
 

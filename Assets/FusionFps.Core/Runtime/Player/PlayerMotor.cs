@@ -22,7 +22,7 @@ public class PlayerMotor : NetworkTransform {
 
     [Networked, HideInInspector] public bool IsGrounded { get; set; }
     [Networked, HideInInspector] public Vector3 Velocity { get; set; }
-
+    
     /// <summary>
     /// Sets the default teleport interpolation velocity to be the CC's current velocity.
     /// For more details on how this field is used, see <see cref="NetworkTransform.TeleportToPosition"/>.
