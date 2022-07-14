@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using System;
+using UnityEditor;
 
 namespace Fusion.Assistants {
   public static class FusionAssistants {

@@ -126,16 +126,16 @@ public class PlayerWeapon : NetworkBehaviour {
 
         Debug.DrawRay(origin, direction * w.Range, Color.red, w.ShotDelaySeconds);
 
-        const HitOptions options = HitOptions.SubtickAccuracy;
+        const HitOptions options = HitOptions.SubtickAccuracy | HitOptions.IgnoreInputAuthority;
 
         runner.LagCompensation.RaycastAll(origin, direction, w.Range, owner.Object.InputAuthority, _hitBuffer, w.Mask,
             true, options);
 
         // Filter hit buffer
-        _hitBuffer.RemoveAll(x => x.GameObject.layer == owner.gameObject.layer);
+        // _hitBuffer.RemoveAll(x => x.GameObject.layer == owner.gameObject.layer);
 
         if ( _hitBuffer.Count > 0 ) {
-            var hit = _hitBuffer.Last(x => x.GameObject != owner.gameObject);
+            var hit = _hitBuffer.Last();
 
             DrawTracer(origin, hit.Point);
             DealDamage(runner, hit, owner, w.Damage);

@@ -96,6 +96,7 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using UnityEditor;
   using UnityEngine;
 
   public class NetworkPrefabAssetFactoryResource: INetworkPrefabSourceFactory {
@@ -171,7 +172,11 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/BehaviourEditor.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using UnityEditor;
 
   [CustomEditor(typeof(Fusion.Behaviour), true)]
   [CanEditMultipleObjects]
@@ -1047,7 +1052,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/AccuracyRangeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEngine;
+
+  using System;
+  using UnityEngine;
   using UnityEditor;
 
   [CustomPropertyDrawer(typeof(AccuracyRangeAttribute))]
@@ -1079,6 +1086,7 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using UnityEngine;
   using UnityEditor;
+  using UnityEditor.SceneManagement;
   using System.Linq;
   using System.IO;
   using System;
@@ -1300,8 +1308,13 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/DoIfAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Reflection;
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public abstract class DoIfAttributeDrawer : ForwardingPropertyDrawer {
@@ -1334,6 +1347,7 @@ namespace Fusion.Editor {
         case DoIfCompareOperator.LessOrEqual: return referenceValue <= warnIf.CompareToValue;
         case DoIfCompareOperator.GreaterOrEqual: return referenceValue >= warnIf.CompareToValue;
         case DoIfCompareOperator.Greater: return referenceValue > warnIf.CompareToValue;
+        case DoIfCompareOperator.NotZero: return referenceValue != 0;
       }
       return false;
     }
@@ -1347,6 +1361,7 @@ namespace Fusion.Editor {
         case DoIfCompareOperator.LessOrEqual: return referenceValue <= compareToValue;
         case DoIfCompareOperator.GreaterOrEqual: return referenceValue >= compareToValue;
         case DoIfCompareOperator.Greater: return referenceValue > compareToValue;
+        case DoIfCompareOperator.NotZero: return referenceValue != 0;
       }
       return false;
     }
@@ -1931,6 +1946,7 @@ namespace Fusion.Editor {
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using System.Reflection;
   using UnityEditor;
   using UnityEngine;
 
@@ -2227,8 +2243,14 @@ namespace Fusion {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/InlineEditorAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
-    using UnityEngine;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(InlineEditorAttribute))]
   public class InlineEditorAttributeDrawer : PropertyDrawer {
@@ -2310,7 +2332,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/InlineHelpAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(InlineHelpAttribute))]
@@ -2526,7 +2549,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkBoolDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkBool))]
@@ -2609,7 +2635,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabAssetDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Linq;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
   using UnityEditor;
   using UnityEngine;
 
@@ -2815,7 +2843,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkPrefabAttribute))]
@@ -2906,7 +2937,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/NetworkPrefabRefDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(NetworkPrefabRef))]
@@ -3005,6 +3039,8 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Reflection;
   using System.Text;
   using UnityEditor;
   using UnityEngine;
@@ -3015,12 +3051,13 @@ namespace Fusion.Editor {
     private string _str = "";
     private Action<int[], int> _write;
     private Action<int[], int> _read;
+    private int _expectedLength;
 
     public NetworkStringDrawer() {
       _write = (buffer, count) => {
         unsafe {
           fixed (int* p = buffer) {
-            _str = new string((sbyte*)p, 0, count * 4, Encoding.UTF32);
+            _str = new string((sbyte*)p, 0, Mathf.Clamp(_expectedLength, 0, count) * 4, Encoding.UTF32);
           }
         }
       };
@@ -3042,6 +3079,7 @@ namespace Fusion.Editor {
       var length = property.FindPropertyRelativeOrThrow(nameof(NetworkString<_2>._length));
       var data = property.FindPropertyRelativeOrThrow($"{nameof(NetworkString<_2>._data)}.Data");
 
+      _expectedLength = length.intValue;
       data.UpdateFixedBuffer(_read, _write, false);
 
       EditorGUI.BeginChangeCheck();
@@ -3051,6 +3089,7 @@ namespace Fusion.Editor {
       }
 
       if (EditorGUI.EndChangeCheck()) {
+        _expectedLength = _str.Length;
         if (data.UpdateFixedBuffer(_read, _write, true, data.hasMultipleDifferentValues)) {
           length.intValue = Encoding.UTF32.GetByteCount(_str) / 4;
           data.serializedObject.ApplyModifiedProperties();
@@ -3464,7 +3503,7 @@ namespace Fusion.Editor {
 
       if (showUnits) {
         var (style, name) = UnitAttributeDecoratorDrawer.GetOverlayStyle(attr.Unit);
-        GUI.Label(r, name, style);
+        GUI.Label(r, name.l, style);
       }
 
       EditorGUI.EndProperty();
@@ -3602,7 +3641,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/ReserveArrayPropertyHeightDecorator.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using UnityEditor;
   using UnityEngine;
 
   internal class ReserveArrayPropertyHeightDecorator : DecoratorDrawer {
@@ -3690,8 +3730,14 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/ResourcePathAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
-    using UnityEngine;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(UnityResourcePathAttribute))]
   public class ResourcePathAttributeDrawer : PropertyDrawerWithErrorHandling {
@@ -3744,7 +3790,10 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using UnityEngine;
   using UnityEditor;
+  using UnityEditor.SceneManagement;
   using System.Linq;
+  using System.IO;
+  using System;
 
   [CanEditMultipleObjects]
   [CustomPropertyDrawer(typeof(ScenePathAttribute))]
@@ -3872,10 +3921,15 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/SerializableDictionaryDrawer.cs
 
 namespace Fusion.Editor {
-    using System.Collections.Generic;
+  using System;
+  using System.Collections.Generic;
   using System.Linq;
-    using UnityEditor;
-    using UnityEngine;
+  using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
+  using UnityEditorInternal;
+  using UnityEngine;
 
   [CustomPropertyDrawer(typeof(SerializableDictionary), true)]
   public class SerializableDictionaryDrawer : PropertyDrawerWithErrorHandling {
@@ -3980,9 +4034,9 @@ namespace Fusion.Editor {
     public const float FIELD_WIDTH = 130;
     public const int   MAX_PLACES = 6;
 
-    static Dictionary<Units, (GUIStyle, string)> _unitStyles = new Dictionary<Units, (GUIStyle, string)>();
+    static Dictionary<Units, (GUIStyle, (string l , string s))> _unitStyles = new Dictionary<Units, (GUIStyle, (string l, string s))>();
 
-    public static (GUIStyle, string) GetOverlayStyle(Units unit) {
+    public static (GUIStyle, (string l, string s)) GetOverlayStyle(Units unit) {
       if (_unitStyles.TryGetValue(unit, out var styleAndName) == false) {
         GUIStyle style;
         style               = new GUIStyle(EditorStyles.miniLabel);
@@ -3991,7 +4045,7 @@ namespace Fusion.Editor {
 
         style.normal.textColor = EditorGUIUtility.isProSkin ? new Color(255f/255f, 221/255f, 0/255f, 1f) : Color.blue;
 
-        _unitStyles.Add(unit, styleAndName = (style, $"{unit.GetDescription()}"));
+        _unitStyles.Add(unit, styleAndName = (style, unit.GetDescriptions()));
       }
 
       return styleAndName;
@@ -4043,15 +4097,14 @@ namespace Fusion.Editor {
       double realmin = min < max ? min : max;
       double realmax = min < max ? max : min;
 
+      Rect rightSide1 = new Rect(position) { xMin = position.xMin + EditorGUIUtility.labelWidth + 2 };
+      Rect rightSide2 = (useInverse) ? new Rect(secondRow) { xMin = secondRow.xMin + EditorGUIUtility.labelWidth + 2 } : default;
+      Rect sliderRect1 = new Rect(rightSide1) { xMax = rightSide1.xMax - FIELD_WIDTH - 4 };
+      Rect sliderRect2 = new Rect(rightSide2) { xMax = rightSide2.xMax - FIELD_WIDTH - 4 };
+      bool useSlider = (min != 0 || max != 0) && sliderRect1.width > 20;
 
       /*if (min != 0 || max != 0) */
       {
-
-        Rect rightSide1  = new Rect(position) { xMin = position.xMin + EditorGUIUtility.labelWidth + 2 };
-        Rect rightSide2  = (useInverse) ? new Rect(secondRow) { xMin = secondRow.xMin + EditorGUIUtility.labelWidth + 2 } : default;
-        Rect sliderRect1 = new Rect(rightSide1) { xMax = rightSide1.xMax - FIELD_WIDTH - 4 };
-        Rect sliderRect2 = new Rect(rightSide2) { xMax = rightSide2.xMax - FIELD_WIDTH - 4 };
-        bool useSlider = (min != 0 || max != 0) && sliderRect1.width > 20;
 
         Rect valRect1 = new Rect(rightSide1);
         Rect valRect2 = new Rect(rightSide2);
@@ -4256,13 +4309,16 @@ namespace Fusion.Editor {
         }
       }
 
+
       if (attr.Unit != Units.None) {
         var (style, name) = GetOverlayStyle(attr.Unit);
-        GUI.Label(position, position.width - EditorGUIUtility.labelWidth > 80 ? name : "", style);
+        float fieldwidth = position.width - EditorGUIUtility.labelWidth;
+        GUI.Label(position, fieldwidth > 200 && !useSlider ? name.l : fieldwidth >100 ? name.s : "", style);
       }
       if (useInverse && attr.InverseUnit != Units.Units) {
         var (style, name) = GetOverlayStyle(attr.InverseUnit);
-        GUI.Label(secondRow, secondRow.width - EditorGUIUtility.labelWidth > 80 ? name : "", style);
+        float fieldwidth = secondRow.width - EditorGUIUtility.fieldWidth;
+        GUI.Label(secondRow, fieldwidth > 200 && !useSlider ? name.l : fieldwidth > 100 ? name.s : "", style);
       }
 
       EditorGUI.indentLevel = holdIndent;
@@ -4590,7 +4646,11 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/CustomTypes/WarnIfAttributeDrawer.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Reflection;
+  using UnityEditor;
   using UnityEngine;
 
   [CustomPropertyDrawer(typeof(WarnIfAttribute))]
@@ -6100,7 +6160,9 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/FusionWeaverTriggerImporter.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System.IO;
+  using System.Linq;
+  using UnityEditor;
   using UnityEditor.AssetImporters;
   using UnityEngine;
 
@@ -6906,6 +6968,7 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using System;
   using System.Collections.Generic;
+  using System.Linq;
   using UnityEditor;
   using UnityEditor.Build;
   using UnityEditor.Build.Reporting;
@@ -7132,7 +7195,8 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/NetworkProjectConfigAssetEditor.cs
 
 namespace Fusion.Editor {
-    using System.IO;
+  using System.Collections.Generic;
+  using System.IO;
   using UnityEditor;
   using UnityEngine;
 
@@ -7277,6 +7341,7 @@ namespace Fusion.Editor {
 #if UNITY_EDITOR
 
   using System;
+  using System.Text;
   using UnityEditor;
   using UnityEngine;
 
@@ -7699,7 +7764,10 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/PhotonAppSettingsEditor.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEditor;
   using Photon.Realtime;
 
   [CustomEditor(typeof(PhotonAppSettings))]
@@ -8100,7 +8168,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
   using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEditor;
 #if UNITY_2021_2_OR_NEWER
   using UnityEditor.SceneManagement;
@@ -8215,6 +8286,12 @@ namespace Fusion.Editor {
 
   public static class EnumEditorUtilities {
 
+    public const string SPLIT = " - ";
+
+    /// <summary>
+    /// Returns enum description attribute value.
+    /// Used for Fusion Editor code internally.
+    /// </summary>
     public static string GetDescription(this Enum GenericEnum) {
       Type genericEnumType = GenericEnum.GetType();
       MemberInfo[] memberInfo = genericEnumType.GetMember(GenericEnum.ToString());
@@ -8227,6 +8304,26 @@ namespace Fusion.Editor {
       return GenericEnum.ToString();
     }
 
+    /// <summary>
+    /// Returns long and short enum description attribute values.
+    /// Assumes that the long and short text for the Description is separated by with " - ".
+    /// Used for Fusion Editor code internally.
+    /// </summary>
+    public static (string longdesc, string shortdesc) GetDescriptions(this Enum GenericEnum) {
+      Type genericEnumType = GenericEnum.GetType();
+      MemberInfo[] memberInfo = genericEnumType.GetMember(GenericEnum.ToString());
+      if ((memberInfo != null && memberInfo.Length > 0)) {
+        var _Attribs = memberInfo[0].GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
+        if ((_Attribs != null && _Attribs.Count() > 0)) {
+          string fulldesc = ((System.ComponentModel.DescriptionAttribute)_Attribs.ElementAt(0)).Description;
+          int split = fulldesc.IndexOf(SPLIT);
+          string l = split > 0 ? fulldesc.Remove(split) : fulldesc;
+          string s = split > 0 ? fulldesc.Substring(split + SPLIT.Length) : fulldesc;
+          return (l, s);
+        }
+      }
+      return (GenericEnum.ToString(), GenericEnum.ToString());
+    }
   }
 }
 
@@ -8237,7 +8334,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public static partial class FusionEditorGUI {
@@ -8739,7 +8841,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.Odin.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
 #if ODIN_INSPECTOR && !FUSION_ODIN_DISABLED
@@ -8877,6 +8984,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEditor;
   using UnityEngine;
 
@@ -9232,7 +9343,12 @@ namespace Fusion.Editor {
 #region Assets/Photon/Fusion/Scripts/Editor/Utilities/FusionEditorGUI.Utils.cs
 
 namespace Fusion.Editor {
-    using UnityEditor;
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
+  using UnityEditor;
   using UnityEngine;
 
   public static partial class FusionEditorGUI {
@@ -9493,6 +9609,7 @@ namespace Fusion.Editor {
 
   using UnityEditor;
   using UnityEngine;
+  using UnityEngine.SceneManagement;
   using System.Collections.Generic;
   using Fusion.Photon.Realtime;
   using System.Linq;
@@ -9846,6 +9963,7 @@ namespace Fusion.Editor {
 
   using System.Collections.Generic;
   using UnityEngine;
+  using UnityEditor;
   using Fusion;
 
   public static class NetworkRunnerUtilities {
@@ -9886,6 +10004,10 @@ namespace Fusion.Editor {
 
 namespace Fusion.Editor {
   using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using System.Threading.Tasks;
 
   public static class PathUtils {
     public static bool MakeRelativeToFolder(String path, String folder, out String result) {
@@ -11030,7 +11152,10 @@ namespace Fusion.Editor {
 namespace Fusion.Editor {
   using System;
   using System.Collections.Generic;
+  using System.Linq;
   using System.Reflection;
+  using System.Text;
+  using System.Threading.Tasks;
   using UnityEngine;
 
   using static Fusion.Editor.ReflectionUtils;

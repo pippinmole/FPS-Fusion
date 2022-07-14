@@ -12,15 +12,10 @@ public class IngameUI : MonoBehaviour {
     [SerializeField] private Transform _deathScreen;
     [SerializeField] private TMP_Text _deathCountdownText;
 
-    private IMatchManager _matchManager;
     private PlayerController _player;
     private PlayerHealth _health;
     private NetworkRunner _runner;
-
-    private void Awake() {
-        _matchManager = ServiceProvider.Get<IMatchManager>();
-    }
-
+    
     public void Setup(PlayerController player, NetworkRunner runner) {
         _player = player;
         _runner = runner;
@@ -50,12 +45,14 @@ public class IngameUI : MonoBehaviour {
     private void UpdateRoundTimer() {
         if ( _roundTimerText == null ) return;
 
-        switch ( _matchManager.GameState ) {
+        var matchManager = MatchManager.Instance;
+        
+        switch ( matchManager.GameState ) {
             case EGameState.LobbyConnected:
                 _roundTimerText.SetText("");
                 break;
             case EGameState.WaitingForPlayers:
-                var timer1 = _matchManager.WaitForPlayersTimer;
+                var timer1 = matchManager.WaitForPlayersTimer;
                 var secondsLeft1 = timer1.RemainingTime(_runner);
 
                 if ( !secondsLeft1.HasValue )
@@ -64,7 +61,7 @@ public class IngameUI : MonoBehaviour {
                 _roundTimerText.SetText($"Waiting for Players \n {(int) secondsLeft1 / 60}:{secondsLeft1 % 60:00}");
                 break;
             case EGameState.GameInProgress:
-                var timer = _matchManager.Countdown;
+                var timer = matchManager.Countdown;
                 var secondsLeft = timer.RemainingTime(_runner);
 
                 _roundTimerText.SetText(secondsLeft == null

@@ -54,7 +54,11 @@ namespace FusionFps.Core {
 
         [SerializeField] private ushort _port = 27271;
         [SerializeField] private bool _steamAuth = true;
-        
+        [SerializeField] private MatchManager _matchManagerPrefab;
+        [SerializeField] private ServerLobbyPlayer _serverPlayerPrefab;
+        [SerializeField] private LobbyPlayer _clientPlayerPrefab;
+
+        private MatchManager _matchManager;
         private AuthTicket _authTicket;
         private NetworkRunner _runner;
 
@@ -113,6 +117,8 @@ namespace FusionFps.Core {
             if ( result.Ok ) {
                 Debug.Log($"Successfully started session");
 
+                _matchManager = _runner.Spawn(_matchManagerPrefab);
+                
                 SessionCreated?.Invoke(_runner);
 
                 // For some reason OnConnectedToServer does not run as a host when creating a session
@@ -162,9 +168,7 @@ namespace FusionFps.Core {
             var args = new StartGameArgs {
                 GameMode = GameMode.Client,
                 SessionName = session,
-#if !DEVELOPMENT_BUILD && !UNITY_EDITOR
                 AuthValues = _steamAuth ? steamAuth : null
-#endif
             };
 
             Debug.Log($"Joining session {session} with auth ticket type of {steamAuth.AuthType}");
@@ -196,9 +200,7 @@ namespace FusionFps.Core {
             foreach ( var b in _authTicket.Data ) {
                 ticketString.AppendFormat("{0:x2}", b);
             }
-
-            // ticketString[0] = ' ';
-
+            
             return ticketString.ToString();
         }
 
@@ -218,6 +220,12 @@ namespace FusionFps.Core {
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
             SetConnectionStatus(ConnectionStatus.Connected);
+
+            if ( runner.IsServer ) {
+                var spawnServer = player == runner.LocalPlayer;
+                
+                runner.Spawn(spawnServer ? _serverPlayerPrefab : _clientPlayerPrefab, Vector3.zero, Quaternion.identity, player);
+            }
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
@@ -235,11 +243,6 @@ namespace FusionFps.Core {
             SessionLeft?.Invoke(runner);
 
             RunnerShutdown?.Invoke(runner, shutdownReason);
-
-            // (string status, string message) = ShutdownReasonToHuman(shutdownReason);
-            // _disconnectUI.ShowMessage( status, message);
-            //
-            // RoomPlayer.Players.Clear();
 
             // Clear steam ticket data
             // if ( _authTicket != null ) {

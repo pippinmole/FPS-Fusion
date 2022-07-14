@@ -16,16 +16,14 @@ public class LobbyPlayerListUI : MonoBehaviour {
     [SerializeField] private GameObject _lobbyObject;
     [SerializeField] private Button _startGameButton;
 
-    private IMatchManager _matchManager;
     private ISessionManager _sessionManager;
     
     private void Awake() {
-        _matchManager = ServiceProvider.Get<IMatchManager>();
         _sessionManager = ServiceProvider.Get<ISessionManager>();
         
-        _matchManager.Connected += UpdateBoard;
-        _matchManager.PlayerJoined += AddPlayer;
-        _matchManager.PlayerLeft += RemovePlayer;
+        LobbyPlayer.Connected += UpdateBoard;
+        LobbyPlayer.PlayerJoined += AddPlayer;
+        LobbyPlayer.PlayerLeft += RemovePlayer;
 
         _sessionManager.SessionJoined += OnSessionJoined;
         _sessionManager.SessionLeft += OnSessionLeft;
@@ -39,9 +37,9 @@ public class LobbyPlayerListUI : MonoBehaviour {
     }
     
     private void OnDestroy() {
-        _matchManager.Connected -= UpdateBoard;
-        _matchManager.PlayerJoined -= AddPlayer;
-        _matchManager.PlayerLeft -= RemovePlayer;
+        LobbyPlayer.Connected -= UpdateBoard;
+        LobbyPlayer.PlayerJoined -= AddPlayer;
+        LobbyPlayer.PlayerLeft -= RemovePlayer;
         
         _sessionManager.SessionJoined -= OnSessionJoined;
         _sessionManager.SessionLeft -= OnSessionLeft;
@@ -50,7 +48,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
     }
 
     private void StartGameClicked() {
-        _matchManager.LoadSessionMap();
+        MatchManager.LoadSessionMap();
     }
 
     public void LeaveGame() {
@@ -67,11 +65,11 @@ public class LobbyPlayerListUI : MonoBehaviour {
         _lobbyObject.SetActive(false);
     }
 
-    private void UpdateBoard(NetworkRunner runner,List<PlayerRef> players) {
+    private void UpdateBoard(NetworkRunner runner) {
         // TODO: Maybe clear the board here?
         
-        foreach ( var player in players ) {
-            AddPlayer(runner, player);
+        foreach ( var player in LobbyPlayer.Players ) {
+            AddPlayer(runner, player.Object.InputAuthority);
         }
         
         UpdateLobbyTitleText(runner);
