@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Fusion.Sockets;
+using Steamworks;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -12,25 +12,37 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     public static readonly List<LobbyPlayer> Players = new();
 
     public static event Action<NetworkRunner> Connected;
-    public static event Action<NetworkRunner, PlayerRef> PlayerJoined;
-    public static event Action<NetworkRunner, PlayerRef> PlayerLeft;
+    public static event Action<NetworkRunner, LobbyPlayer> PlayerJoined;
+    public static event Action<NetworkRunner, LobbyPlayer> PlayerLeft;
 
     [Networked, HideInInspector] public PlayerController Controller { get; private set; }
+    [Networked] public ulong SteamId { get; set; }
 
     [SerializeField] protected PlayerController _playerPrefab;
     
     public override void Spawned() {
         base.Spawned();
 
+        if ( Object.HasInputAuthority ) {
+            RPC_SetSteamId(SteamClient.SteamId);
+        }
+        
         Players.Add(this);
         Connected?.Invoke(Runner);
-        
+        PlayerJoined?.Invoke(Runner, this);
+
         DontDestroyOnLoad(gameObject);
     }
 
+    [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
+    private void RPC_SetSteamId(ulong steamId) {
+        SteamId = steamId;
+    }
+    
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
 
+        PlayerLeft?.Invoke(runner, this);
         Players.Remove(this);
     }
     
@@ -60,13 +72,9 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         Runner.Despawn(Controller.Object);
     }
 
-    public virtual void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
-        PlayerJoined?.Invoke(runner, player);
-    }
+    public virtual void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
 
-    public virtual void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
-        PlayerLeft?.Invoke(runner, player);
-    }
+    public virtual void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     
     public virtual void OnInput(NetworkRunner runner, NetworkInput input) { }
     public virtual void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }

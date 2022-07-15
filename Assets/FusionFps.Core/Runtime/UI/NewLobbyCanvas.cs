@@ -1,4 +1,3 @@
-using Fusion;
 using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using UnityEngine;

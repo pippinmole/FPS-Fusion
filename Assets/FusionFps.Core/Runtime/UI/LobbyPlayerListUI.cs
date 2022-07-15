@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class LobbyPlayerListUI : MonoBehaviour {
     
-    private static Dictionary<PlayerRef, LobbyPlayerEntry> _listItems = new();
+    private static Dictionary<LobbyPlayer, LobbyPlayerEntry> _listItems = new();
     
     [SerializeField] private TMP_Text _lobbyTitleText;
     [SerializeField] private LobbyPlayerEntry _entryPrefab;
@@ -44,7 +44,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         _sessionManager.SessionJoined -= OnSessionJoined;
         _sessionManager.SessionLeft -= OnSessionLeft;
 
-        _listItems = new Dictionary<PlayerRef, LobbyPlayerEntry>();
+        _listItems = new Dictionary<LobbyPlayer, LobbyPlayerEntry>();
     }
 
     private void StartGameClicked() {
@@ -69,7 +69,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         // TODO: Maybe clear the board here?
         
         foreach ( var player in LobbyPlayer.Players ) {
-            AddPlayer(runner, player.Object.InputAuthority);
+            AddPlayer(runner, player);
         }
         
         UpdateLobbyTitleText(runner);
@@ -83,7 +83,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         }
     }
     
-    private void AddPlayer(NetworkRunner runner, PlayerRef player) {
+    private void AddPlayer(NetworkRunner runner, LobbyPlayer player) {
         if ( _listItems.ContainsKey(player) ) {
             var toRemove = _listItems[player];
             Destroy(toRemove.gameObject);
@@ -99,7 +99,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         UpdateLobbyTitleText(runner);
     }
     
-    private void RemovePlayer(NetworkRunner runner, PlayerRef player) {
+    private void RemovePlayer(NetworkRunner runner, LobbyPlayer player) {
         if ( !_listItems.ContainsKey(player) )
             return;
 

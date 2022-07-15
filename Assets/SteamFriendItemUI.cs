@@ -30,19 +30,21 @@ public class SteamFriendItemUI : MonoBehaviour {
             await lobby.Join();
         };
     }
+    
 
-    public void Set(Friend friend) {
-        _friend = friend;
-        
-        _usernameText.SetText(friend.Name);
+    private async void Start() {
+        _usernameText.SetText(_friend.Name);
         _steamProfileButton.onClick.AddListener(OpenSteamProfile);
-        _inviteToGroupButton.onClick.AddListener(() => InviteToLobby());
+        _inviteToGroupButton.onClick.AddListener(InviteToLobby);
 
         SetStatusBarColor();
-        SetSteamProfile(friend.Id);
+        
+        await SetSteamProfile(_friend.Id);
     }
-    
-    private async Task InviteToLobby() {
+
+    public void Set(Friend friend) => _friend = friend;
+
+    private async void InviteToLobby() {
         if ( Time.realtimeSinceStartup - _timeInvited < SECONDS_COOLDOWN ) return;
         
         if ( !_sessionManager.IsInSession ) {

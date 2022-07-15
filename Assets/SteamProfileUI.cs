@@ -32,7 +32,6 @@ public class SteamProfileUI : MonoBehaviour {
 
     private async Task SetProfilePicture(Friend friend) {
         var image = await SteamFriends.GetMediumAvatarAsync(friend.Id);
-
         if ( image.HasValue ) {
             _profilePicture.texture = image.Value.ToUnityTexture();
         }

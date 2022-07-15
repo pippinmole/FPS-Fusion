@@ -225,15 +225,26 @@ namespace FusionFps.Core {
 
             if ( runner.IsServer ) {
                 var spawnServer = player == runner.LocalPlayer;
+                ulong steamId = 0U; // How do access the steam id from PlayerRef?
                 
-                runner.Spawn(spawnServer ? _serverPlayerPrefab : _clientPlayerPrefab, Vector3.zero, Quaternion.identity, player);
+                
+                runner.Spawn(
+                    prefab: spawnServer ? _serverPlayerPrefab : _clientPlayerPrefab,
+                    position: Vector3.zero,
+                    rotation: Quaternion.identity,
+                    player,
+                    onBeforeSpawned: (_, obj) => { obj.GetComponent<LobbyPlayer>().SteamId = steamId; }
+                );
             }
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
             Debug.Log($"{player.PlayerId} disconnected.");
 
-            // RoomPlayer.RemovePlayer(runner, player);
+            var lobbyPlayer = LobbyPlayer.Players.First(x => x.Object.InputAuthority == player);
+            if ( lobbyPlayer != null ) {
+                runner.Despawn(lobbyPlayer.Object);
+            }
 
             SetConnectionStatus(ConnectionStatus);
         }

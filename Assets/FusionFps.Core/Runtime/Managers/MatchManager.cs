@@ -83,7 +83,6 @@ namespace FusionFps.Core {
 
             Instance.GameState = EGameState.WaitingForPlayers;
             Instance.WaitForPlayersTimer = TickTimer.CreateFromSeconds(Instance.Runner, Instance._waitForPlayersTimer);
-
             Instance.Runner.SetActiveScene(mapBuildIndex);
         }
 
@@ -93,14 +92,14 @@ namespace FusionFps.Core {
             // Clear players from field
             Instance.DespawnAllPlayers();
 
-            // Reset the state of the game
-            Instance.GameState = EGameState.LobbyConnected;
 
-            foreach ( var player in Instance.Runner.ActivePlayers ) {
-                Instance.Runner.Disconnect(player);
-            }
+            // Reset the state of the game
+            // Instance.GameState = EGameState.LobbyConnected;
             
-            Instance.Runner.SetActiveScene(0);
+            // Instance.Runner.SetActiveScene(0);
+            // Instance.Runner.Shutdown();
+
+            // throw new NotImplementedException();
         }
         
         public static void OnMatchLoaded() => MatchLoaded?.Invoke(Instance.Runner);

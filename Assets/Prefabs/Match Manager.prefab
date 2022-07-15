@@ -47,10 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _GameState: 0
-  _matchTimeInSeconds: 5
-  _waitForPlayersTimer: 3
-  _playerPrefab: {fileID: 8616685848737228371, guid: c5efc39a8aaf6e64ea40e9ad573e9b47,
-    type: 3}
+  _matchTimeInSeconds: 60
+  _waitForPlayersTimer: 5
 --- !u!114 &69473127183055446
 MonoBehaviour:
   m_ObjectHideFlags: 0
