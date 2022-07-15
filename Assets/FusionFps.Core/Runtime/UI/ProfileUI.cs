@@ -27,7 +27,9 @@ public class ProfileUI : MonoBehaviour {
     private void UpdateIsOpen() {
         var rect = GetWorldRect(_rect);
         
-        _isOpen = rect.Contains(Input.mousePosition);
+        var x = Mathf.Clamp(Input.mousePosition.x, 0f, Screen.width);
+        var y = Mathf.Clamp(Input.mousePosition.y, 0f, Screen.height);
+        _isOpen = rect.Contains(new Vector2(x, y));
     }
 
     private static Rect GetWorldRect(RectTransform rectTransform) {
