@@ -13,3 +13,11 @@ MonoBehaviour:
   m_Name: weapon_m4
   m_EditorClassIdentifier: 
   _prefab: {fileID: 3026011492566865172, guid: cb335b81a88d3b845b2ccdc0a84ea007, type: 3}
+  _shotDelaySeconds: 0.2
+  _range: 25
+  _damage: 15
+  _mask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _muzzlePrefab: {fileID: 8659304665609145670, guid: f847444fd4ed2fd43bd8e4977ac870a7,
+    type: 3}

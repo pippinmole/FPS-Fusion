@@ -30,6 +30,7 @@ namespace FusionFps.Core {
         
         bool IsBusy { get; }
         bool IsInSession { get; }
+        bool IsSessionOwner { get; }
         ConnectionStatus ConnectionStatus { get; }
 
         Task<StartGameResult> CreateSession(string lobbyName, Dictionary<string, SessionProperty> sessionProperties);
@@ -50,6 +51,7 @@ namespace FusionFps.Core {
 
         public ConnectionStatus ConnectionStatus { get; private set; } = ConnectionStatus.Disconnected;
         public bool IsInSession => ConnectionStatus is ConnectionStatus.Connected;
+        public bool IsSessionOwner => _matchManager != null && _matchManager.IsServer;
         public bool IsBusy { get; private set; }
 
         [SerializeField] private ushort _port = 27271;

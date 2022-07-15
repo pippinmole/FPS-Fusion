@@ -22,19 +22,11 @@ public class NewLobbyCanvas : MonoBehaviour {
         _createGameButton.onClick.AddListener(CreateGameClicked);
         _joinGameButton.onClick.AddListener(JoinGameClicked);
         _exitGameButton.onClick.AddListener(ExitGameClicked);
-
-        _sessionManager.SessionJoined += OnSessionJoined;
-        _sessionManager.SessionLeft += OnSessionLeft;
     }
-
-    private void OnDestroy() {
-        _sessionManager.SessionJoined -= OnSessionJoined;
-        _sessionManager.SessionLeft -= OnSessionLeft;
-    }
-
+    
     private void Update() {
-        _joinGameButton.interactable = !_sessionManager.IsBusy;
-        _createGameButton.interactable = !_sessionManager.IsBusy;
+        _joinGameButton.interactable = !_sessionManager.IsInSession && !_sessionManager.IsBusy;
+        _createGameButton.interactable = !_sessionManager.IsInSession && !_sessionManager.IsBusy;
     }
 
     private void CreateGameClicked() {
@@ -47,14 +39,6 @@ public class NewLobbyCanvas : MonoBehaviour {
         _joinGamePanel.SetActive(true);
 
         await _sessionManager.StartClient();
-    }
-
-    private void OnSessionJoined(NetworkRunner runner) {
-        _createGameButton.interactable = false;
-    }
-    
-    private void OnSessionLeft(NetworkRunner runner) {
-        _createGameButton.interactable = true;
     }
 
     private void ExitGameClicked() {

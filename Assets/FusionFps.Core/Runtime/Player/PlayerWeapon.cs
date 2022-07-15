@@ -74,7 +74,7 @@ public class PlayerWeapon : NetworkBehaviour {
         if ( Input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) && Cooldown <= 0f ) {
             if ( WeaponIndex == -1 || CurrentWeaponTemplate == null ) return;
 
-            Cooldown = Shoot(Runner, this);
+            Cooldown = Shoot(Runner);
         }
     }
 
@@ -116,11 +116,11 @@ public class PlayerWeapon : NetworkBehaviour {
     /// <param name="runner"></param>
     /// <param name="owner"></param>
     /// <returns></returns>
-    private float Shoot(NetworkRunner runner, PlayerWeapon owner) {
+    private float Shoot(NetworkRunner runner) {
         var w = CurrentWeaponTemplate;
         if ( w == null ) return -1f;
 
-        var originTransform = owner.GetComponent<PlayerCamera>().GetCameraRoot();
+        var originTransform = GetComponent<PlayerCamera>().GetCameraRoot();
         var origin = originTransform.position;
         var direction = originTransform.forward;
 
@@ -128,21 +128,28 @@ public class PlayerWeapon : NetworkBehaviour {
 
         const HitOptions options = HitOptions.SubtickAccuracy | HitOptions.IgnoreInputAuthority;
 
-        runner.LagCompensation.RaycastAll(origin, direction, w.Range, owner.Object.InputAuthority, _hitBuffer, w.Mask,
+        runner.LagCompensation.RaycastAll(origin, direction, w.Range, Object.InputAuthority, _hitBuffer, w.Mask,
             true, options);
-
-        // Filter hit buffer
-        // _hitBuffer.RemoveAll(x => x.GameObject.layer == owner.gameObject.layer);
 
         if ( _hitBuffer.Count > 0 ) {
             var hit = _hitBuffer.Last();
-
+            
             DrawTracer(origin, hit.Point);
-            DealDamage(runner, hit, owner, w.Damage);
+            DealDamage(runner, hit, w.Damage);
         }
+        
+        RenderMuzzle(w.MuzzlePrefab, _currentWeapon.MuzzlePoint);
 
         // Add delay
         return w.ShotDelaySeconds;
+    }
+
+    private static void RenderMuzzle(GameObject prefab, Transform muzzle) {
+        if ( prefab == null ) return;
+        if ( muzzle == null ) return;
+
+        var obj = Instantiate(prefab, muzzle.position, muzzle.rotation);
+        Destroy(obj, 10f);
     }
 
     private void DrawTracer(Vector3 start, Vector3 end) {
@@ -167,7 +174,7 @@ public class PlayerWeapon : NetworkBehaviour {
         Destroy(myLine, duration);
     }
 
-    private static void DealDamage(NetworkRunner runner, LagCompensatedHit hit, PlayerWeapon owner, float damage) {
+    private void DealDamage(NetworkRunner runner, LagCompensatedHit hit, float damage) {
         if ( hit.Type == HitType.Hitbox ) {
             hit.GameObject = hit.Hitbox.Root.gameObject;
         }
@@ -190,10 +197,10 @@ public class PlayerWeapon : NetworkBehaviour {
         }
         
         if ( !healthProvider.IsAlive ) {
-            Debug.Log($"{owner.Object.InputAuthority.ToString()} has been killed on tick: {runner.Simulation.Tick}");
+            Debug.Log($"{Object.InputAuthority.ToString()} has been killed on tick: {runner.Simulation.Tick}");
             
             // We killed them
-            var controller = owner.GetComponent<PlayerController>();
+            var controller = GetComponent<PlayerController>();
             controller.Kills++;
         }
     }

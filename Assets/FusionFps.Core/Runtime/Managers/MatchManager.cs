@@ -28,7 +28,6 @@ namespace FusionFps.Core {
 
         [SerializeField] private float _matchTimeInSeconds = 120f;
         [SerializeField] private float _waitForPlayersTimer = 15f;
-        [SerializeField] private PlayerController _playerPrefab;
         
         public static event Action<NetworkRunner> MatchLoaded;
         
@@ -72,11 +71,7 @@ namespace FusionFps.Core {
                 // End game
                 Debug.Log($"Match ended on tick {(int) Runner.Simulation.Tick}");
 
-                // Clear players from field
-                DespawnAllPlayers();
-
-                // Reset the state of the game
-                GameState = EGameState.LobbyConnected;
+                LoadLobby();
             }
         }
 
@@ -91,6 +86,22 @@ namespace FusionFps.Core {
 
             Instance.Runner.SetActiveScene(mapBuildIndex);
         }
+
+        public static void LoadLobby() {
+            if ( !Instance.Runner.IsServer ) return;
+            
+            // Clear players from field
+            Instance.DespawnAllPlayers();
+
+            // Reset the state of the game
+            Instance.GameState = EGameState.LobbyConnected;
+
+            foreach ( var player in Instance.Runner.ActivePlayers ) {
+                Instance.Runner.Disconnect(player);
+            }
+            
+            Instance.Runner.SetActiveScene(0);
+        }
         
         public static void OnMatchLoaded() => MatchLoaded?.Invoke(Instance.Runner);
 
@@ -102,13 +113,14 @@ namespace FusionFps.Core {
         }
 
         private void DespawnAllPlayers() {
-            var players = LobbyPlayer.Players;
-            foreach ( var player in players) {
-                if ( player.Controller == null ) continue;
+            var players = LobbyPlayer.Players.ToList();
+            foreach ( var player in players ) {
+                if ( player.Controller == null ) {
+                    Debug.Log($"{player.Object.InputAuthority} has a null controller! Continuing...");
+                    continue;
+                }
                 
-                Runner.Despawn(player.Object);
-
-                // Players.Set(player, null);
+                player.Despawn();
             }
         }
     }

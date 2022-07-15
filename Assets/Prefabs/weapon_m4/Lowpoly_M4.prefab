@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &837244721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 837244722}
+  m_Layer: 0
+  m_Name: muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &837244722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 837244721}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.052, z: 0.378}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3347357696332395261}
+  m_RootOrder: 58
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &53420531877143430
 GameObject:
   m_ObjectHideFlags: 0
@@ -1747,6 +1778,7 @@ Transform:
   - {fileID: 8013489928947594703}
   - {fileID: 5287841859916507270}
   - {fileID: 7664847175862432407}
+  - {fileID: 837244722}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1762,13 +1794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 321aef2cf207bd143b6fca405c3bb152, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _shotDelaySeconds: 0.2
-  _range: 25
-  _damage: 15
-  _tracerMaterial: {fileID: 2100000, guid: c8efe9e7023433e46a04c3f3cfe66f89, type: 2}
-  _mask:
-    serializedVersion: 2
-    m_Bits: 2147483647
+  _muzzlePoint: {fileID: 837244722}
 --- !u!1 &2864995964548857536
 GameObject:
   m_ObjectHideFlags: 0

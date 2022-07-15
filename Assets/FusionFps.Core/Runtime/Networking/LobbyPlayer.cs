@@ -15,7 +15,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     public static event Action<NetworkRunner, PlayerRef> PlayerJoined;
     public static event Action<NetworkRunner, PlayerRef> PlayerLeft;
 
-    [Networked, HideInInspector] public PlayerController Controller { get; set; }
+    [Networked, HideInInspector] public PlayerController Controller { get; private set; }
 
     [SerializeField] protected PlayerController _playerPrefab;
     
@@ -48,6 +48,16 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         Controller.CanMove = false;
 
         Debug.Log($"Spawned {player} at {spawnPoint.position}");
+    }
+
+    /// <summary>
+    /// Removes the player controller object from the scene.
+    /// </summary>
+    public void Despawn() {
+        if ( !Runner.IsServer ) return;
+        if ( Controller == null ) return;
+        
+        Runner.Despawn(Controller.Object);
     }
 
     public virtual void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {

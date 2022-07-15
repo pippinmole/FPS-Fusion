@@ -7,10 +7,12 @@ public class WeaponTemplate : ScriptableObject {
     [SerializeField] private float _range = 25f;
     [SerializeField] private float _damage = 15f;
     [SerializeField] private LayerMask _mask = ~0;
-    
+    [SerializeField] private GameObject _muzzlePrefab;
+
     public Weapon Prefab => _prefab;
     public float ShotDelaySeconds => _shotDelaySeconds;
     public float Range => _range;
     public float Damage => _damage;
     public LayerMask Mask => _mask;
+    public GameObject MuzzlePrefab => _muzzlePrefab;
 }
