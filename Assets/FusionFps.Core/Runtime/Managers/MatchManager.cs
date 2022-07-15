@@ -24,7 +24,9 @@ namespace FusionFps.Core {
         [Networked] public TickTimer Countdown { get; private set; }
 
         public bool IsRunning => Object != null && Object.IsValid;
-        public bool IsServer => Runner != null && Runner.IsServer; 
+        public bool IsServer => Runner != null && Runner.IsServer;
+
+        public float? WaitForPlayersTimeLeft => WaitForPlayersTimer.RemainingTime(Runner);
 
         [SerializeField] private float _matchTimeInSeconds = 120f;
         [SerializeField] private float _waitForPlayersTimer = 15f;
