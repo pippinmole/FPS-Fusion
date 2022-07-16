@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fusion;
 using FusionFps.Core;
 using Steamworks;
 using UnityEngine;
@@ -28,7 +29,7 @@ public class SteamFriendsList : MonoBehaviour {
 
     private void UpdateList() {
         ClearParent(_parent);
-
+        
         var friends = SteamFriends.GetFriends()
             .OrderBy(x => Map.IndexOf((int) x.State))
             .ToList();
@@ -39,7 +40,7 @@ public class SteamFriendsList : MonoBehaviour {
         }
     }
 
-    private void ClearParent<T>(T parent) where T : Component {
+    private static void ClearParent<T>(T parent) where T : Component {
         foreach (var item in parent.GetComponentsInChildren<T>()) {
             if ( parent == item ) continue;
             

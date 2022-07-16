@@ -68,7 +68,7 @@ public class SteamFriendItemUI : MonoBehaviour {
 
     private void OpenSteamProfile() {
         Debug.Log("Open steam profile page");
-        SteamFriends.OpenUserOverlay(_friend.Id, "chat");
+        SteamFriends.OpenUserOverlay(_friend.Id, "steamid");
     }
 
     private void SetStatusBarColor() {
