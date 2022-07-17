@@ -731,6 +731,7 @@ GameObject:
   - component: {fileID: 1516542196}
   - component: {fileID: 6538591480105141159}
   - component: {fileID: 1556222720}
+  - component: {fileID: 651109426452422189}
   m_Layer: 10
   m_Name: PlayerCapsule
   m_TagString: Player
@@ -791,7 +792,6 @@ MonoBehaviour:
   _sprintSpeed: 8
   _Kills: 0
   _Deaths: 0
-  _CanMove: 0
 --- !u!114 &135756641613574980
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -823,6 +823,7 @@ MonoBehaviour:
   - {fileID: 1516542196}
   - {fileID: 6538591480105141159}
   - {fileID: 1556222720}
+  - {fileID: 651109426452422189}
   SimulationBehaviours: []
 --- !u!114 &135756641613574981
 MonoBehaviour:
@@ -888,8 +889,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  _uiPrefab: {fileID: 8372448331604399188, guid: 2af23685c6dd1ab4aa4bd7da93840945,
-    type: 3}
 --- !u!114 &3743914120431868706
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -976,3 +975,17 @@ MonoBehaviour:
   _braking: 10
   _IsGrounded: 1
   _Velocity: {x: 0.002, y: 0, z: -0.002}
+--- !u!114 &651109426452422189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8616685848737228372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d9c4601dbc029645bf21764826bc8cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  _renderer: {fileID: 5393215578589016655}

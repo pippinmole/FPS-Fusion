@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5035057335492392434}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.854855, y: 0.96215665, z: 5.1756606}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -47,6 +47,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _Controller: {fileID: 0}
+  _SteamId: 0
+  _Team: 0
+  _uiPrefab: {fileID: 8372448331604399188, guid: 2af23685c6dd1ab4aa4bd7da93840945,
+    type: 3}
   _playerPrefab: {fileID: 8616685848737228371, guid: c5efc39a8aaf6e64ea40e9ad573e9b47,
     type: 3}
 --- !u!114 &5035057335492392436

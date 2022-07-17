@@ -8,6 +8,6 @@ public class MapLoadedFlag : NetworkBehaviour {
     public override void Spawned() {
         base.Spawned();
 
-        MatchManager.OnMatchLoaded();
+        // MatchManager.OnMatchLoaded();
     }
 }

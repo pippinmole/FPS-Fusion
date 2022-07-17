@@ -226,15 +226,13 @@ namespace FusionFps.Core {
             if ( runner.IsServer ) {
                 var spawnServer = player == runner.LocalPlayer;
                 ulong steamId = 0U; // How do access the steam id from PlayerRef?
-                
-                
+
                 runner.Spawn(
                     prefab: spawnServer ? _serverPlayerPrefab : _clientPlayerPrefab,
                     position: Vector3.zero,
                     rotation: Quaternion.identity,
                     player,
-                    onBeforeSpawned: (_, obj) => { obj.GetComponent<LobbyPlayer>().SteamId = steamId; }
-                );
+                    onBeforeSpawned: (_, obj) => obj.GetComponent<LobbyPlayer>().SteamId = steamId);
             }
         }
 

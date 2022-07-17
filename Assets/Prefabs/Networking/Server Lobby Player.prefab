@@ -47,6 +47,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _Controller: {fileID: 0}
+  _SteamId: 0
+  _Team: 0
+  _uiPrefab: {fileID: 8372448331604399188, guid: 2af23685c6dd1ab4aa4bd7da93840945,
+    type: 3}
   _playerPrefab: {fileID: 8616685848737228371, guid: c5efc39a8aaf6e64ea40e9ad573e9b47,
     type: 3}
 --- !u!114 &1703870274196081228

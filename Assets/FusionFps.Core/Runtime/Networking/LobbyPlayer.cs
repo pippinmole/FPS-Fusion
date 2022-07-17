@@ -3,8 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Fusion.Sockets;
+using FusionFps.Core;
 using Steamworks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public enum ETeam {
+    Red,
+    Blue,
+    Spectator
+}
 
 [DisallowMultipleComponent]
 public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
@@ -12,24 +20,36 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     public static readonly List<LobbyPlayer> Players = new();
 
     public static event Action<NetworkRunner> Connected;
-    public static event Action<NetworkRunner, LobbyPlayer> PlayerJoined;
-    public static event Action<NetworkRunner, LobbyPlayer> PlayerLeft;
+    public static event Action<NetworkRunner, LobbyPlayer> Joined;
+    public static event Action<NetworkRunner, LobbyPlayer> Left;
 
-    [Networked, HideInInspector] public PlayerController Controller { get; private set; }
+    public event Action<NetworkRunner, PlayerController> PlayerSpawned;
+
+    [Networked(OnChanged = nameof(ControllerChanged)), HideInInspector] public PlayerController Controller { get; private set; }
     [Networked] public ulong SteamId { get; set; }
+    [Networked(OnChanged = nameof(TeamChanged))] public ETeam Team { get; set; }
 
+    [SerializeField] private IngameUI _uiPrefab;
     [SerializeField] protected PlayerController _playerPrefab;
+    
+    private IngameUI _ui;
+    
+    public static LobbyPlayer LocalPlayer { get; private set; }
     
     public override void Spawned() {
         base.Spawned();
 
+        Runner.AddCallbacks(this);
+        
         if ( Object.HasInputAuthority ) {
+            LocalPlayer = this;
+            
             RPC_SetSteamId(SteamClient.SteamId);
         }
         
         Players.Add(this);
         Connected?.Invoke(Runner);
-        PlayerJoined?.Invoke(Runner, this);
+        Joined?.Invoke(Runner, this);
 
         DontDestroyOnLoad(gameObject);
     }
@@ -38,11 +58,21 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     private void RPC_SetSteamId(ulong steamId) {
         SteamId = steamId;
     }
+
+    [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
+    public void RPC_SetTeam(ETeam team) {
+        Team = team;
+        
+        // if we're still waiting for players and they arent a spectator, we can spawn them.
+        if ( MatchManager.Instance.IsWaitingForPlayers && team != ETeam.Spectator) {
+            Spawn(FindObjectOfType<PlayerSpawnManager>(), Object.InputAuthority);   
+        }
+    }
     
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
 
-        PlayerLeft?.Invoke(runner, this);
+        Left?.Invoke(runner, this);
         Players.Remove(this);
     }
     
@@ -57,7 +87,6 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         var spawnPoint = spawnManager.GetNextSpawnPoint(Runner, player);
         
         Controller = Runner.Spawn(_playerPrefab, spawnPoint.position, spawnPoint.rotation, player);
-        Controller.CanMove = false;
 
         Debug.Log($"Spawned {player} at {spawnPoint.position}");
     }
@@ -70,6 +99,18 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         if ( Controller == null ) return;
         
         Runner.Despawn(Controller.Object);
+    }
+    
+    public static void DespawnAllPlayers() {
+        var players = Players.ToList();
+        foreach ( var player in players ) {
+            if ( player.Controller == null ) {
+                Debug.Log($"{player.Object.InputAuthority} has a null controller! Continuing...");
+                continue;
+            }
+                
+            player.Despawn();
+        }
     }
 
     public virtual void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
@@ -89,8 +130,34 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     public virtual void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
     public virtual void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
     public virtual void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) { }
-    public virtual void OnSceneLoadDone(NetworkRunner runner) { }
+
+    public virtual void OnSceneLoadDone(NetworkRunner runner) {
+        var matchScene = (int) runner.SessionInfo.Properties["mapBuildIndex"];
+        var currentScene = SceneManager.GetActiveScene().buildIndex;
+        
+        if ( currentScene == matchScene ) {
+            // Spawn UI?
+            _ui = Instantiate(_uiPrefab);
+            _ui.Setup(this, Runner);
+        }
+    }
     public virtual void OnSceneLoadStart(NetworkRunner runner) { }
+
+    private static void ControllerChanged(Changed<LobbyPlayer> changed) {
+        var runner = changed.Behaviour.Runner;
+        var controller = changed.Behaviour.Controller;
+        
+        changed.Behaviour.PlayerSpawned?.Invoke(runner, controller);
+    }
     
-    protected static LobbyPlayer GetPlayer(PlayerRef player) => Players.First(x => x.Object.InputAuthority == player);
+    private static void TeamChanged(Changed<LobbyPlayer> changed) {
+        var team = changed.Behaviour.Team;
+        var spectator = SpectatorCamera.Instance;
+        
+        if ( changed.Behaviour.Object.HasInputAuthority && spectator != null ) {
+            spectator.SetState(team == ETeam.Spectator);
+        }
+    }
+    
+    public static LobbyPlayer GetPlayer(PlayerRef player) => Players.First(x => x.Object.InputAuthority == player);
 }

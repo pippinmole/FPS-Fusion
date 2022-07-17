@@ -12,7 +12,8 @@ public class PlayerController : NetworkBehaviour {
     [Networked] private PlayerInput.NetworkInputData Inputs { get; set; }
     [Networked] public int Kills { get; set; }
     [Networked] public int Deaths { get; set; }
-    [Networked] public bool CanMove { get; set; }
+
+    public static bool CanMove => MatchManager.Instance.IsGameStarted;
 
     public float KillDeathRatio => Deaths == 0 ? Kills : Kills / Deaths;
     

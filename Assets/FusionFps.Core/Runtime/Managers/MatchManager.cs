@@ -11,7 +11,8 @@ namespace FusionFps.Core {
         None,
         LobbyConnected,
         WaitingForPlayers,
-        GameInProgress
+        GameInProgress,
+        Finished
     }
     
     /// <summary>
@@ -27,11 +28,11 @@ namespace FusionFps.Core {
         public bool IsServer => Runner != null && Runner.IsServer;
 
         public float? WaitForPlayersTimeLeft => WaitForPlayersTimer.RemainingTime(Runner);
+        public bool IsWaitingForPlayers => !WaitForPlayersTimer.ExpiredOrNotRunning(Runner);
+        public bool IsGameStarted => GameState == EGameState.GameInProgress;
 
         [SerializeField] private float _matchTimeInSeconds = 120f;
         [SerializeField] private float _waitForPlayersTimer = 15f;
-        
-        public static event Action<NetworkRunner> MatchLoaded;
         
         public static MatchManager Instance;
         
@@ -62,8 +63,6 @@ namespace FusionFps.Core {
 
                 GameState = EGameState.GameInProgress;
                 Countdown = TickTimer.CreateFromSeconds(Runner, _matchTimeInSeconds);
-
-                SetAllPlayers(true);
                 
                 Debug.Log($"Match is set to end on tick {Countdown.TargetTick}");
             }
@@ -72,8 +71,8 @@ namespace FusionFps.Core {
             if ( Countdown.ExpiredOrNotRunning(Runner) && GameState == EGameState.GameInProgress ) {
                 // End game
                 Debug.Log($"Match ended on tick {(int) Runner.Simulation.Tick}");
-
-                LoadLobby();
+                
+                GameState = EGameState.Finished;
             }
         }
 
@@ -86,43 +85,6 @@ namespace FusionFps.Core {
             Instance.GameState = EGameState.WaitingForPlayers;
             Instance.WaitForPlayersTimer = TickTimer.CreateFromSeconds(Instance.Runner, Instance._waitForPlayersTimer);
             Instance.Runner.SetActiveScene(mapBuildIndex);
-        }
-
-        public static void LoadLobby() {
-            if ( !Instance.Runner.IsServer ) return;
-            
-            // Clear players from field
-            Instance.DespawnAllPlayers();
-
-
-            // Reset the state of the game
-            // Instance.GameState = EGameState.LobbyConnected;
-            
-            // Instance.Runner.SetActiveScene(0);
-            // Instance.Runner.Shutdown();
-
-            // throw new NotImplementedException();
-        }
-        
-        public static void OnMatchLoaded() => MatchLoaded?.Invoke(Instance.Runner);
-
-        private static void SetAllPlayers(bool active) {
-            var players = LobbyPlayer.Players;
-            foreach ( var player in players.Where(player => player.Controller != null) ) {
-                player.Controller.CanMove = active;
-            }
-        }
-
-        private void DespawnAllPlayers() {
-            var players = LobbyPlayer.Players.ToList();
-            foreach ( var player in players ) {
-                if ( player.Controller == null ) {
-                    Debug.Log($"{player.Object.InputAuthority} has a null controller! Continuing...");
-                    continue;
-                }
-                
-                player.Despawn();
-            }
         }
     }
 }

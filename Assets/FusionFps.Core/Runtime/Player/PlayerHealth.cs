@@ -55,6 +55,7 @@ public class PlayerHealth : NetworkBehaviour, IHealthProvider {
     }
     
     public static void OnHealthUpdate(Changed<PlayerHealth> changed) {
-        changed.Behaviour.HealthUpdated?.Invoke(changed.Behaviour.NetworkedHealth);
+        var behaviour = changed.Behaviour;
+        changed.Behaviour.HealthUpdated?.Invoke(behaviour.NetworkedHealth);
     }
 }

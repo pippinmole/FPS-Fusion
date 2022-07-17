@@ -260,7 +260,7 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 4
   blendDistance: 0
-  weight: 1
+  weight: 0
   sharedProfile: {fileID: 11400000, guid: cdb2672f0176c1442aa198b0d0ca4f0a, type: 2}
 --- !u!114 &394513035
 MonoBehaviour:
@@ -560,6 +560,9 @@ GameObject:
   - component: {fileID: 32983710371718867}
   - component: {fileID: 32983710371718866}
   - component: {fileID: 8372448331604399188}
+  - component: {fileID: 1679038160}
+  - component: {fileID: 3727440622685327612}
+  - component: {fileID: 7160694739615360342}
   m_Layer: 5
   m_Name: In Game Canvas
   m_TagString: Untagged
@@ -665,10 +668,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4558ef5be0bdfaf4089b0e0a4f0012e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _roundTimerText: {fileID: 32983710590253800}
-  _playerHealthText: {fileID: 1988477007}
+--- !u!114 &1679038160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32983710371718861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09e28e3c0a1d57e4c8188638d754e6f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   _deathScreen: {fileID: 374721330}
   _deathCountdownText: {fileID: 26853862}
+--- !u!114 &3727440622685327612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32983710371718861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 685fa40722880394fa63a45598a37af9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerHealthText: {fileID: 1988477007}
+--- !u!114 &7160694739615360342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32983710371718861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea3bc0a89b7ca954f8791074d87b8b94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _roundTimerText: {fileID: 32983710590253800}
 --- !u!1 &32983710590253802
 GameObject:
   m_ObjectHideFlags: 0

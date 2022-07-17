@@ -22,8 +22,8 @@ public class LobbyPlayerListUI : MonoBehaviour {
         _sessionManager = ServiceProvider.Get<ISessionManager>();
         
         LobbyPlayer.Connected += UpdateBoard;
-        LobbyPlayer.PlayerJoined += AddPlayer;
-        LobbyPlayer.PlayerLeft += RemovePlayer;
+        LobbyPlayer.Joined += Add;
+        LobbyPlayer.Left += Remove;
 
         _sessionManager.SessionJoined += OnSessionJoined;
         _sessionManager.SessionLeft += OnSessionLeft;
@@ -38,8 +38,8 @@ public class LobbyPlayerListUI : MonoBehaviour {
     
     private void OnDestroy() {
         LobbyPlayer.Connected -= UpdateBoard;
-        LobbyPlayer.PlayerJoined -= AddPlayer;
-        LobbyPlayer.PlayerLeft -= RemovePlayer;
+        LobbyPlayer.Joined -= Add;
+        LobbyPlayer.Left -= Remove;
         
         _sessionManager.SessionJoined -= OnSessionJoined;
         _sessionManager.SessionLeft -= OnSessionLeft;
@@ -69,7 +69,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         // TODO: Maybe clear the board here?
         
         foreach ( var player in LobbyPlayer.Players ) {
-            AddPlayer(runner, player);
+            Add(runner, player);
         }
         
         UpdateLobbyTitleText(runner);
@@ -83,7 +83,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         }
     }
     
-    private void AddPlayer(NetworkRunner runner, LobbyPlayer player) {
+    private void Add(NetworkRunner runner, LobbyPlayer player) {
         if ( _listItems.ContainsKey(player) ) {
             var toRemove = _listItems[player];
             Destroy(toRemove.gameObject);
@@ -99,7 +99,7 @@ public class LobbyPlayerListUI : MonoBehaviour {
         UpdateLobbyTitleText(runner);
     }
     
-    private void RemovePlayer(NetworkRunner runner, LobbyPlayer player) {
+    private void Remove(NetworkRunner runner, LobbyPlayer player) {
         if ( !_listItems.ContainsKey(player) )
             return;
 
