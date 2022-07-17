@@ -117,27 +117,12 @@ namespace InfimaGames.LowPolyShooterPack
 		#endregion
 
 		#region FIELDS
-
-		/// <summary>
-		/// True if the character is aiming.
-		/// </summary>
+        
 		private bool aiming;
-		/// <summary>
-		/// Last Frame's Aiming Value.
-		/// </summary>
-		private bool wasAiming;
-		/// <summary>
-		/// True if the character is running.
-		/// </summary>
-		private bool running;
-		/// <summary>
-		/// True if the character has its weapon holstered.
-		/// </summary>
-		private bool holstered;
-		
-		/// <summary>
-		/// Last Time.time at which we shot.
-		/// </summary>
+        private bool wasAiming;
+        private bool running;
+        private bool holstered;
+        
 		private float lastShotTime;
 		
 		/// <summary>
@@ -152,24 +137,11 @@ namespace InfimaGames.LowPolyShooterPack
 		/// Actions Layer Index. Used to play actions like reloading.
 		/// </summary>
 		private int layerActions;
-
-		/// <summary>
-		/// Character Kinematics. Handles all the IK stuff.
-		/// </summary>
+        
 		private CharacterKinematics characterKinematics;
-		/// <summary>
-		/// Cached Movement Component. Used in order to access some of the movement-related properties.
-		/// </summary>
-		private MovementBehaviour movementBehaviour;
-		
-		/// <summary>
-		/// The currently equipped weapon.
-		/// </summary>
-		private WeaponBehaviour equippedWeapon;
-		/// <summary>
-		/// The equipped weapon's attachment manager.
-		/// </summary>
-		private WeaponAttachmentManagerBehaviour weaponAttachmentManager;
+        private MovementBehaviour movementBehaviour;
+        private WeaponBehaviour equippedWeapon;
+        private WeaponAttachmentManagerBehaviour weaponAttachmentManager;
 		
 		/// <summary>
 		/// The scope equipped on the character's weapon.
@@ -193,28 +165,12 @@ namespace InfimaGames.LowPolyShooterPack
 		/// True if the character is throwing a grenade.
 		/// </summary>
 		private bool throwingGrenade;
-		
-		/// <summary>
-		/// True if the character is meleeing.
-		/// </summary>
+        
 		private bool meleeing;
-		/// <summary>
-		/// True if the character is currently crouching.
-		/// </summary>
-		private bool crouching;
-
-		/// <summary>
-		/// Sway Location Value.
-		/// </summary>
-		private Vector3 swayLocation;
-		/// <summary>
-		/// Sway Rotation Value.
-		/// </summary>
-		private Vector3 swayRotation;
-
-		/// <summary>
-		/// True if the character is in the middle of holstering a weapon.
-		/// </summary>
+        private bool crouching;
+        private Vector3 swayLocation;
+        private Vector3 swayRotation;
+        
 		private bool holstering;
 		/// <summary>
 		/// Alpha Aiming Value. Zero to one value representing aiming. Zero if we're not aiming, and one if we are
