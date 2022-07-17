@@ -29,13 +29,10 @@ public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
 
     public override void Render() {
         base.Render();
-
-        if ( _health.IsAlive && PlayerController.CanMove ) {
-            var pitch = CheckAndClamp((float) CameraPitch);
-
-            _cameraRoot.rotation = Quaternion.Euler(pitch, (float) CameraYaw, 0.0f);
-        }
         
+        var pitch = CheckAndClamp((float) CameraPitch);
+
+        _cameraRoot.rotation = Quaternion.Euler(pitch, (float) CameraYaw, 0.0f);
         _camera.gameObject.SetActive(Object.HasInputAuthority);
     }
 

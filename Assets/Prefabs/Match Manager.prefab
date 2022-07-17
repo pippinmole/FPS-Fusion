@@ -47,8 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _GameState: 0
-  _matchTimeInSeconds: 60
-  _waitForPlayersTimer: 5
+  _matchTimeInSeconds: 120
+  _waitForPlayersTimer: 25
 --- !u!114 &69473127183055446
 MonoBehaviour:
   m_ObjectHideFlags: 0

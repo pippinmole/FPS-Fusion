@@ -51,6 +51,8 @@ MonoBehaviour:
   _Team: 0
   _uiPrefab: {fileID: 8372448331604399188, guid: 2af23685c6dd1ab4aa4bd7da93840945,
     type: 3}
+  _spectatorPrefab: {fileID: 7104423007235695384, guid: fe991bec0e62e1946b68175652be7adc,
+    type: 3}
   _playerPrefab: {fileID: 8616685848737228371, guid: c5efc39a8aaf6e64ea40e9ad573e9b47,
     type: 3}
 --- !u!114 &5035057335492392436

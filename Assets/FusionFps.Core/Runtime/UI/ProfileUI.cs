@@ -25,24 +25,14 @@ public class ProfileUI : MonoBehaviour {
     }
 
     private void UpdateIsOpen() {
-        var rect = GetWorldRect(_rect);
-        
-        var x = Mathf.Clamp(Input.mousePosition.x, 0f, Screen.width);
-        var y = Mathf.Clamp(Input.mousePosition.y, 0f, Screen.height);
-        _isOpen = rect.Contains(new Vector2(x, y));
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, Input.mousePosition, Camera.main, out var localPoint);
+        _isOpen = !IsMouseOutOfBounds() && _rect.rect.Contains(localPoint);
     }
 
-    private static Rect GetWorldRect(RectTransform rectTransform) {
-        var corners = new Vector3[4];
-        rectTransform.GetWorldCorners(corners);
-        
-        // Get the bottom left corner.
-        var position = corners[0];
-
-        var size = new Vector2(
-            rectTransform.lossyScale.x * rectTransform.rect.size.x,
-            rectTransform.lossyScale.y * rectTransform.rect.size.y);
-
-        return new Rect(position, size);
+    private static bool IsMouseOutOfBounds() {
+        return Input.mousePosition.x > Screen.width || 
+               Input.mousePosition.y > Screen.height ||
+               Input.mousePosition.x < 0f ||
+               Input.mousePosition.y < 0f;
     }
 }

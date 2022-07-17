@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public enum ETeam {
+    None,
     Red,
     Blue,
     Spectator
@@ -25,13 +26,19 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
 
     public event Action<NetworkRunner, PlayerController> PlayerSpawned;
 
-    [Networked(OnChanged = nameof(ControllerChanged)), HideInInspector] public PlayerController Controller { get; private set; }
+    [Networked(OnChanged = nameof(ControllerChanged)), HideInInspector]
+    public PlayerController Controller { get; private set; }
+
     [Networked] public ulong SteamId { get; set; }
-    [Networked(OnChanged = nameof(TeamChanged))] public ETeam Team { get; set; }
+
+    [Networked(OnChanged = nameof(TeamChanged))]
+    public ETeam Team { get; set; } = ETeam.None;
 
     [SerializeField] private IngameUI _uiPrefab;
+    [SerializeField] private SpectatorCamera _spectatorPrefab;
     [SerializeField] protected PlayerController _playerPrefab;
-    
+
+    private SpectatorCamera _spectatorCamera;
     private IngameUI _ui;
     
     public static LobbyPlayer LocalPlayer { get; private set; }
@@ -62,13 +69,8 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
     public void RPC_SetTeam(ETeam team) {
         Team = team;
-        
-        // if we're still waiting for players and they arent a spectator, we can spawn them.
-        if ( MatchManager.Instance.IsWaitingForPlayers && team != ETeam.Spectator) {
-            Spawn(FindObjectOfType<PlayerSpawnManager>(), Object.InputAuthority);   
-        }
     }
-    
+
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
 
@@ -80,7 +82,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     /// Spawns the player at a random spawn point in the given PlayerSpawnManager set of spawn points.
     /// </summary>
     /// <param name="spawnManager">The spawn manager to choose a spawn point from</param>
-    /// <param name="player"></param>
+    /// <param name="player">The input authority for this player</param>
     public void Spawn(PlayerSpawnManager spawnManager, PlayerRef player) {
         if ( !Runner.IsServer ) return;
         
@@ -100,23 +102,9 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         
         Runner.Despawn(Controller.Object);
     }
-    
-    public static void DespawnAllPlayers() {
-        var players = Players.ToList();
-        foreach ( var player in players ) {
-            if ( player.Controller == null ) {
-                Debug.Log($"{player.Object.InputAuthority} has a null controller! Continuing...");
-                continue;
-            }
-                
-            player.Despawn();
-        }
-    }
 
     public virtual void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
-
     public virtual void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
-    
     public virtual void OnInput(NetworkRunner runner, NetworkInput input) { }
     public virtual void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public virtual void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
@@ -151,11 +139,31 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     }
     
     private static void TeamChanged(Changed<LobbyPlayer> changed) {
-        var team = changed.Behaviour.Team;
-        var spectator = SpectatorCamera.Instance;
-        
-        if ( changed.Behaviour.Object.HasInputAuthority && spectator != null ) {
-            spectator.SetState(team == ETeam.Spectator);
+        Debug.Log($"Team changed to {changed.Behaviour.Team}");
+        var behaviour = changed.Behaviour;
+        var team = behaviour.Team;
+
+        if ( behaviour.Object.HasInputAuthority ) {
+            if ( team == ETeam.Spectator ) {
+                behaviour._spectatorCamera = Instantiate(behaviour._spectatorPrefab);
+            } else {
+                var spec = behaviour._spectatorCamera;
+                if ( spec != null ) Destroy(spec.gameObject);
+            }
+        }
+
+        if ( behaviour.Runner.IsServer ) {
+            var isWaitingForPlayers = MatchManager.Instance.IsWaitingForPlayers;
+
+            // De-spawn the current controller
+            behaviour.Despawn();
+            
+            // if we're still waiting for players and they arent a spectator, we can spawn them.
+            if ( team != ETeam.Spectator ) {
+                if ( isWaitingForPlayers ) {
+                    behaviour.Spawn(FindObjectOfType<PlayerSpawnManager>(), behaviour.Object.InputAuthority);
+                }
+            }
         }
     }
     

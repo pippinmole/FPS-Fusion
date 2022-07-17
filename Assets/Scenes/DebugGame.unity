@@ -3249,75 +3249,6 @@ ReflectionProbe:
   m_UseOcclusionCulling: 1
   m_Importance: 1
   m_CustomBakedTexture: {fileID: 0}
---- !u!1001 &1586764882
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7104423007235695385, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_Name
-      value: Spectator Camera
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -6.200616
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 9.82
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 20.390284
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.3849376
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.09933664
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.8884742
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.22927883
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 28.94
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 133.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 7104423007235695387, guid: fe991bec0e62e1946b68175652be7adc,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: fe991bec0e62e1946b68175652be7adc, type: 3}
 --- !u!1 &1685088644
 GameObject:
   m_ObjectHideFlags: 0
@@ -3832,7 +3763,7 @@ RectTransform:
   - {fileID: 928197539}
   - {fileID: 1501547762}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}

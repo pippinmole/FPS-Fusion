@@ -43,13 +43,15 @@ public class PlayerController : NetworkBehaviour {
             //
             Inputs = input;
 
-            if ( _health.IsAlive && CanMove ) {
-                if ( Inputs.IsDownThisFrame(PlayerInput.NetworkInputData.ButtonJump) ) {
-                    _motor.Jump();
+            if ( _health.IsAlive ) {
+                if ( CanMove ) {
+                    if ( Inputs.IsDownThisFrame(PlayerInput.NetworkInputData.ButtonJump) ) {
+                        _motor.Jump();
+                    }
+                    
+                    Move();
                 }
 
-                Move();
-                
                 _camera.YawAndPitch(Inputs);
 
                 // rotate the player left and right
