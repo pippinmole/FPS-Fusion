@@ -2,66 +2,20 @@
 
 using UnityEngine;
 
-namespace InfimaGames.LowPolyShooterPack
-{
-    /// <summary>
-    /// Weapon Attachment Manager Behaviour.
-    /// </summary>
-    public abstract class WeaponAttachmentManagerBehaviour : MonoBehaviour
-    {
-        #region UNITY FUNCTIONS
+namespace InfimaGames.LowPolyShooterPack {
+    public abstract class WeaponAttachmentManagerBehaviour : MonoBehaviour {
+        protected virtual void Awake() { }
+        protected virtual void Start() { }
+        protected virtual void Update() { }
+        protected virtual void LateUpdate() { }
 
-        /// <summary>
-        /// Awake.
-        /// </summary>
-        protected virtual void Awake(){}
-
-        /// <summary>
-        /// Start.
-        /// </summary>
-        protected virtual void Start(){}
-
-        /// <summary>
-        /// Update.
-        /// </summary>
-        protected virtual void Update(){}
-
-        /// <summary>
-        /// Late Update.
-        /// </summary>
-        protected virtual void LateUpdate(){}
-
-        #endregion
-        
-        #region GETTERS
-
-        /// <summary>
-        /// Returns the equipped scope.
-        /// </summary>
         public abstract ScopeBehaviour GetEquippedScope();
-        /// <summary>
-        /// Returns the equipped scope default.
-        /// </summary>
         public abstract ScopeBehaviour GetEquippedScopeDefault();
-        
-        /// <summary>
-        /// Returns the equipped magazine.
-        /// </summary>
+
         public abstract MagazineBehaviour GetEquippedMagazine();
-        /// <summary>
-        /// Returns the equipped muzzle.
-        /// </summary>
         public abstract MuzzleBehaviour GetEquippedMuzzle();
-        
-        /// <summary>
-        /// Returns the equipped laser.
-        /// </summary>
+
         public abstract LaserBehaviour GetEquippedLaser();
-        /// <summary>
-        /// Returns the equipped grip.
-        /// </summary>
         public abstract GripBehaviour GetEquippedGrip();
-        
-        #endregion
     }
 }

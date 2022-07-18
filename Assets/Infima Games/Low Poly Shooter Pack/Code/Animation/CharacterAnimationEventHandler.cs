@@ -2,150 +2,115 @@
 
 using UnityEngine;
 
-namespace InfimaGames.LowPolyShooterPack
-{
-	/// <summary>
-	/// Handles all the animation events that come from the character in the asset.
-	/// </summary>
-	public class CharacterAnimationEventHandler : MonoBehaviour
-	{
-		#region FIELDS
+namespace InfimaGames.LowPolyShooterPack {
+    public interface ICharacterAnimationCallbacks {
+        void EjectCasing();
+        void FillAmmunition(int amount);
+        void SetActiveKnife(int active);
+        void ThrowGrenade();
+        void SetActiveMagazine(int active);
+        void AnimationEndedBolt();
+        void AnimationEndedReload();
+        void AnimationEndedGrenadeThrow();
+        void AnimationEndedMelee();
+        void AnimationEndedInspect();
+        void AnimationEndedHolster();
+        void SetSlideBack(int back);
+    }
 
-		/// <summary>
-        /// Character Component Reference.
+    /// <summary>
+    /// Handles all the animation events that come from the character in the asset.
+    /// </summary>
+    public class CharacterAnimationEventHandler : MonoBehaviour {
+        private ICharacterAnimationCallbacks _callbacks;
+
+        private void Awake() {
+            _callbacks = GetComponent<ICharacterAnimationCallbacks>();
+        }
+
+        /// <summary>
+        /// Ejects a casing from the character's equipped weapon. This function is called from an Animation Event.
         /// </summary>
-        private CharacterBehaviour playerCharacter;
+        private void OnEjectCasing() {
+            _callbacks?.EjectCasing();
+        }
 
-		#endregion
+        /// <summary>
+        /// Fills the character's equipped weapon's ammunition by a certain amount, or fully if set to 0. This function is called
+        /// from a Animation Event.
+        /// </summary>
+        private void OnAmmunitionFill(int amount = 0) {
+            _callbacks?.FillAmmunition(amount);
+        }
 
-		#region UNITY
+        /// <summary>
+        /// Sets the character's knife active value. This function is called from an Animation Event.
+        /// </summary>
+        private void OnSetActiveKnife(int active) {
+            _callbacks?.SetActiveKnife(active);
+        }
 
-		private void Awake()
-		{
-			//Grab a reference to the character component.
-			playerCharacter = ServiceLocator.Current.Get<IGameModeService>().GetPlayerCharacter();
-		}
+        /// <summary>
+        /// Spawns a grenade at the correct location. This function is called from an Animation Event.
+        /// </summary>
+        private void OnGrenade() {
+            _callbacks?.ThrowGrenade();
+        }
 
-		#endregion
+        /// <summary>
+        /// Sets the equipped weapon's magazine to be active or inactive! This function is called from an Animation Event.
+        /// </summary>
+        private void OnSetActiveMagazine(int active) {
+            _callbacks?.SetActiveMagazine(active);
+        }
 
-		#region ANIMATION
+        /// <summary>
+        /// Bolt Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedBolt() {
+            _callbacks?.AnimationEndedBolt();
+        }
 
-		/// <summary>
-		/// Ejects a casing from the character's equipped weapon. This function is called from an Animation Event.
-		/// </summary>
-		private void OnEjectCasing()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.EjectCasing();
-		}
+        /// <summary>
+        /// Reload Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedReload() {
+            _callbacks?.AnimationEndedReload();
+        }
 
-		/// <summary>
-		/// Fills the character's equipped weapon's ammunition by a certain amount, or fully if set to 0. This function is called
-		/// from a Animation Event.
-		/// </summary>
-		private void OnAmmunitionFill(int amount = 0)
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.FillAmmunition(amount);
-		}
-		/// <summary>
-		/// Sets the character's knife active value. This function is called from an Animation Event.
-		/// </summary>
-		private void OnSetActiveKnife(int active)
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.SetActiveKnife(active);
-		}
-		
-		/// <summary>
-		/// Spawns a grenade at the correct location. This function is called from an Animation Event.
-		/// </summary>
-		private void OnGrenade()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.Grenade();
-		}
-		/// <summary>
-		/// Sets the equipped weapon's magazine to be active or inactive! This function is called from an Animation Event.
-		/// </summary>
-		private void OnSetActiveMagazine(int active)
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.SetActiveMagazine(active);
-		}
+        /// <summary>
+        /// Grenade Throw Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedGrenadeThrow() {
+            _callbacks?.AnimationEndedGrenadeThrow();
+        }
 
-		/// <summary>
-		/// Bolt Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedBolt()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedBolt();
-		}
-		/// <summary>
-		/// Reload Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedReload()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedReload();
-		}
+        /// <summary>
+        /// Melee Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedMelee() {
+            _callbacks?.AnimationEndedMelee();
+        }
 
-		/// <summary>
-		/// Grenade Throw Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedGrenadeThrow()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedGrenadeThrow();
-		}
-		/// <summary>
-		/// Melee Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedMelee()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedMelee();
-		}
+        /// <summary>
+        /// Inspect Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedInspect() {
+            _callbacks?.AnimationEndedInspect();
+        }
 
-		/// <summary>
-		/// Inspect Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedInspect()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedInspect();
-		}
-		/// <summary>
-		/// Holster Animation Ended. This function is called from an Animation Event.
-		/// </summary>
-		private void OnAnimationEndedHolster()
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.AnimationEndedHolster();
-		}
+        /// <summary>
+        /// Holster Animation Ended. This function is called from an Animation Event.
+        /// </summary>
+        private void OnAnimationEndedHolster() {
+            _callbacks?.AnimationEndedHolster();
+        }
 
-		/// <summary>
-		/// Sets the character's equipped weapon's slide back pose. This function is called from an Animation Event.
-		/// </summary>
-		private void OnSlideBack(int back)
-		{
-			//Notify the character.
-			if(playerCharacter != null)
-				playerCharacter.SetSlideBack(back);
-		}
-
-		#endregion
-	}   
+        /// <summary>
+        /// Sets the character's equipped weapon's slide back pose. This function is called from an Animation Event.
+        /// </summary>
+        private void OnSlideBack(int back) {
+            _callbacks?.SetSlideBack(back);
+        }
+    }
 }

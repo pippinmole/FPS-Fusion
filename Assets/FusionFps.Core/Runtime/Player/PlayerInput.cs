@@ -19,11 +19,17 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
         public const uint ButtonSprint = 1 << 0;
         public const uint ButtonJump = 1 << 1;
         public const uint ButtonShoot = 1 << 2;
+        public const uint ButtonScope = 1 << 3;
+        public const uint ButtonMelee = 1 << 4;
+        public const uint ButtonGrenade = 1 << 5;
+        public const uint ButtonInspect = 1 << 6;
+        public const uint ButtonReload = 1 << 7;
 
         public uint Buttons;
         public uint OneShots;
         
         public Vector2 Move;
+        public Vector2 Scroll;
 
         public Angle YawDelta;
         public Angle PitchDelta;
@@ -56,6 +62,7 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
 
         if ( Input.GetKey(KeyCode.LeftShift) ) userInput.Buttons |= NetworkInputData.ButtonSprint;
         if ( Input.GetKey(KeyCode.Mouse0) ) userInput.Buttons |= NetworkInputData.ButtonShoot;
+        if ( Input.GetKey(KeyCode.Mouse1) ) userInput.Buttons |= NetworkInputData.ButtonScope;
         if ( _jumpPressed ) userInput.OneShots |= NetworkInputData.ButtonJump;
 
         var yawPitch = _camera.ConsumeYawPitch();

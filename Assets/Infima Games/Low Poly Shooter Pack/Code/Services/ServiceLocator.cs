@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace InfimaGames.LowPolyShooterPack
 {
@@ -30,7 +31,7 @@ namespace InfimaGames.LowPolyShooterPack
             string key = typeof(T).Name;
             if (!services.ContainsKey(key))
             {
-                Log.kill($"{key} not registered with {GetType().Name}");
+                Debug.LogError($"{key} not registered with {GetType().Name}");
                 throw new InvalidOperationException();
             }
 
@@ -47,7 +48,7 @@ namespace InfimaGames.LowPolyShooterPack
             string key = typeof(T).Name;
             if (services.ContainsKey(key))
             {
-                Log.kill($"Attempted to register service of type {key} which is already registered with the {GetType().Name}.");
+                Debug.LogWarning($"Attempted to register service of type {key} which is already registered with the {GetType().Name}.");
                 return;
             }
 
@@ -64,7 +65,7 @@ namespace InfimaGames.LowPolyShooterPack
             string key = typeof(T).Name;
             if (!services.ContainsKey(key))
             {
-                Log.kill($"Attempted to unregister service of type {key} which is not registered with the {GetType().Name}.");
+                Debug.LogWarning($"Attempted to unregister service of type {key} which is not registered with the {GetType().Name}.");
                 return;
             }
 

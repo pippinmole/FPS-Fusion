@@ -308,8 +308,10 @@ namespace InfimaGames.LowPolyShooterPack
 			cursorLocked = true;
 			//Update the cursor's state.
 			UpdateCursorState();
+            
+            Debug.LogWarning("Help");
 
-			#endregion
+            #endregion
 
 			//Cache the movement behaviour.
 			movementBehaviour = GetComponent<MovementBehaviour>();
@@ -1292,7 +1294,7 @@ namespace InfimaGames.LowPolyShooterPack
 			if (!cursorLocked)
 				return;
 			
-			Log.wtf("Jumping!");
+			// Log.wtf("Jumping!");
 		}
 		/// <summary>
 		/// Next Inventory Weapon.
@@ -1405,7 +1407,7 @@ namespace InfimaGames.LowPolyShooterPack
 				equippedWeapon.FillAmmunition(amount);
 		}
 		
-		public override void Grenade()
+		public override void ThrowGrenade()
 		{
 			//Make sure that the grenade is valid, otherwise we'll get errors.
 			if (grenadePrefab == null)

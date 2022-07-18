@@ -8,12 +8,20 @@ public class PlayerController : NetworkBehaviour {
 
     [SerializeField] private float _moveSpeed = 5.5f;
     [SerializeField] private float _sprintSpeed = 8f;
+    [SerializeField] private float _walkingMultiplierForward = 1.0f;
+    [SerializeField] private float _walkingMultiplierSideways = 0.8f;
+    [SerializeField] private float _walkingMultiplierBackwards = 0.8f;
 
     [Networked] private PlayerInput.NetworkInputData Inputs { get; set; }
     [Networked] public int Kills { get; set; }
     [Networked] public int Deaths { get; set; }
 
-    public static bool CanMove => MatchManager.Instance.IsGameStarted;
+    public static bool CanMove {
+        get {
+            var matchManager = MatchManager.Instance;
+            return matchManager == null || matchManager.IsGameStarted;
+        }
+    }
 
     public float KillDeathRatio => Deaths == 0 ? Kills : Kills / Deaths;
     
@@ -73,4 +81,8 @@ public class PlayerController : NetworkBehaviour {
             t.gameObject.layer = LayerMask.NameToLayer(layer);
         }
     }
+    
+    public float GetMultiplierForward() => _walkingMultiplierForward;
+    public float GetMultiplierSideways() => _walkingMultiplierSideways;
+    public float GetMultiplierBackwards() => _walkingMultiplierBackwards;
 }

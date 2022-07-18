@@ -2,77 +2,33 @@
 
 using UnityEngine;
 
-namespace InfimaGames.LowPolyShooterPack.Interface
-{
-    /// <summary>
-    /// Crosshair.
-    /// </summary>
-    public class Crosshair : Element
-    {
-        #region FIELDS SERIALIZED
+namespace InfimaGames.LowPolyShooterPack.Interface {
+    public class Crosshair : Element {
+        [SerializeField] private float _smoothing = 8.0f;
+        [SerializeField] private float _minimumScale = 0.25f;
 
-        [Header("Settings")]
+        private float _current = 1.0f;
+        private float _target = 1.0f;
+        private RectTransform _rectTransform;
         
-        [Tooltip("Visibility changing smoothness.")]
-        [SerializeField]
-        private float smoothing = 8.0f;
-
-        [Tooltip("Minimum scale the Crosshair needs in order to be visible. Useful to avoid weird tiny images.")]
-        [SerializeField]
-        private float minimumScale = 0.15f;
-
-        #endregion
-
-        #region FIELDS
-        
-        /// <summary>
-        /// Current.
-        /// </summary>
-        private float current = 1.0f;
-        /// <summary>
-        /// Target.
-        /// </summary>
-        private float target = 1.0f;
-
-        /// <summary>
-        /// Rect.
-        /// </summary>
-        private RectTransform rectTransform;
-
-        #endregion
-        
-        #region UNITY
-        
-        protected override void Awake()
-        {
-            //Base.
+        protected override void Awake() {
             base.Awake();
 
-            //Cache Rect Transform.
-            rectTransform = GetComponent<RectTransform>();
+            _rectTransform = GetComponent<RectTransform>();
         }
 
-        #endregion
-        
-        #region METHODS
-        
-        protected override void Tick()
-        {
-            //Check Visibility.
-            bool visible = playerCharacter.IsCrosshairVisible();
-            //Update Target.
-            target = visible ? 1.0f : 0.0f;
+        protected override void Tick() {
+            var visible = playerCharacter.IsCrosshairVisible();
 
-            //Interpolate Current.
-            current = Mathf.Lerp(current, target, Time.deltaTime * smoothing);
-            //Scale.
-            rectTransform.localScale = Vector3.one * current;
-            
-            //Hide Crosshair Objects When Too Small.
-            for (var i = 0; i < transform.childCount; i++)
-                transform.GetChild(i).gameObject.SetActive(current > minimumScale);
+            _target = visible ? 1.0f : 0.0f;
+
+            _current = Mathf.Lerp(_current, _target, Time.deltaTime * _smoothing);
+            _rectTransform.localScale = Vector3.one * _current;
+
+            // Hide cross hair objects when too small
+            for ( var i = 0; i < transform.childCount; i++ ) {
+                transform.GetChild(i).gameObject.SetActive(_current > _minimumScale);
+            }
         }
-        
-        #endregion
     }
 }
