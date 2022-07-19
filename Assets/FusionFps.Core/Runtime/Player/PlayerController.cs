@@ -61,7 +61,7 @@ public class PlayerController : NetworkBehaviour {
                 }
 
                 _camera.YawAndPitch(Inputs);
-
+                
                 // rotate the player left and right
                 transform.rotation = Quaternion.Euler(0, (float) _camera.CameraYaw, 0);
             }

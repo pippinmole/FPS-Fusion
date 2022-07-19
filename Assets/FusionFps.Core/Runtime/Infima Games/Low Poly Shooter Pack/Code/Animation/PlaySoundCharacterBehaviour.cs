@@ -32,7 +32,7 @@ namespace InfimaGames.LowPolyShooterPack {
         private AudioSettings audioSettings = new(1.0f, 0.0f, true);
 
         private PlayerAnimator _playerAnimator;
-        private InventoryBehaviour _playerInventory;
+        private PlayerWeapon _playerInventory;
         private IAudioManagerService _audioManagerService;
 
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {

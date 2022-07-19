@@ -2,29 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using InfimaGames.LowPolyShooterPack;
 using UnityEngine;
 
 [OrderAfter(typeof(HitboxManager), typeof(NetworkTransform))]
 public class PlayerWeapon : NetworkBehaviour {
-    
-    [SerializeField] private Transform _weaponRoot;
+
     [SerializeField] private Transform _weaponParent;
     [SerializeField] private List<WeaponTemplate> _weapons = new();
     [SerializeField] private Material _tracerMaterial;
-    
+
     [Networked(OnChanged = nameof(OnWeaponIndexChanged))]
     private int WeaponIndex { get; set; }
+
     [Networked] private float Cooldown { get; set; }
     [Networked] private PlayerInput.NetworkInputData Input { get; set; }
-    
+
+    public event Action<int> WeaponUpdated; 
+
     private WeaponTemplate CurrentWeaponTemplate => WeaponIndex == -1 ? null : _weapons[WeaponIndex - 1];
 
     private readonly List<LagCompensatedHit> _hitBuffer = new();
-    
-    private Weapon _currentWeapon;
+
+    private WeaponBehaviour _currentWeapon;
     private PlayerCamera _camera;
     private NetworkTransform _networkTransform;
-    
+
     private void Awake() {
         _camera = GetComponent<PlayerCamera>();
         _networkTransform = GetComponent<NetworkTransform>();
@@ -39,20 +42,20 @@ public class PlayerWeapon : NetworkBehaviour {
             Cursor.lockState = CursorLockMode.Locked;
         } else {
             // We want to parent the weapon root to the interpolation transform so that the weapon moves smoothly.
-            _weaponRoot.SetParent(_networkTransform.InterpolationTarget);
+            // _weaponParent.SetParent(_networkTransform.InterpolationTarget);
         }
     }
 
     public override void Render() {
         base.Render();
 
-        _weaponRoot.rotation =
-            Quaternion.Euler((float) _camera.CameraPitch, (float) _camera.CameraYaw, _weaponRoot.rotation.z);
+        // _weaponParent.rotation =
+        //     Quaternion.Euler((float) _camera.CameraPitch, (float) _camera.CameraYaw, _weaponRoot.rotation.z);
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
-        
+
         if ( Object.HasInputAuthority ) {
             Cursor.lockState = CursorLockMode.None;
         }
@@ -98,12 +101,13 @@ public class PlayerWeapon : NetworkBehaviour {
 
         try {
             var weapon = _weapons[WeaponIndex - 1];
-            
+
             // Spawn new weapon
-            _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity);
-            _currentWeapon.transform.SetParent(_weaponParent);
+            _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity, _weaponParent);
+            // _currentWeapon.transform.SetParent(_weaponParent);
             _currentWeapon.transform.localPosition = Vector3.zero;
             _currentWeapon.transform.localRotation = Quaternion.identity;
+            _currentWeapon.Init(this);
         }
         catch {
             Debug.LogError($"Error with weapon index of {WeaponIndex}");
@@ -133,12 +137,12 @@ public class PlayerWeapon : NetworkBehaviour {
 
         if ( _hitBuffer.Count > 0 ) {
             var hit = _hitBuffer.Last();
-            
-            DrawTracer(origin, hit.Point);
+
+            // DrawTracer(origin, hit.Point);
             DealDamage(runner, hit, w.Damage);
         }
-        
-        RenderMuzzle(w.MuzzlePrefab, _currentWeapon.MuzzlePoint);
+
+        // RenderMuzzle(w.MuzzlePrefab, _currentWeapon.MuzzlePoint);
 
         // Add delay
         return w.ShotDelaySeconds;
@@ -157,7 +161,7 @@ public class PlayerWeapon : NetworkBehaviour {
         const float width = 0.02f;
 
         if ( _tracerMaterial == null ) return;
-        
+
         var myLine = new GameObject();
         myLine.transform.position = start;
         myLine.AddComponent<LineRenderer>();
@@ -178,7 +182,7 @@ public class PlayerWeapon : NetworkBehaviour {
         if ( hit.Type == HitType.Hitbox ) {
             hit.GameObject = hit.Hitbox.Root.gameObject;
         }
-        
+
         var gameObj = hit.GameObject;
         if ( gameObj == null )
             return;
@@ -186,7 +190,7 @@ public class PlayerWeapon : NetworkBehaviour {
         var healthProvider = gameObj.GetComponent<IHealthProvider>();
         if ( healthProvider == null || !healthProvider.IsAlive )
             return;
-        
+
         if ( healthProvider.IsAlive ) {
             var health = healthProvider.Health;
 
@@ -195,10 +199,10 @@ public class PlayerWeapon : NetworkBehaviour {
 
             healthProvider.Health = health;
         }
-        
+
         if ( !healthProvider.IsAlive ) {
             Debug.Log($"{Object.InputAuthority.ToString()} has been killed on tick: {runner.Simulation.Tick}");
-            
+
             // We killed them
             var controller = GetComponent<PlayerController>();
             controller.Kills++;
@@ -207,6 +211,9 @@ public class PlayerWeapon : NetworkBehaviour {
 
     private static void OnWeaponIndexChanged(Changed<PlayerWeapon> changed) {
         changed.Behaviour.SetWeapon();
+        changed.Behaviour.WeaponUpdated?.Invoke(changed.Behaviour.WeaponIndex);
     }
+
+    public WeaponBehaviour GetEquipped() => _currentWeapon;
 }
 

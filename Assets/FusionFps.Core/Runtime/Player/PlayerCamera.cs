@@ -7,30 +7,26 @@ public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
     [SerializeField] private Camera _camera;
     [SerializeField] private float _topClamp = 90.0f;
     [SerializeField] private float _bottomClamp = -90.0f;
-    [SerializeField] private float _sensitivity = 0.6f;
+    [SerializeField] private float _sensitivity = 0.5f;
     
     [Networked] private Angle Yaw { get; set; }
     [Networked] private Angle Pitch { get; set; }
 
     public Angle CameraYaw => Yaw + _yawDelta;
     public Angle CameraPitch => Pitch + _pitchDelta;
-
-    private PlayerController _controller;
-    private PlayerHealth _health;
+    
     private Angle _yawDelta;
     private Angle _pitchDelta;
 
     private void Awake() {
-        _health = GetComponent<PlayerHealth>();
-        _controller = GetComponent<PlayerController>();
-        
         _camera.gameObject.SetActive(false);
     }
 
     public override void Render() {
         base.Render();
         
-        var pitch = CheckAndClamp((float) CameraPitch);
+        // var pitch = CheckAndClamp((float) CameraPitch);
+        var pitch = (float) CameraPitch;
 
         _cameraRoot.rotation = Quaternion.Euler(pitch, (float) CameraYaw, 0.0f);
         _camera.gameObject.SetActive(Object.HasInputAuthority);
@@ -43,7 +39,7 @@ public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
 
     public void YawAndPitch(PlayerInput.NetworkInputData input) {
         Pitch += (float) input.PitchDelta;
-        Pitch = CheckAndClamp((float) Pitch);
+        // Pitch = CheckAndClamp((float) Pitch);
         
         Yaw += (float) input.YawDelta;
     }

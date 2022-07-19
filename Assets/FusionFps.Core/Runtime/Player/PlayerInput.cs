@@ -5,9 +5,7 @@ using Fusion.Sockets;
 using UnityEngine;
 
 public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
-
-    [SerializeField] private float _sensitivity = 2.5f;
-
+    
     private PlayerCamera _camera;
 
     private void Awake() {
@@ -65,10 +63,12 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
         if ( Input.GetKey(KeyCode.Mouse1) ) userInput.Buttons |= NetworkInputData.ButtonScope;
         if ( _jumpPressed ) userInput.OneShots |= NetworkInputData.ButtonJump;
 
-        var yawPitch = _camera.ConsumeYawPitch();
-        userInput.YawDelta = (float) yawPitch.Item1 * _sensitivity;
-        userInput.PitchDelta = (float) yawPitch.Item2 * _sensitivity;
-        
+        if ( _camera != null ) {
+            var yawPitch = _camera.ConsumeYawPitch();
+            userInput.YawDelta = (float) yawPitch.Item1;
+            userInput.PitchDelta = (float) yawPitch.Item2;
+        }
+
         input.Set(userInput);
 
         _jumpPressed = false;

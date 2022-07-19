@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerFootsteps : MonoBehaviour {
 
     [SerializeField] private AudioSource _audioSource;
@@ -10,12 +11,9 @@ public class PlayerFootsteps : MonoBehaviour {
     [SerializeField] private AudioClip _audioClipRunning;
 
     private CharacterController _characterController;
-    private PlayerController _controller;
 
     private void Awake() {
         _characterController = GetComponent<CharacterController>();
-        _controller = GetComponent<PlayerController>();
-        _audioSource = GetComponent<AudioSource>();
         _audioSource.clip = _audioClipWalking;
         _audioSource.loop = true;
     }

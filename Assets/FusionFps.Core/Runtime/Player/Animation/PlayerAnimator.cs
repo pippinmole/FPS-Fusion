@@ -32,7 +32,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     
     [SerializeField] private CharacterKinematics _kinematics;
     [SerializeField] private int _weaponIndexEquippedAtStart;
-    [SerializeField] private InventoryBehaviour _inventory;
+    [SerializeField] private PlayerWeapon _weaponController;
     [SerializeField] private float _grenadeSpawnOffset = 1.0f;
     [SerializeField] private GameObject _grenadePrefab;
     [SerializeField] private GameObject _knife;
@@ -71,7 +71,6 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     private PlayerController _controller;
     private WeaponBehaviour _equippedWeapon;
     private WeaponAttachmentManagerBehaviour _weaponAttachmentManager;
-
     private ScopeBehaviour _equippedWeaponScope;
     private MagazineBehaviour _equippedWeaponMagazine;
     
@@ -110,8 +109,10 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
     private void Awake() {
         _controller = GetComponent<PlayerController>();
-
-        _inventory.Init(_weaponIndexEquippedAtStart);
+        GetComponent<PlayerWeapon>().WeaponUpdated += (_) => {
+            StartCoroutine(nameof(Equip));
+        };
+        // _weaponController.Init(_weaponIndexEquippedAtStart);
 
         RefreshWeaponSetup();
     }
@@ -193,8 +194,8 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
             }
 
             _axisMovementSmooth =
-                Vector2.Lerp(_axisMovementSmooth, input.Move, Time.deltaTime * _weaponSwaySmoothValueInput);
-            _axisLookSmooth = Vector2.Lerp(_axisLookSmooth, axisLook, Time.deltaTime * _weaponSwaySmoothValueInput);
+                Vector2.Lerp(_axisMovementSmooth, input.Move, Runner.DeltaTime * _weaponSwaySmoothValueInput);
+            _axisLookSmooth = Vector2.Lerp(_axisLookSmooth, axisLook, Runner.DeltaTime * _weaponSwaySmoothValueInput);
 
             UpdateAnimator(input);
 
@@ -209,6 +210,8 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
             // Interpolate the depth camera's field of view based on whether we are aiming or not.
             _cameraDepth.fieldOfView = Mathf.Lerp(_fieldOfViewWeapon,
                 _fieldOfViewWeapon * _equippedWeapon.GetFieldOfViewMultiplierAimWeapon(), _aimingAlpha);
+
+            LateUpdateTest();
         }
     }
 
@@ -233,29 +236,44 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     }
 
     private void LateUpdate() {
+
+    }
+
+    private void LateUpdateTest() {
         if ( _boneWeapon == null ) return;
         if ( _equippedWeapon == null ) return;
         if ( _equippedWeaponScope == null ) return;
 
-        //Get the weapon offsets.
         var weaponOffsets = _equippedWeapon.GetWeaponOffsets();
-
-        //Frame Location Local.
         var frameLocationLocal = _swayLocation;
-        frameLocationLocal +=
-            Vector3.Lerp(weaponOffsets.StandingLocation, weaponOffsets.AimingLocation, _aimingAlpha);
-        frameLocationLocal += Vector3.Lerp(default, _equippedWeaponScope.GetOffsetAimingLocation(), _aimingAlpha);
-        frameLocationLocal +=
-            Vector3.Lerp(weaponOffsets.ActionLocation * _animator.GetFloat(HashAlphaActionOffset), default,
-                _aimingAlpha);
+        frameLocationLocal += Vector3.Lerp(weaponOffsets.StandingLocation, weaponOffsets.AimingLocation, _aimingAlpha);
+        frameLocationLocal += Vector3.Lerp(
+            default,
+            _equippedWeaponScope.GetOffsetAimingLocation(),
+            _aimingAlpha
+        );
+        frameLocationLocal += Vector3.Lerp(
+            weaponOffsets.ActionLocation * _animator.GetFloat(HashAlphaActionOffset),
+            default,
+            _aimingAlpha
+        );
 
         var frameRotationLocal = _swayRotation;
-        frameRotationLocal +=
-            Vector3.Lerp(weaponOffsets.StandingRotation, weaponOffsets.AimingRotation, _aimingAlpha);
-        frameRotationLocal += Vector3.Lerp(default, _equippedWeaponScope.GetOffsetAimingRotation(), _aimingAlpha);
-        frameRotationLocal +=
-            Vector3.Lerp(weaponOffsets.ActionRotation * _animator.GetFloat(HashAlphaActionOffset), default,
-                _aimingAlpha);
+        frameRotationLocal += Vector3.Lerp(
+            weaponOffsets.StandingRotation,
+            weaponOffsets.AimingRotation,
+            _aimingAlpha
+        );
+        frameRotationLocal += Vector3.Lerp(
+            default,
+            _equippedWeaponScope.GetOffsetAimingRotation(),
+            _aimingAlpha
+        );
+        frameRotationLocal += Vector3.Lerp(
+            weaponOffsets.ActionRotation * _animator.GetFloat(HashAlphaActionOffset),
+            default,
+            _aimingAlpha
+        );
 
         // Transform socketScopeCorrected = equippedWeaponScope.transform.GetChild(0).GetChild(0).GetChild(0);
         // Transform socketScopes = equippedWeaponScope.transform.parent.parent;
@@ -271,9 +289,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
         //Make sure that we have a kinematics component!
         if ( _kinematics != null ) {
-            //Get Left Constraint Alpha.
             var alphaLeft = _animator.GetFloat(HashConstraintAlphaLeft);
-            //Get Right Constraint Alpha.
             var alphaRight = _animator.GetFloat(HashConstraintAlphaRight);
 
             //Compute.
@@ -318,7 +334,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         return (horizontalLocation + verticalLocation, horizontalRotation + verticalRotation);
     }
 
-    public InventoryBehaviour GetInventory() => _inventory;
+    public PlayerWeapon GetInventory() => _weaponController;
 
     public int GetGrenadesCurrent() => TotalGrenades;
     public int GetGrenadesTotal() => 10;
@@ -363,7 +379,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         _animator.SetFloat(HashAimingSpeedMultiplier, _aimingSpeedMultiplier);
 
         //Turning Value. This determines how much of the turning animation to play based on our current look rotation.
-        _animator.SetFloat(HashTurning, Mathf.Abs((float) input.YawDelta), _dampTimeTurning, dt);
+        // _animator.SetFloat(HashTurning, Mathf.Abs((float) input.YawDelta), _dampTimeTurning, dt);
 
         //Horizontal Movement Float.
         _animator.SetFloat(HashHorizontal, _axisMovementSmooth.x, _dampTimeLocomotion, dt);
@@ -436,12 +452,12 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         //Calculate Sway Location.
         var frameLocation = swayLook.location + swayMovement.location;
         //Interpolate.
-        _swayLocation = Vector3.LerpUnclamped(_swayLocation, frameLocation, Time.deltaTime * swaySmoothValue);
+        _swayLocation = Vector3.LerpUnclamped(_swayLocation, frameLocation, Runner.DeltaTime * swaySmoothValue);
 
         //Calculate Sway Rotation.
         var frameRotation = swayLook.rotation + swayMovement.rotation;
         //Interpolate.
-        _swayRotation = Vector3.LerpUnclamped(_swayRotation, frameRotation, Time.deltaTime * swaySmoothValue);
+        _swayRotation = Vector3.LerpUnclamped(_swayRotation, frameRotation, Runner.DeltaTime * swaySmoothValue);
     }
 
     /// <summary>
@@ -497,12 +513,10 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// <summary>
     /// Equip Weapon Coroutine.
     /// </summary>
-    private IEnumerator Equip(int index = 0) {
+    private IEnumerator Equip() {
         //Only if we're not holstered, holster. If we are already, we don't need to wait.
         if ( !_holstered ) {
-            //Holster.
             SetHolstered(_holstering = true);
-            //Wait.
             yield return new WaitUntil(() => _holstering == false);
         }
 
@@ -511,7 +525,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
         _animator.Play("Unholster", _layerHolster, 0);
 
-        _inventory.Equip(index);
+        // _weaponController.Equip(index);
         RefreshWeaponSetup();
     }
 
@@ -520,7 +534,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// </summary>
     private void RefreshWeaponSetup() {
         //Make sure we have a weapon. We don't want errors!
-        if ( (_equippedWeapon = _inventory.GetEquipped()) == null )
+        if ( (_equippedWeapon = _weaponController.GetEquipped()) == null )
             return;
 
         // Update Animator Controller. We do this to update all animations to a specific weapon's set.
@@ -528,12 +542,11 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
         //Get the attachment manager so we can use it to get all the attachments!
         _weaponAttachmentManager = _equippedWeapon.GetAttachmentManager();
-        if ( _weaponAttachmentManager == null )
-            return;
+        if ( _weaponAttachmentManager == null ) return;
 
-        //Get equipped scope. We need this one for its settings!
+        // Get equipped scope. We need this one for its settings!
         _equippedWeaponScope = _weaponAttachmentManager.GetEquippedScope();
-        //Get equipped magazine. We need this one for its settings!
+        // Get equipped magazine. We need this one for its settings!
         _equippedWeaponMagazine = _weaponAttachmentManager.GetEquippedMagazine();
     }
 
