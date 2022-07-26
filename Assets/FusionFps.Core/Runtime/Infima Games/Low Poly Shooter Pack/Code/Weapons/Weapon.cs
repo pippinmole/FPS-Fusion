@@ -7,8 +7,6 @@ namespace InfimaGames.LowPolyShooterPack {
     /// Weapon. This class handles most of the things that weapons need.
     /// </summary>
     public class Weapon : WeaponBehaviour {
-        #region FIELDS SERIALIZED
-
         [Header("Settings")]
         [Tooltip("Weapon Name. Currently not used for anything, but in the future, we will use this for pickups!")]
         [SerializeField]
@@ -119,92 +117,55 @@ namespace InfimaGames.LowPolyShooterPack {
 
         [Tooltip("")] [SerializeField] private AudioClip audioClipBoltAction;
 
-        #endregion
-
-        #region FIELDS
-
         private Animator _animator;
         private WeaponAttachmentManagerBehaviour _attachmentManager;
         private int _ammunitionCurrent;
 
-        #region Attachment Behaviours
-
-        /// <summary>
-        /// Equipped scope Reference.
-        /// </summary>
-        private ScopeBehaviour scopeBehaviour;
-
-        /// <summary>
-        /// Equipped Magazine Reference.
-        /// </summary>
-        private MagazineBehaviour magazineBehaviour;
-
-        /// <summary>
-        /// Equipped Muzzle Reference.
-        /// </summary>
-        private MuzzleBehaviour muzzleBehaviour;
-
-        /// <summary>
-        /// Equipped Laser Reference.
-        /// </summary>
-        private LaserBehaviour laserBehaviour;
-
-        /// <summary>
-        /// Equipped Grip Reference.
-        /// </summary>
-        private GripBehaviour gripBehaviour;
-
-        #endregion
-
-        private PlayerWeapon _characterBehaviour;
+        private ScopeBehaviour _scopeBehaviour;
+        private MagazineBehaviour _magazineBehaviour;
+        private MuzzleBehaviour _muzzleBehaviour;
+        private LaserBehaviour _laserBehaviour;
+        private GripBehaviour _gripBehaviour;
         private Transform _playerCamera;
-
-        #endregion
 
         protected override void Start() { }
 
         public override void Init(PlayerWeapon player) {
             base.Init(player);
-            
+
             _animator = GetComponent<Animator>();
             _attachmentManager = GetComponent<WeaponAttachmentManagerBehaviour>();
-            _characterBehaviour = player;
-            
+
             // We use this in line traces.
             _playerCamera = player.GetComponent<PlayerCamera>().GetCameraRoot();
 
-            scopeBehaviour = _attachmentManager.GetEquippedScope();
-            magazineBehaviour = _attachmentManager.GetEquippedMagazine();
-            muzzleBehaviour = _attachmentManager.GetEquippedMuzzle();
-            laserBehaviour = _attachmentManager.GetEquippedLaser();
-            gripBehaviour = _attachmentManager.GetEquippedGrip();
+            _scopeBehaviour = _attachmentManager.GetEquippedScope();
+            _magazineBehaviour = _attachmentManager.GetEquippedMagazine();
+            _muzzleBehaviour = _attachmentManager.GetEquippedMuzzle();
+            _laserBehaviour = _attachmentManager.GetEquippedLaser();
+            _gripBehaviour = _attachmentManager.GetEquippedGrip();
 
-            // Max Out Ammo.
-            _ammunitionCurrent = magazineBehaviour.GetAmmunitionTotal();
+            _ammunitionCurrent = _magazineBehaviour.GetAmmunitionTotal();
         }
-
-        #region GETTERS
 
         public override Offsets GetWeaponOffsets() => weaponOffsets;
 
         public override float GetFieldOfViewMultiplierAim() {
-            //Make sure we don't have any issues even with a broken setup!
-            if ( scopeBehaviour != null )
-                return scopeBehaviour.GetFieldOfViewMultiplierAim();
+            if ( _scopeBehaviour == null ) {
+                Debug.LogError("Weapon has no scope equipped!");
+                return 1.0f;
+            }
 
-            Debug.LogError("Weapon has no scope equipped!");
-            
-            return 1.0f;
+            return _scopeBehaviour.GetFieldOfViewMultiplierAim();
         }
 
         public override float GetFieldOfViewMultiplierAimWeapon() {
-            // Make sure we don't have any issues even with a broken setup!
-            if ( scopeBehaviour != null )
-                return scopeBehaviour.GetFieldOfViewMultiplierAimWeapon();
+            if ( _scopeBehaviour == null ) {
+                Debug.LogError("Weapon has no scope equipped!");
+                return 1.0f;
+            }
 
-            Debug.LogError("Weapon has no scope equipped!");
-
-            return 1.0f;
+            return _scopeBehaviour.GetFieldOfViewMultiplierAimWeapon();
         }
 
         public override Animator GetAnimator() => _animator;
@@ -225,11 +186,11 @@ namespace InfimaGames.LowPolyShooterPack {
         public override AudioClip GetAudioClipFireEmpty() => audioClipFireEmpty;
         public override AudioClip GetAudioClipBoltAction() => audioClipBoltAction;
 
-        public override AudioClip GetAudioClipFire() => muzzleBehaviour.GetAudioClipFire();
+        public override AudioClip GetAudioClipFire() => _muzzleBehaviour.GetAudioClipFire();
 
         public override int GetAmmunitionCurrent() => _ammunitionCurrent;
 
-        public override int GetAmmunitionTotal() => magazineBehaviour.GetAmmunitionTotal();
+        public override int GetAmmunitionTotal() => _magazineBehaviour.GetAmmunitionTotal();
         public override bool HasCycledReload() => cycledReload;
 
         public override bool IsAutomatic() => automatic;
@@ -241,7 +202,7 @@ namespace InfimaGames.LowPolyShooterPack {
         public override bool CanReloadWhenFull() => canReloadWhenFull;
         public override float GetRateOfFire() => roundsPerMinutes;
 
-        public override bool IsFull() => _ammunitionCurrent == magazineBehaviour.GetAmmunitionTotal();
+        public override bool IsFull() => _ammunitionCurrent == _magazineBehaviour.GetAmmunitionTotal();
         public override bool HasAmmunition() => _ammunitionCurrent > 0;
 
         public override RuntimeAnimatorController GetAnimatorController() => controller;
@@ -249,10 +210,6 @@ namespace InfimaGames.LowPolyShooterPack {
 
         public override Sway GetSway() => sway;
         public override float GetSwaySmoothValue() => swaySmoothValue;
-
-        #endregion
-
-        #region METHODS
 
         public override void Reload() {
             // Set Reloading Bool. This helps cycled reloads know when they need to stop cycling.
@@ -264,47 +221,47 @@ namespace InfimaGames.LowPolyShooterPack {
         }
 
         public override void Fire(float spreadMultiplier = 1.0f) {
-            if ( muzzleBehaviour == null ) return;
+            if ( _muzzleBehaviour == null ) return;
             if ( _playerCamera == null ) return;
 
             // This is the point we fire from.
-            var muzzleSocket = muzzleBehaviour.GetSocket();
+            // var muzzleSocket = _muzzleBehaviour.GetSocket();
 
             const string stateName = "Fire";
             _animator.Play(stateName, 0, 0.0f);
 
-            _ammunitionCurrent = Mathf.Clamp(_ammunitionCurrent - 1, 0, magazineBehaviour.GetAmmunitionTotal());
+            // _ammunitionCurrent = Mathf.Clamp(_ammunitionCurrent - 1, 0, _magazineBehaviour.GetAmmunitionTotal());
 
             // Set the slide back if we just ran out of ammunition.
-            if ( _ammunitionCurrent == 0 )
-                SetSlideBack(1);
+            // if ( _ammunitionCurrent == 0 )
+            //     SetSlideBack(1);
 
             //Play all muzzle effects.
-            muzzleBehaviour.Effect();
+            _muzzleBehaviour.Effect();
 
-            //Spawn as many projectiles as we need.
-            for ( var i = 0; i < shotCount; i++ ) {
-                //Determine a random spread value using all of our multipliers.
-                var spreadValue = Random.insideUnitSphere * (spread * spreadMultiplier);
-                //Remove the forward spread component, since locally this would go inside the object we're shooting!
-                spreadValue.z = 0;
-                //Convert to world space.
-                spreadValue = muzzleSocket.TransformDirection(spreadValue);
-
-                //Determine the rotation that we want to shoot our projectile in.
-                var rotation =
-                    Quaternion.LookRotation(_playerCamera.forward * 1000.0f + spreadValue - muzzleSocket.position);
-
-                //If there's something blocking, then we can aim directly at that thing, which will result in more accurate shooting.
-                if ( Physics.Raycast(new Ray(_playerCamera.position, _playerCamera.forward),
-                        out var hit, maximumDistance, mask) )
-                    rotation = Quaternion.LookRotation(hit.point + spreadValue - muzzleSocket.position);
-
-                //Spawn projectile from the projectile spawn point.
-                var projectile = Instantiate(prefabProjectile, muzzleSocket.position, rotation);
-                //Add velocity to the projectile.
-                projectile.GetComponent<Rigidbody>().velocity = projectile.transform.forward * projectileImpulse;
-            }
+            // //Spawn as many projectiles as we need.
+            // for ( var i = 0; i < shotCount; i++ ) {
+            //     //Determine a random spread value using all of our multipliers.
+            //     var spreadValue = Random.insideUnitSphere * (spread * spreadMultiplier);
+            //     //Remove the forward spread component, since locally this would go inside the object we're shooting!
+            //     spreadValue.z = 0;
+            //     //Convert to world space.
+            //     spreadValue = muzzleSocket.TransformDirection(spreadValue);
+            //
+            //     //Determine the rotation that we want to shoot our projectile in.
+            //     var rotation =
+            //         Quaternion.LookRotation(_playerCamera.forward * 1000.0f + spreadValue - muzzleSocket.position);
+            //
+            //     //If there's something blocking, then we can aim directly at that thing, which will result in more accurate shooting.
+            //     if ( Physics.Raycast(new Ray(_playerCamera.position, _playerCamera.forward),
+            //             out var hit, maximumDistance, mask) )
+            //         rotation = Quaternion.LookRotation(hit.point + spreadValue - muzzleSocket.position);
+            //
+            //     //Spawn projectile from the projectile spawn point.
+            //     var projectile = Instantiate(prefabProjectile, muzzleSocket.position, rotation);
+            //     //Add velocity to the projectile.
+            //     projectile.GetComponent<Rigidbody>().velocity = projectile.transform.forward * projectileImpulse;
+            // }
         }
 
         public override void FillAmmunition(int amount) {
@@ -312,7 +269,7 @@ namespace InfimaGames.LowPolyShooterPack {
             _ammunitionCurrent = amount != 0
                 ? Mathf.Clamp(_ammunitionCurrent + amount,
                     0, GetAmmunitionTotal())
-                : magazineBehaviour.GetAmmunitionTotal();
+                : _magazineBehaviour.GetAmmunitionTotal();
         }
 
         public override void SetSlideBack(int back) {
@@ -326,7 +283,5 @@ namespace InfimaGames.LowPolyShooterPack {
             if ( prefabCasing != null && socketEjection != null )
                 Instantiate(prefabCasing, socketEjection.position, socketEjection.rotation);
         }
-
-        #endregion
     }
 }

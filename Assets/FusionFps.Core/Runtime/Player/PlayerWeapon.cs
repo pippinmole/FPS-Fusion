@@ -18,20 +18,13 @@ public class PlayerWeapon : NetworkBehaviour {
     [Networked] private float Cooldown { get; set; }
     [Networked] private PlayerInput.NetworkInputData Input { get; set; }
 
-    public event Action<int> WeaponUpdated; 
+    public event Action<WeaponBehaviour> WeaponUpdated;
+    public event Action WeaponFired; 
 
-    private WeaponTemplate CurrentWeaponTemplate => WeaponIndex == -1 ? null : _weapons[WeaponIndex - 1];
+    public WeaponBehaviour CurrentWeapon { get; private set; }
+    // private WeaponTemplate CurrentWeaponTemplate => WeaponIndex == -1 ? null : _weapons[WeaponIndex - 1];
 
     private readonly List<LagCompensatedHit> _hitBuffer = new();
-
-    private WeaponBehaviour _currentWeapon;
-    private PlayerCamera _camera;
-    private NetworkTransform _networkTransform;
-
-    private void Awake() {
-        _camera = GetComponent<PlayerCamera>();
-        _networkTransform = GetComponent<NetworkTransform>();
-    }
 
     public override void Spawned() {
         base.Spawned();
@@ -75,9 +68,10 @@ public class PlayerWeapon : NetworkBehaviour {
         }
 
         if ( Input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) && Cooldown <= 0f ) {
-            if ( WeaponIndex == -1 || CurrentWeaponTemplate == null ) return;
+            if ( WeaponIndex == -1 || CurrentWeapon == null ) return;
 
             Cooldown = Shoot(Runner);
+            WeaponFired?.Invoke();
         }
     }
 
@@ -87,12 +81,11 @@ public class PlayerWeapon : NetworkBehaviour {
     }
 
     private void ClearWeapon() {
-        // Clear current weapon
-        if ( _currentWeapon == null )
+        if ( CurrentWeapon == null )
             return;
 
-        Destroy(_currentWeapon.gameObject);
-        _currentWeapon = null;
+        Destroy(CurrentWeapon.gameObject);
+        CurrentWeapon = null;
     }
 
     private void CreateWeapon() {
@@ -103,11 +96,11 @@ public class PlayerWeapon : NetworkBehaviour {
             var weapon = _weapons[WeaponIndex - 1];
 
             // Spawn new weapon
-            _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity, _weaponParent);
+            CurrentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity, _weaponParent);
             // _currentWeapon.transform.SetParent(_weaponParent);
-            _currentWeapon.transform.localPosition = Vector3.zero;
-            _currentWeapon.transform.localRotation = Quaternion.identity;
-            _currentWeapon.Init(this);
+            CurrentWeapon.transform.localPosition = Vector3.zero;
+            CurrentWeapon.transform.localRotation = Quaternion.identity;
+            CurrentWeapon.Init(this);
         }
         catch {
             Debug.LogError($"Error with weapon index of {WeaponIndex}");
@@ -118,65 +111,66 @@ public class PlayerWeapon : NetworkBehaviour {
     /// Shoots the weapon and returns how long to wait until you can shoot again
     /// </summary>
     /// <param name="runner"></param>
-    /// <param name="owner"></param>
     /// <returns></returns>
     private float Shoot(NetworkRunner runner) {
-        var w = CurrentWeaponTemplate;
-        if ( w == null ) return -1f;
-
+        if ( CurrentWeapon == null ) 
+            return 0f;
+        
+        var rateOfFire = CurrentWeapon.GetRateOfFire();
         var originTransform = GetComponent<PlayerCamera>().GetCameraRoot();
         var origin = originTransform.position;
         var direction = originTransform.forward;
+        var range = 100f;
+        var damage = 20f;
+        var mask = ~0;
 
-        Debug.DrawRay(origin, direction * w.Range, Color.red, w.ShotDelaySeconds);
+        Debug.DrawRay(origin, direction * range, Color.red, 60f / rateOfFire);
 
         const HitOptions options = HitOptions.SubtickAccuracy | HitOptions.IgnoreInputAuthority;
 
-        runner.LagCompensation.RaycastAll(origin, direction, w.Range, Object.InputAuthority, _hitBuffer, w.Mask,
+        runner.LagCompensation.RaycastAll(origin, direction, range, Object.InputAuthority, _hitBuffer, mask,
             true, options);
 
         if ( _hitBuffer.Count > 0 ) {
             var hit = _hitBuffer.Last();
 
             // DrawTracer(origin, hit.Point);
-            DealDamage(runner, hit, w.Damage);
+            DealDamage(runner, hit, damage);
         }
 
-        // RenderMuzzle(w.MuzzlePrefab, _currentWeapon.MuzzlePoint);
-
         // Add delay
-        return w.ShotDelaySeconds;
+        return 60f / rateOfFire;
     }
 
-    private static void RenderMuzzle(GameObject prefab, Transform muzzle) {
-        if ( prefab == null ) return;
-        if ( muzzle == null ) return;
+    // private static void RenderMuzzle(GameObject prefab, Transform muzzle) {
+    //     if ( prefab == null ) return;
+    //     if ( muzzle == null ) return;
+    //
+    //     var obj = Instantiate(prefab, muzzle.position, muzzle.rotation);
+    //     Destroy(obj, 10f);
+    // }
 
-        var obj = Instantiate(prefab, muzzle.position, muzzle.rotation);
-        Destroy(obj, 10f);
-    }
-
-    private void DrawTracer(Vector3 start, Vector3 end) {
-        const float duration = 2f;
-        const float width = 0.02f;
-
-        if ( _tracerMaterial == null ) return;
-
-        var myLine = new GameObject();
-        myLine.transform.position = start;
-        myLine.AddComponent<LineRenderer>();
-        var lr = myLine.GetComponent<LineRenderer>();
-        lr.material = _tracerMaterial;
-
-        lr.startColor = Color.white;
-        lr.endColor = Color.white;
-        lr.startWidth = width;
-        lr.endWidth = width;
-        lr.SetPosition(0, start);
-        lr.SetPosition(1, end);
-
-        Destroy(myLine, duration);
-    }
+    // private void DrawTracer(Vector3 start, Vector3 end) {
+    //     const float duration = 2f;
+    //     const float width = 0.02f;
+    //
+    //     if ( _tracerMaterial == null ) return;
+    //
+    //     var myLine = new GameObject();
+    //     myLine.transform.position = start;
+    //     myLine.AddComponent<LineRenderer>();
+    //     var lr = myLine.GetComponent<LineRenderer>();
+    //     lr.material = _tracerMaterial;
+    //
+    //     lr.startColor = Color.white;
+    //     lr.endColor = Color.white;
+    //     lr.startWidth = width;
+    //     lr.endWidth = width;
+    //     lr.SetPosition(0, start);
+    //     lr.SetPosition(1, end);
+    //
+    //     Destroy(myLine, duration);
+    // }
 
     private void DealDamage(NetworkRunner runner, LagCompensatedHit hit, float damage) {
         if ( hit.Type == HitType.Hitbox ) {
@@ -211,9 +205,9 @@ public class PlayerWeapon : NetworkBehaviour {
 
     private static void OnWeaponIndexChanged(Changed<PlayerWeapon> changed) {
         changed.Behaviour.SetWeapon();
-        changed.Behaviour.WeaponUpdated?.Invoke(changed.Behaviour.WeaponIndex);
+        changed.Behaviour.WeaponUpdated?.Invoke(changed.Behaviour.CurrentWeapon);
     }
 
-    public WeaponBehaviour GetEquipped() => _currentWeapon;
+    public WeaponBehaviour GetEquipped() => CurrentWeapon;
 }
 

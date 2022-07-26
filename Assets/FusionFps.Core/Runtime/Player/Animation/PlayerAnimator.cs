@@ -69,10 +69,18 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     private int _layerActions;
 
     private PlayerController _controller;
-    private WeaponBehaviour _equippedWeapon;
-    private WeaponAttachmentManagerBehaviour _weaponAttachmentManager;
-    private ScopeBehaviour _equippedWeaponScope;
-    private MagazineBehaviour _equippedWeaponMagazine;
+    private PlayerWeapon _playerWeapon;
+
+    private WeaponBehaviour EquippedWeapon => _playerWeapon.CurrentWeapon;
+
+    private WeaponAttachmentManagerBehaviour WeaponAttachmentManager =>
+        EquippedWeapon == null ? null : EquippedWeapon.GetAttachmentManager();
+
+    private ScopeBehaviour EquippedWeaponScope =>
+        WeaponAttachmentManager == null ? null : WeaponAttachmentManager.GetEquippedScope();
+
+    private MagazineBehaviour EquippedWeaponMagazine =>
+        WeaponAttachmentManager == null ? null : WeaponAttachmentManager.GetEquippedMagazine();
     
     [Networked] private bool Reloading { get; set; }
     [Networked] private bool Inspecting { get; set; }
@@ -85,7 +93,6 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     private Vector3 _swayLocation;
     private Vector3 _swayRotation;
     private bool _holstering;
-    private float _lastShotTime;
 
     /// <summary>
     /// Alpha Aiming Value. Zero to one value representing aiming. Zero if we're not aiming, and one if we are fully aiming.
@@ -109,9 +116,15 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
     private void Awake() {
         _controller = GetComponent<PlayerController>();
-        GetComponent<PlayerWeapon>().WeaponUpdated += (_) => {
+        _playerWeapon = GetComponent<PlayerWeapon>();
+        
+        _playerWeapon.WeaponUpdated += (_) => {
             StartCoroutine(nameof(Equip));
+            RefreshWeaponSetup();
         };
+
+        _playerWeapon.WeaponFired += PlayFireAnimation;
+        
         // _weaponController.Init(_weaponIndexEquippedAtStart);
 
         RefreshWeaponSetup();
@@ -137,16 +150,16 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
             var running = input.IsDown(PlayerInput.NetworkInputData.ButtonSprint) && CanRun();
 
             var axisLook = new Vector2((float) input.YawDelta, (float) input.PitchDelta);
-            axisLook *= aiming ? _equippedWeaponScope.GetMultiplierMouseSensitivity() : 1.0f;
+            axisLook *= aiming ? EquippedWeaponScope.GetMultiplierMouseSensitivity() : 1.0f;
 
-            if ( _equippedWeapon == null ) return;
-            if ( _equippedWeaponScope == null ) return;
+            if ( EquippedWeapon == null ) return;
+            if ( EquippedWeaponScope == null ) return;
 
             if ( _state != aiming ) {
                 if ( aiming ) {
-                    _equippedWeaponScope.OnAim();
+                    EquippedWeaponScope.OnAim();
                 } else {
-                    _equippedWeaponScope.OnAimStop();
+                    EquippedWeaponScope.OnAimStop();
                 }
 
                 _state = aiming;
@@ -177,22 +190,6 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
                 PlayReloadAnimation();
             }
 
-            // Holding the firing button.
-            if ( input.IsDown(PlayerInput.NetworkInputData.ButtonShoot) ) {
-
-                if ( CanPlayAnimationFire() ) {
-                    Debug.Log($"Firing {_equippedWeapon.name}");
-
-                    if ( _equippedWeapon.HasAmmunition() & !_equippedWeapon.IsAutomatic() ) {
-                        if ( Time.time - _lastShotTime > 60.0f / _equippedWeapon.GetRateOfFire() ) {
-                            Fire(input);
-                        }
-                    } else {
-                        FireEmpty();
-                    }
-                }
-            }
-
             _axisMovementSmooth =
                 Vector2.Lerp(_axisMovementSmooth, input.Move, Runner.DeltaTime * _weaponSwaySmoothValueInput);
             _axisLookSmooth = Vector2.Lerp(_axisLookSmooth, axisLook, Runner.DeltaTime * _weaponSwaySmoothValueInput);
@@ -204,12 +201,12 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
             // Interpolate the world camera's field of view based on whether we are aiming or not.
             _cameraWorld.fieldOfView = Mathf.Lerp(_fieldOfView,
-                _fieldOfView * _equippedWeapon.GetFieldOfViewMultiplierAim(),
+                _fieldOfView * EquippedWeapon.GetFieldOfViewMultiplierAim(),
                 _aimingAlpha);
 
             // Interpolate the depth camera's field of view based on whether we are aiming or not.
             _cameraDepth.fieldOfView = Mathf.Lerp(_fieldOfViewWeapon,
-                _fieldOfViewWeapon * _equippedWeapon.GetFieldOfViewMultiplierAimWeapon(), _aimingAlpha);
+                _fieldOfViewWeapon * EquippedWeapon.GetFieldOfViewMultiplierAimWeapon(), _aimingAlpha);
 
             LateUpdateTest();
         }
@@ -241,15 +238,15 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
     private void LateUpdateTest() {
         if ( _boneWeapon == null ) return;
-        if ( _equippedWeapon == null ) return;
-        if ( _equippedWeaponScope == null ) return;
+        if ( EquippedWeapon == null ) return;
+        if ( EquippedWeaponScope == null ) return;
 
-        var weaponOffsets = _equippedWeapon.GetWeaponOffsets();
+        var weaponOffsets = EquippedWeapon.GetWeaponOffsets();
         var frameLocationLocal = _swayLocation;
         frameLocationLocal += Vector3.Lerp(weaponOffsets.StandingLocation, weaponOffsets.AimingLocation, _aimingAlpha);
         frameLocationLocal += Vector3.Lerp(
             default,
-            _equippedWeaponScope.GetOffsetAimingLocation(),
+            EquippedWeaponScope.GetOffsetAimingLocation(),
             _aimingAlpha
         );
         frameLocationLocal += Vector3.Lerp(
@@ -266,7 +263,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         );
         frameRotationLocal += Vector3.Lerp(
             default,
-            _equippedWeaponScope.GetOffsetAimingRotation(),
+            EquippedWeaponScope.GetOffsetAimingRotation(),
             _aimingAlpha
         );
         frameRotationLocal += Vector3.Lerp(
@@ -360,11 +357,11 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         const string boolNameReloading = "Reloading";
         if ( _animator.GetBool(boolNameReloading) ) {
             //If we only have one more bullet to reload, then we can change the boolean already.
-            if ( _equippedWeapon.GetAmmunitionTotal() - _equippedWeapon.GetAmmunitionCurrent() < 1 ) {
+            if ( EquippedWeapon.GetAmmunitionTotal() - EquippedWeapon.GetAmmunitionCurrent() < 1 ) {
                 //Update the character animator.
                 _animator.SetBool(boolNameReloading, false);
                 //Update the weapon animator.
-                _equippedWeapon.GetAnimator().SetBool(boolNameReloading, false);
+                EquippedWeapon.GetAnimator().SetBool(boolNameReloading, false);
             }
         }
 
@@ -409,86 +406,94 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         const string boolNameRun = "Running";
         _animator.SetBool(boolNameRun, input.IsDown(PlayerInput.NetworkInputData.ButtonSprint));
     }
-
-    /// <summary>
-    /// Plays the inspect animation.
-    /// </summary>
+    
     private void Inspect() {
-        //State.
         Inspecting = true;
-        //Play.
         _animator.CrossFade("Inspect", 0.0f, _layerActions, 0);
     }
 
-    /// <summary>
-    /// Calculates the sway values.
-    /// </summary>
     private void CalculateSway() {
-        //We need a scope!
-        if ( _equippedWeaponScope == null )
+        if ( EquippedWeaponScope == null ) {
+            // Debug.LogWarning("Weapon Scope is null! Cannot sway");
             return;
+        }
 
-        //Weapon Sway Values.
-        var sway = _equippedWeapon.GetSway();
-        //Weapon Sway Smooth Value.
-        var swaySmoothValue = _equippedWeapon.GetSwaySmoothValue();
+        var sway = EquippedWeapon.GetSway();
+        var swaySmoothValue = EquippedWeapon.GetSwaySmoothValue();
 
         var swayLookStanding = GetSwayLook(sway);
-        var swayLookAiming = GetSwayLook(_equippedWeaponScope.GetSwayAiming());
+        var swayLookAiming = GetSwayLook(EquippedWeaponScope.GetSwayAiming());
 
         var swayMovementStanding = GetSwayMovement(sway);
-        var swayMovementAiming = GetSwayMovement(_equippedWeaponScope.GetSwayAiming());
+        var swayMovementAiming = GetSwayMovement(EquippedWeaponScope.GetSwayAiming());
 
-        //Get Look Sway.
         (Vector3 location, Vector3 rotation) swayLook = default;
         swayLook.location = Vector3.Lerp(swayLookStanding.location, swayLookAiming.location, _aimingAlpha);
         swayLook.rotation = Vector3.Lerp(swayLookStanding.rotation, swayLookAiming.rotation, _aimingAlpha);
 
-        //Get Movement Sway.
         (Vector3 location, Vector3 rotation) swayMovement = default;
         swayMovement.location = Vector3.Lerp(swayMovementStanding.location, swayMovementAiming.location, _aimingAlpha);
         swayMovement.rotation = Vector3.Lerp(swayMovementStanding.rotation, swayMovementAiming.rotation, _aimingAlpha);
 
-        //Calculate Sway Location.
         var frameLocation = swayLook.location + swayMovement.location;
-        //Interpolate.
         _swayLocation = Vector3.LerpUnclamped(_swayLocation, frameLocation, Runner.DeltaTime * swaySmoothValue);
 
-        //Calculate Sway Rotation.
         var frameRotation = swayLook.rotation + swayMovement.rotation;
-        //Interpolate.
         _swayRotation = Vector3.LerpUnclamped(_swayRotation, frameRotation, Runner.DeltaTime * swaySmoothValue);
     }
+
+    public void PlayFireAnimation() {
+        var isDryFire = EquippedWeapon.HasAmmunition() & !EquippedWeapon.IsAutomatic();
+        if ( isDryFire ) {
+            FireEmpty();
+        } else {
+            Fire();
+        }
+        
+        // if ( EquippedWeapon.HasAmmunition() & !EquippedWeapon.IsAutomatic() ) {
+        //     if ( Time.time - _lastShotTime > 60.0f / EquippedWeapon.GetRateOfFire() ) {
+        //         Debug.Log("Firing");
+        //         Fire();
+        //     }
+        // } else {
+        //     Debug.Log("Firing Empty");
+        //     FireEmpty();
+        // }
+        // }
+    }
+    
 
     /// <summary>
     /// Fires the character's weapon.
     /// </summary>
-    private void Fire(PlayerInput.NetworkInputData input) {
+    private void Fire() {
         //Save the shot time, so we can calculate the fire rate correctly.
         // _lastShotTime = Time.time;
         //Fire the weapon! Make sure that we also pass the scope's spread multiplier if we're aiming.
-        _equippedWeapon.Fire(input.IsDown(PlayerInput.NetworkInputData.ButtonShoot)
-            ? _equippedWeaponScope.GetMultiplierSpread()
-            : 1.0f);
+        // EquippedWeapon.Fire(input.IsDown(PlayerInput.NetworkInputData.ButtonShoot)
+        //     ? EquippedWeaponScope.GetMultiplierSpread()
+        //     : 1.0f);
 
+        EquippedWeapon.Fire();
+        
         //Play firing animation.
         const string stateName = "Fire";
         _animator.CrossFade(stateName, 0.05f, _layerOverlay, 0);
 
         //Play bolt actioning animation if needed, and if we have ammunition. We don't play this for the last shot.
-        if ( _equippedWeapon.IsBoltAction() && _equippedWeapon.HasAmmunition() )
+        if ( EquippedWeapon.IsBoltAction() && EquippedWeapon.HasAmmunition() )
             UpdateBolt(true);
 
         // Automatically reload the weapon if we need to. This is very helpful for things like grenade launchers or rocket launchers.
-        if ( !_equippedWeapon.HasAmmunition() && _equippedWeapon.GetAutomaticallyReloadOnEmpty() )
+        if ( !EquippedWeapon.HasAmmunition() && EquippedWeapon.GetAutomaticallyReloadOnEmpty() )
             StartCoroutine(nameof(TryReloadAutomatic));
     }
 
     private void PlayReloadAnimation() {
         //Get the name of the animation state to play, which depends on weapon settings, and ammunition!
-        var stateName = _equippedWeapon.HasCycledReload()
+        var stateName = EquippedWeapon.HasCycledReload()
             ? "Reload Open"
-            : (_equippedWeapon.HasAmmunition() ? "Reload" : "Reload Empty");
+            : (EquippedWeapon.HasAmmunition() ? "Reload" : "Reload Empty");
 
         //Play the animation state!
         _animator.Play(stateName, _layerActions, 0.0f);
@@ -498,14 +503,14 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         _animator.SetBool(boolName, Reloading = true);
 
         //Reload.
-        _equippedWeapon.Reload();
+        EquippedWeapon.Reload();
     }
 
     /// <summary>
     /// Plays The Reload Animation After A Delay. Helpful to reload automatically after running out of ammunition.
     /// </summary>
     private IEnumerator TryReloadAutomatic() {
-        yield return new WaitForSeconds(_equippedWeapon.GetAutomaticallyReloadOnEmptyDelay());
+        yield return new WaitForSeconds(EquippedWeapon.GetAutomaticallyReloadOnEmptyDelay());
 
         PlayReloadAnimation();
     }
@@ -533,30 +538,27 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// Refresh all weapon things to make sure we're all set up!
     /// </summary>
     private void RefreshWeaponSetup() {
-        //Make sure we have a weapon. We don't want errors!
-        if ( (_equippedWeapon = _weaponController.GetEquipped()) == null )
-            return;
+        // // Make sure we have a weapon. We don't want errors!
+        // if ( (EquippedWeapon = _weaponController.GetEquipped()) == null )
+        //     return;
+        //
+        // // Update Animator Controller. We do this to update all animations to a specific weapon's set.
 
-        // Update Animator Controller. We do this to update all animations to a specific weapon's set.
-        _animator.runtimeAnimatorController = _equippedWeapon.GetAnimatorController();
-
-        //Get the attachment manager so we can use it to get all the attachments!
-        _weaponAttachmentManager = _equippedWeapon.GetAttachmentManager();
-        if ( _weaponAttachmentManager == null ) return;
-
-        // Get equipped scope. We need this one for its settings!
-        _equippedWeaponScope = _weaponAttachmentManager.GetEquippedScope();
-        // Get equipped magazine. We need this one for its settings!
-        _equippedWeaponMagazine = _weaponAttachmentManager.GetEquippedMagazine();
+        if ( EquippedWeapon != null ) {
+            _animator.runtimeAnimatorController = EquippedWeapon.GetAnimatorController();
+        }
+        //
+        // //Get the attachment manager so we can use it to get all the attachments!
+        // WeaponAttachmentManager = EquippedWeapon.GetAttachmentManager();
+        // if ( WeaponAttachmentManager == null ) return;
+        //
+        // // Get equipped scope. We need this one for its settings!
+        // EquippedWeaponScope = WeaponAttachmentManager.GetEquippedScope();
+        // // Get equipped magazine. We need this one for its settings!
+        // EquippedWeaponMagazine = WeaponAttachmentManager.GetEquippedMagazine();
     }
 
     private void FireEmpty() {
-        /*
-         * Save Time. Even though we're not actually firing, we still need this for the fire rate between
-         * empty shots.
-         */
-        _lastShotTime = Time.time;
-        //Play.
         _animator.CrossFade("Fire Empty", 0.05f, _layerOverlay, 0);
     }
 
@@ -564,14 +566,11 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// Plays The Grenade Throwing Animation.
     /// </summary>
     private void PlayGrenadeThrow() {
-        //Start State.
         _throwingGrenade = true;
 
-        //Play Normal.
         _animator.CrossFade("Grenade Throw", 0.15f,
             _animator.GetLayerIndex("Layer Actions Arm Left"), 0.0f);
-
-        //Play Additive.
+        
         _animator.CrossFade("Grenade Throw", 0.05f,
             _animator.GetLayerIndex("Layer Actions Arm Right"), 0.0f);
     }
@@ -580,14 +579,11 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// Play The Melee Animation.
     /// </summary>
     private void PlayMelee() {
-        //Start State.
         _meleeing = true;
 
-        //Play Normal.
         _animator.CrossFade("Knife Attack", 0.05f,
             _animator.GetLayerIndex("Layer Actions Arm Left"), 0.0f);
-
-        //Play Additive.
+        
         _animator.CrossFade("Knife Attack", 0.05f,
             _animator.GetLayerIndex("Layer Actions Arm Right"), 0.0f);
     }
@@ -596,7 +592,6 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// Changes the value of bolting, and updates the animator.
     /// </summary>
     private void UpdateBolt(bool value) {
-        //Update.
         _animator.SetBool(HashBoltAction, _bolting = value);
     }
 
@@ -604,10 +599,8 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     /// Updates the "Holstered" variable, along with the Character's Animator value.
     /// </summary>
     private void SetHolstered(bool value = true) {
-        //Update value.
         _holstered = value;
 
-        //Update Animator.
         const string boolName = "Holstered";
         _animator.SetBool(boolName, _holstered);
     }
@@ -631,7 +624,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
         if ( _bolting ) return false;
         if ( _throwingGrenade ) return false;
         if ( Inspecting ) return false;
-        return _equippedWeapon.CanReloadWhenFull() || !_equippedWeapon.IsFull();
+        return EquippedWeapon.CanReloadWhenFull() || !EquippedWeapon.IsFull();
 
         //Return.
     }
@@ -739,14 +732,14 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
 
     public void EjectCasing() {
         // Notify the weapon.
-        if ( _equippedWeapon != null )
-            _equippedWeapon.EjectCasing();
+        if ( EquippedWeapon != null )
+            EquippedWeapon.EjectCasing();
     }
 
     public void FillAmmunition(int amount) {
         //Notify the weapon to fill the ammunition by the amount.
-        if ( _equippedWeapon != null )
-            _equippedWeapon.FillAmmunition(amount);
+        if ( EquippedWeapon != null )
+            EquippedWeapon.FillAmmunition(amount);
     }
 
     public void ThrowGrenade() {
@@ -762,7 +755,7 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     }
 
     public void SetActiveMagazine(int active) {
-        _equippedWeaponMagazine.gameObject.SetActive(active != 0);
+        EquippedWeaponMagazine.gameObject.SetActive(active != 0);
     }
 
     public void AnimationEndedBolt() => UpdateBolt(false);
@@ -773,8 +766,8 @@ public class PlayerAnimator : NetworkBehaviour, ICharacterAnimationCallbacks {
     public void AnimationEndedHolster() => _holstering = false;
 
     public void SetSlideBack(int back) {
-        if ( _equippedWeapon != null )
-            _equippedWeapon.SetSlideBack(back);
+        if ( EquippedWeapon != null )
+            EquippedWeapon.SetSlideBack(back);
     }
 
     public void SetActiveKnife(int active) {
