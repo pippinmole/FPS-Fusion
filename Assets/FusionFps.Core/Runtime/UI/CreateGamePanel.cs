@@ -57,7 +57,7 @@ public class CreateGamePanel : MonoBehaviour {
         var mapIndex = _mapList.GetMap(_mapDropdown.index);
 
         var sessionProperties = new Dictionary<string, SessionProperty> {
-            { "mapBuildIndex", mapIndex }
+            { SessionPropertyProps.MapName, mapIndex }
         };
         
         _createGameLoadingCircle.SetActive(true);

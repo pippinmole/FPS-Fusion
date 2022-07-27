@@ -80,7 +80,7 @@ namespace FusionFps.Core {
             if ( !Instance.Runner.IsServer ) return;
 
             var sessionProperties = Instance.Runner.SessionInfo.Properties;
-            var mapBuildIndex = (int) sessionProperties["mapBuildIndex"];
+            var mapBuildIndex = (int) sessionProperties[SessionPropertyProps.MapName];
 
             Instance.GameState = EGameState.WaitingForPlayers;
             Instance.WaitForPlayersTimer = TickTimer.CreateFromSeconds(Instance.Runner, Instance._waitForPlayersTimer);

@@ -120,7 +120,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     public virtual void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) { }
 
     public virtual void OnSceneLoadDone(NetworkRunner runner) {
-        var matchScene = (int) runner.SessionInfo.Properties["mapBuildIndex"];
+        var matchScene = (int) runner.SessionInfo.Properties[SessionPropertyProps.MapName];
         var currentScene = SceneManager.GetActiveScene().buildIndex;
         
         if ( currentScene == matchScene ) {
