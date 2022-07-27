@@ -98,7 +98,7 @@ public class PlayerWeapon : NetworkBehaviour {
 
         try {
             var weapon = _weapons[WeaponIndex - 1];
-            
+
             // Spawn new weapon
             _currentWeapon = Instantiate(weapon.Prefab, Vector3.zero, Quaternion.identity);
             _currentWeapon.transform.SetParent(_weaponParent);
