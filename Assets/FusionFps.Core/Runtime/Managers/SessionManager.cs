@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Sockets;
+using FusionFps.Steamworks;
 using Steamworks;
+using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using NetAddress = Fusion.Sockets.NetAddress;
 
 public enum ConnectionStatus {
     Disconnected,
@@ -65,7 +68,6 @@ namespace FusionFps.Core {
         private NetworkRunner _runner;
 
         private void Awake() {
-            // Register accessor method for singleton
             ServiceProvider.AddSingleton<ISessionManager>(() => this);
         }
 
@@ -97,6 +99,13 @@ namespace FusionFps.Core {
             var sceneManager = _runner.GetComponent<INetworkSceneManager>() ??
                                _runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
 
+            // Add steam lobby
+            var lobby = await SteamMatchmaking.CreateLobbyAsync();
+
+            if ( lobby.HasValue ) {
+                sessionProperties.Add(SessionPropertyProps.SteamLobbyId, lobby.Value.Id.ToString());
+            }
+            
             //
             // Remember: You need to provide a scene index for scene objects to attach to FUN in that scene
             //
@@ -118,6 +127,15 @@ namespace FusionFps.Core {
 
             if ( result.Ok ) {
                 Debug.Log($"Successfully started session");
+
+                if ( lobby.HasValue ) {
+                    lobby.Value.SetData(SteamLobbyProps.PhotonLobbyName, _runner.SessionInfo.Name);
+                    lobby.Value.SetPublic();
+                    
+                    Debug.Log($"[SessionManager] Successfully created steam lobby of id {lobby.Value.Id}");
+                } else {
+                    Debug.LogError("[SessionManager] Failed to create steam lobby. You won't be able to invite friends");
+                }
 
                 _matchManager = _runner.Spawn(_matchManagerPrefab);
                 
@@ -159,11 +177,12 @@ namespace FusionFps.Core {
         }
 
         public async Task<StartGameResult> JoinSession(string session) {
-            if ( _runner == null )
-                throw new InvalidOperationException("Cannot join a session without a runner!");
+            if ( _runner == null ) {
+                await StartClient();
+            }
 
             IsBusy = true;
-            
+
             await SetupRunner(GameMode.Client);
 
             var steamAuth = GetSteamAuthenticationValues();
@@ -180,7 +199,7 @@ namespace FusionFps.Core {
             if ( result.Ok ) { } else {
                 await Shutdown();
             }
-            
+
             IsBusy = false;
 
             return result;
@@ -273,7 +292,7 @@ namespace FusionFps.Core {
         public void OnInput(NetworkRunner runner, NetworkInput input) { }
         public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
         public void OnConnectedToServer(NetworkRunner runner) {
-            Debug.Log("connected to server...");
+            Debug.Log("Successfully connected to server");
             SetConnectionStatus(ConnectionStatus.Connected);
             SessionJoined?.Invoke(runner);
         }

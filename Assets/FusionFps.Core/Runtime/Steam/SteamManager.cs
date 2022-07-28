@@ -8,12 +8,16 @@ using UnityEngine;
 namespace FusionFps.Steamworks {
     public class SteamManager : MonoBehaviour {
 
+        public static event Action SteamStarted;
+        
         [SerializeField] private ModalWindowManager _errorConnectingPanel;
         [SerializeField] private uint _appId = 1086540;
 
         private void Awake() {
             try {
                 SteamClient.Init(_appId);
+                
+                SteamStarted?.Invoke();
 
                 Debug.Log("[SteamManager] Initialized Steam Client successfully");
             }

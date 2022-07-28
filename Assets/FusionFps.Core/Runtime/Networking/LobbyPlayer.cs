@@ -166,6 +166,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
             }
         }
     }
-    
-    public static LobbyPlayer GetPlayer(PlayerRef player) => Players.First(x => x.Object.InputAuthority == player);
+
+    public static LobbyPlayer GetPlayer(PlayerRef player) =>
+        Players.FirstOrDefault(x => x.Object != null && x.Object.InputAuthority == player);
 }
