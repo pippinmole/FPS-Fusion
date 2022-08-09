@@ -3590,14 +3590,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 2100000, guid: 13b3cb4c8efa87a4eac5282b135579cb, type: 2}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.7529412}
+  m_Color: {r: 0.44313726, g: 0.44313726, b: 0.44313726, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9109d18ad586e1f49b31eaea40662492, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4788,9 +4788,9 @@ Canvas:
   m_GameObject: {fileID: 309104966}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_RenderMode: 1
+  m_Camera: {fileID: 508843236}
+  m_PlaneDistance: 2
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -9023,7 +9023,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 437524066}
   m_Direction: 0
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.9999997
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -30894,6 +30894,7 @@ GameObject:
   - component: {fileID: 1957233954}
   - component: {fileID: 1957233959}
   - component: {fileID: 1957233958}
+  - component: {fileID: 1957233961}
   m_Layer: 5
   m_Name: Settings Canvas
   m_TagString: Untagged
@@ -30953,7 +30954,7 @@ Canvas:
   m_RenderMode: 1
   m_Camera: {fileID: 508843236}
   m_PlaneDistance: 1
-  m_PixelPerfect: 1
+  m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
@@ -30991,7 +30992,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1957233953}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -31015,10 +31016,19 @@ MonoBehaviour:
     type: 3}
   _keybindParent: {fileID: 1445717876}
   _canvasGroup: {fileID: 1957233958}
-  _fadeTime: 0.4
+  _fadeTime: 0.1
   _defaultValue: 0
   _panels:
   - {fileID: 670900655}
+  - {fileID: 1445717875}
+--- !u!222 &1957233961
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1957233953}
+  m_CullTransparentMesh: 1
 --- !u!1 &1967012838
 GameObject:
   m_ObjectHideFlags: 0
