@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using FusionFps.Core;
 using FusionFps.Steamworks;
 using Steamworks;
-using Steamworks.Data;
 using TMPro;
 using UnityEngine;
 
@@ -17,16 +16,18 @@ public class SteamLobbyDebugUI : MonoBehaviour {
     private void Awake() {
         _sessionManager = ServiceProvider.Get<ISessionManager>();
         
+        _text.SetText($"No arguments supplied");
+        
         SteamManager.SteamStarted += SteamStarted;
     }
 
     private async void SteamStarted() {
         var arg = GetArg("+connect_lobby");
-        if ( arg != null ) {
-            _text.SetText($"+connect_lobby {arg}");
+        if (arg == null) return;
+        
+        _text.SetText($"+connect_lobby {arg}");
 
-            await JoinSteamLobby(ulong.Parse(arg));
-        }
+        await JoinSteamLobby(ulong.Parse(arg));
     }
 
     private async Task JoinSteamLobby(ulong lobbyId) {
