@@ -1,10 +1,41 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FusionFps.Settings {
-    public abstract class UserSetting<T> where T : struct {
 
-        public event Action<T> Changed;
+    // public abstract class UserSetting {
+    //
+    //     public static readonly List<UserSetting> All = new();
+    //
+    //     protected UserSetting() {
+    //         All.Add(this);
+    //     }
+    //
+    //     ~UserSetting() {
+    //         All.Remove(this);
+    //     }
+    //     
+    //     public abstract void Reset(bool save = true);
+    // }
+
+
+    public abstract class UserSetting {
+
+        public static readonly List<UserSetting> All = new();
+
+        protected UserSetting() {
+            All.Add(this);
+        }
+
+        ~UserSetting() {
+            All.Remove(this);
+        }
+        
+        public virtual void Reset(bool save = true) { }
+    }
+
+    public abstract class UserSetting<T> : UserSetting where T : struct {
 
         public string Name { get; }
         private string PersistString => $"{typeof(T)}_{Name}";
@@ -25,16 +56,7 @@ namespace FusionFps.Settings {
                 var oldValue = _value.GetValueOrDefault();
 
                 _value = value;
-                Changed?.Invoke(value);
                 OnValueChanged(value, oldValue);
-                SaveValue();
-            }
-        }
-
-        public void Reset(bool saveDefaultValue = true) {
-            Value = _defaultValue;
-
-            if ( saveDefaultValue ) {
                 SaveValue();
             }
         }
@@ -43,6 +65,8 @@ namespace FusionFps.Settings {
             Name = name;
 
             _defaultValue = defaultValue;
+            
+            All.Add(this);
         }
 
         private T? GetSavedValueOrDefault() {
@@ -68,5 +92,15 @@ namespace FusionFps.Settings {
         }
 
         protected abstract void OnValueChanged(T value, T oldValue);
+        
+        public override void Reset(bool save = true) {
+            base.Reset(save);
+            
+            Value = _defaultValue;
+            
+            if ( save ) {
+                SaveValue();
+            }
+        }
     }
 }

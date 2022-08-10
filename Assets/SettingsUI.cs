@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using FusionFps.Settings;
-using Michsky.UI.ModernUIPack;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public partial class SettingsUI {
@@ -21,6 +18,8 @@ public partial class SettingsUI {
     [SerializeField] private SettingDropdownUI _settingDropdownPrefab;
     [SerializeField] private Transform _dropdownParent;
 
+    [SerializeField] private UserConfig _config;
+
     private static readonly Dictionary<FullScreenMode, string> ScreenModeNames = new() {
         { FullScreenMode.Windowed, "Windowed" },
         { FullScreenMode.MaximizedWindow, "Maximized Windowed" },
@@ -33,29 +32,20 @@ public partial class SettingsUI {
     //     InputManager.Monitor,
     //     InputManager.DisplayMode
     // };
-    
-    private static readonly List<KeyBinding> AllControls = new() {
-        InputManager.ForwardKey,
-        InputManager.BackwardKey,
-        InputManager.StrafeLeftKey,
-        InputManager.StrafeRightKey,
-        InputManager.JumpKey,
-    };
 
     private void InitUI() {
         _resetKeybindsButton.onClick.RemoveAllListeners();
-        _resetKeybindsButton.onClick.AddListener(Reset);
+        _resetKeybindsButton.onClick.AddListener(_config.ResetSettings);
 
-        InitKeybind(InputManager.Resolution, Screen.resolutions);
-        InitKeybind(InputManager.DisplayMode, (FullScreenMode[])Enum.GetValues(typeof(FullScreenMode)), ToStringFullscreenMode);
-        InitKeybind(InputManager.Monitor, Display.displays, ToStringDisplay);
+        InitKeybind(_config.Resolution, Screen.resolutions);
+        InitKeybind(_config.DisplayMode, (FullScreenMode[])Enum.GetValues(typeof(FullScreenMode)), ToStringFullscreenMode);
+        InitKeybind(_config.Monitor, Display.displays, ToStringDisplay);
         
-        for ( var i = AllControls.Count - 1; i >= 0; i-- ) {
-            var keyBinding = AllControls[i];
-            var obj = Instantiate(_settingKeybindPrefab, _keybindParent);
-
-            obj.Bind(keyBinding);
-        }
+        InitControl(_config.JumpKey);
+        InitControl(_config.StrafeRightKey);
+        InitControl(_config.StrafeLeftKey);
+        InitControl(_config.BackwardKey);
+        InitControl(_config.ForwardKey);
     }
 
     private void InitKeybind<T>(UserSetting<int> setting, IEnumerable<T> items, Func<T, string> toString = null) {
@@ -64,10 +54,10 @@ public partial class SettingsUI {
         obj.Bind(setting, items, toString);
     }
 
-    private void Reset() {
-        foreach ( var bind in AllControls ) {
-            bind.Reset();
-        }
+    private void InitControl(KeyBinding keyBinding) {
+        var obj = Instantiate(_settingKeybindPrefab, _keybindParent);
+
+        obj.Bind(keyBinding);
     }
 
     private static string ToStringDisplay(Display value) => $"Monitor {Array.IndexOf(Display.displays, value) + 1}";

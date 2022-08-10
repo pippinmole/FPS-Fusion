@@ -26322,6 +26322,7 @@ MonoBehaviour:
   _settingDropdownPrefab: {fileID: 338706531, guid: b6a6462cd7609394796d846b2bd3d887,
     type: 3}
   _dropdownParent: {fileID: 670900656}
+  _config: {fileID: 11400000, guid: 162d8355e6627e542b90f902d46d3416, type: 2}
   _canvasGroup: {fileID: 1957233958}
   _fadeTime: 0.2
   _defaultValue: 0
