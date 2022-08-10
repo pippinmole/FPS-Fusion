@@ -31,8 +31,8 @@ namespace FusionFps.Settings {
         ~UserSetting() {
             All.Remove(this);
         }
-        
-        public virtual void Reset(bool save = true) { }
+
+        public abstract void Reset(bool save = true);
     }
 
     public abstract class UserSetting<T> : UserSetting where T : struct {
@@ -94,8 +94,6 @@ namespace FusionFps.Settings {
         protected abstract void OnValueChanged(T value, T oldValue);
         
         public override void Reset(bool save = true) {
-            base.Reset(save);
-            
             Value = _defaultValue;
             
             if ( save ) {

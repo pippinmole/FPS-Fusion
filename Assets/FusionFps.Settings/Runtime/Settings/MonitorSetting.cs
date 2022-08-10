@@ -7,7 +7,5 @@ public class MonitorSetting : UserSetting<int> {
     protected override void OnValueChanged(int index, int oldIndex) {
         PlayerPrefs.SetInt("UnitySelectMonitor", index);
         PlayerPrefs.Save();
-
-        Debug.LogError($"Activating display {index}");
     }
 }
