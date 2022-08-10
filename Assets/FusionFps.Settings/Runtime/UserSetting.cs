@@ -1,25 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace FusionFps.Settings {
-
-    // public abstract class UserSetting {
-    //
-    //     public static readonly List<UserSetting> All = new();
-    //
-    //     protected UserSetting() {
-    //         All.Add(this);
-    //     }
-    //
-    //     ~UserSetting() {
-    //         All.Remove(this);
-    //     }
-    //     
-    //     public abstract void Reset(bool save = true);
-    // }
-
-
     public abstract class UserSetting {
 
         public static readonly List<UserSetting> All = new();
@@ -71,8 +55,8 @@ namespace FusionFps.Settings {
 
         private T? GetSavedValueOrDefault() {
             try {
-                var strPref = PlayerPrefs.GetString(PersistString);
-                return (T)Convert.ChangeType(strPref, typeof(T));
+                var json = PlayerPrefs.GetString(PersistString);
+                return JsonConvert.DeserializeObject<T>(json);
             }
             catch ( Exception e ) {
                 Debug.LogException(e);
@@ -87,7 +71,9 @@ namespace FusionFps.Settings {
                 return;
             }
 
-            PlayerPrefs.SetString(PersistString, _value?.ToString());
+            var json = JsonConvert.SerializeObject(_value);
+            
+            PlayerPrefs.SetString(PersistString, json);
             PlayerPrefs.Save();
         }
 

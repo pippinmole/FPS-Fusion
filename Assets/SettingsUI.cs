@@ -6,11 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public partial class SettingsUI {
-
-    // [SerializeField] private SettingDropdownUI _resolutionDropdown;
-    // [SerializeField] private SettingDropdownUI _displayModeDropdown;
-    // [SerializeField] private SettingDropdownUI _monitorDropdown;
-
+    
     [SerializeField] private Button _resetKeybindsButton;
     [SerializeField] private SettingKeybindUI _settingKeybindPrefab;
     [SerializeField] private Transform _keybindParent;
@@ -27,13 +23,9 @@ public partial class SettingsUI {
         { FullScreenMode.FullScreenWindow, "Borderless" }
     };
 
-    // private static readonly List<UserSetting<int>> AllVideo = new() {
-    //     InputManager.Resolution,
-    //     InputManager.Monitor,
-    //     InputManager.DisplayMode
-    // };
-
     private void InitUI() {
+        _config.Init();
+
         _resetKeybindsButton.onClick.RemoveAllListeners();
         _resetKeybindsButton.onClick.AddListener(_config.ResetSettings);
 

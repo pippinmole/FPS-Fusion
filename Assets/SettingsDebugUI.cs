@@ -14,6 +14,7 @@ public class SettingsDebugUI : MonoBehaviour {
         text += $"\n Current resolution: {Screen.currentResolution}";
         text += $"\n Current display mode: {Screen.fullScreenMode.ToString()}";
         text += $"\n Current Monitor Index: {displayLayout.IndexOf(Screen.mainWindowDisplayInfo)}";
+        text += $"\n Current vSync Count: {QualitySettings.vSyncCount}";
         
         _text.SetText(text);
     }
