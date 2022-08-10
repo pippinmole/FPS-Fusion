@@ -5,17 +5,21 @@ using DG.Tweening;
 using FusionFps.Settings;
 using Michsky.UI.ModernUIPack;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public partial class SettingsUI {
 
-    [SerializeField] private CustomDropdown _resolutionDropdown;
-    [SerializeField] private CustomDropdown _displayModeDropdown;
-    [SerializeField] private CustomDropdown _monitorDropdown;
+    // [SerializeField] private SettingDropdownUI _resolutionDropdown;
+    // [SerializeField] private SettingDropdownUI _displayModeDropdown;
+    // [SerializeField] private SettingDropdownUI _monitorDropdown;
 
     [SerializeField] private Button _resetKeybindsButton;
-    [SerializeField] private KeybindUI _keybindPrefab;
+    [SerializeField] private SettingKeybindUI _settingKeybindPrefab;
     [SerializeField] private Transform _keybindParent;
+
+    [SerializeField] private SettingDropdownUI _settingDropdownPrefab;
+    [SerializeField] private Transform _dropdownParent;
 
     private static readonly Dictionary<FullScreenMode, string> ScreenModeNames = new() {
         { FullScreenMode.Windowed, "Windowed" },
@@ -24,7 +28,13 @@ public partial class SettingsUI {
         { FullScreenMode.FullScreenWindow, "Borderless" }
     };
 
-    private static readonly List<KeyBinding> KeyBindings = new() {
+    // private static readonly List<UserSetting<int>> AllVideo = new() {
+    //     InputManager.Resolution,
+    //     InputManager.Monitor,
+    //     InputManager.DisplayMode
+    // };
+    
+    private static readonly List<KeyBinding> AllControls = new() {
         InputManager.ForwardKey,
         InputManager.BackwardKey,
         InputManager.StrafeLeftKey,
@@ -35,50 +45,29 @@ public partial class SettingsUI {
     private void InitUI() {
         _resetKeybindsButton.onClick.RemoveAllListeners();
         _resetKeybindsButton.onClick.AddListener(Reset);
-        
-        InitDropdown(_resolutionDropdown, InputManager.Resolution, Screen.resolutions);
-        InitDropdown(_displayModeDropdown, InputManager.DisplayMode,
-            (FullScreenMode[])Enum.GetValues(typeof(FullScreenMode)), ToStringFullscreenMode);
-        InitDropdown(_monitorDropdown, InputManager.Monitor, Display.displays, ToStringDisplay);
 
-        for ( var i = KeyBindings.Count - 1; i >= 0; i-- ) {
-            var keyBinding = KeyBindings[i];
-            var obj = Instantiate(_keybindPrefab, _keybindParent);
+        InitKeybind(InputManager.Resolution, Screen.resolutions);
+        InitKeybind(InputManager.DisplayMode, (FullScreenMode[])Enum.GetValues(typeof(FullScreenMode)), ToStringFullscreenMode);
+        InitKeybind(InputManager.Monitor, Display.displays, ToStringDisplay);
+        
+        for ( var i = AllControls.Count - 1; i >= 0; i-- ) {
+            var keyBinding = AllControls[i];
+            var obj = Instantiate(_settingKeybindPrefab, _keybindParent);
 
             obj.Bind(keyBinding);
-
-            var color = obj.GetComponent<ImageColorSwitch>();
-            if ( color != null ) {
-                color.SetColor(i % 2 == 0);
-            }
         }
+    }
+
+    private void InitKeybind<T>(UserSetting<int> setting, IEnumerable<T> items, Func<T, string> toString = null) {
+        var obj = Instantiate(_settingDropdownPrefab, _dropdownParent);
+
+        obj.Bind(setting, items, toString);
     }
 
     private void Reset() {
-        foreach ( var bind in KeyBindings ) {
+        foreach ( var bind in AllControls ) {
             bind.Reset();
         }
-    }
-    
-    private static void InitDropdown<T>(CustomDropdown dropdown, UserSetting<int> setting, IEnumerable<T> items,
-        Func<T, string> toString = null) {
-        dropdown.dropdownEvent.RemoveAllListeners();
-        dropdown.dropdownEvent.AddListener(val => setting.Value = val);
-        dropdown.index = setting.Value;
-        dropdown.selectedItemIndex = setting.Value;
-
-        var newList = new List<CustomDropdown.Item>();
-        var index = 0;
-
-        foreach ( var item in items ) {
-            newList.Add(new CustomDropdown.Item {
-                itemName = toString == null ? item.ToString() : toString(item),
-                itemIndex = index++
-            });
-        }
-
-        dropdown.dropdownItems = newList;
-        dropdown.SetupDropdown();
     }
 
     private static string ToStringDisplay(Display value) => $"Monitor {Array.IndexOf(Display.displays, value) + 1}";

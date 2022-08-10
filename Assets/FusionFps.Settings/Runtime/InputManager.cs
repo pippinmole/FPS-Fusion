@@ -11,10 +11,6 @@ public static class InputManager {
     public static readonly KeyBinding StrafeLeftKey = new KeyBinding("StrafeLeftKey", KeyCode.A);
     public static readonly KeyBinding StrafeRightKey = new KeyBinding("StrafeRightKey", KeyCode.D);
     public static readonly KeyBinding JumpKey = new KeyBinding("JumpKey", KeyCode.Space);
-    
-    
-    
-    public static readonly KeyBinding NotReferencingThisAnywhere = new KeyBinding("helpme", KeyCode.Space);
 }
 
 public class KeyBinding : UserSetting<int> {

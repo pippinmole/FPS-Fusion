@@ -6,9 +6,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class KeybindUI : MonoBehaviour {
+public class SettingKeybindUI : MonoBehaviour {
 
-    private static KeybindUI _currentFocused;
+    private static SettingKeybindUI _currentFocused;
     private bool IsCapturing => _currentFocused == this;
 
     [SerializeField] private TMP_Text _title;
@@ -37,7 +37,6 @@ public class KeybindUI : MonoBehaviour {
         if ( !IsCapturing ) return;
 
         var keyEvent = Event.current;
-
         if ( keyEvent.isKey && !keyEvent.isMouse ) {
             var key = keyEvent.keyCode;
 
@@ -48,7 +47,6 @@ public class KeybindUI : MonoBehaviour {
     }
 
     private void FocusKeybind() {
-        Debug.Log($"Focusing keybind {name}");
         if ( _binding != null ) {
             _currentFocused = this;
         }
