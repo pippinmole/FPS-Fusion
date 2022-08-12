@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
-using FusionFps.Settings;
 using UnityEngine;
 using UnityEngine.UI;
+using Zenvin.Settings.Framework;
+using Zenvin.Settings.UI;
 
 public partial class SettingsUI {
     
+    [SerializeField] private SettingsAsset _config;
+    [SerializeField] private SettingsTabUI _tabUI;
+    [SerializeField] private SettingControlCollection _prefabs;
     [SerializeField] private Button _resetKeybindsButton;
-    [SerializeField] private SettingKeybindUI _settingKeybindPrefab;
-    [SerializeField] private Transform _keybindParent;
-
-    [SerializeField] private SettingDropdownUI _settingDropdownPrefab;
-    [SerializeField] private Transform _dropdownParent;
-
-    [SerializeField] private UserConfig _config;
 
     private static readonly Dictionary<FullScreenMode, string> ScreenModeNames = new() {
         { FullScreenMode.Windowed, "Windowed" },
@@ -24,45 +21,41 @@ public partial class SettingsUI {
     };
 
     private void InitUI() {
-        _config.Init();
+        _config.Initialize();
 
         _resetKeybindsButton.onClick.RemoveAllListeners();
-        _resetKeybindsButton.onClick.AddListener(_config.ResetSettings);
+        _resetKeybindsButton.onClick.AddListener(() => _config.ResetAllSettings(true));
 
-        InitKeybind(_config.Resolution, Screen.resolutions);
-        InitKeybind(_config.DisplayMode, (FullScreenMode[])Enum.GetValues(typeof(FullScreenMode)), ToStringFullscreenMode);
-        InitKeybind(_config.Monitor, Display.displays, ToStringDisplay);
-        
-        InitControl(_config.JumpKey);
-        InitControl(_config.StrafeRightKey);
-        InitControl(_config.StrafeLeftKey);
-        InitControl(_config.BackwardKey);
-        InitControl(_config.ForwardKey);
+        var groups = _config.GetGroups();
+        foreach ( var group in groups ) {
+            // Create UI for group
+            var parent = _tabUI.AddTab(group);
+            var settings = group.GetAllSettings();
+
+            foreach ( var setting in settings ) {
+                if ( _prefabs.TryGetControl(setting.GetType(), out var prefab) ) {
+                    // Try instantiating the found prefab with the given setting. If successful, this will automatically spawn and initialize the prefab.
+                    if ( prefab.TryInstantiateWith(setting, out var control) ) {
+                        // make instance a child of the layout group
+                        control.transform.SetParent(parent);
+                        // reset instance scale, because parenting UI elements likes to mess that up
+                        control.transform.localPosition = Vector3.zero;
+                        control.transform.localScale = Vector3.one;
+                        control.transform.localRotation = Quaternion.identity;
+                    }
+                } else {
+                    Debug.LogWarning($"Failed to get control prefab for {setting.GetType()}.");
+                }
+            }
+        }
     }
-
-    private void InitKeybind<T>(UserSetting<int> setting, IEnumerable<T> items, Func<T, string> toString = null) {
-        var obj = Instantiate(_settingDropdownPrefab, _dropdownParent);
-
-        obj.Bind(setting, items, toString);
-    }
-
-    private void InitControl(KeyBinding keyBinding) {
-        var obj = Instantiate(_settingKeybindPrefab, _keybindParent);
-
-        obj.Bind(keyBinding);
-    }
-
-    private static string ToStringDisplay(Display value) => $"Monitor {Array.IndexOf(Display.displays, value) + 1}";
-    private static string ToStringFullscreenMode(FullScreenMode mode) => ScreenModeNames[mode];
 }
 
 public partial class SettingsUI : MonoBehaviour {
     [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private float _fadeTime = 0.4f;
     [SerializeField] private bool _defaultValue;
-
-    [SerializeField] private GameObject[] _panels;
-
+    
     private bool _isClosed;
     private Tween _currentTween;
 
@@ -74,12 +67,6 @@ public partial class SettingsUI : MonoBehaviour {
         }
 
         InitUI();
-    }
-
-    public void CloseAllPanels() {
-        foreach ( var panel in _panels ) {
-            panel.SetActive(false);
-        }
     }
 
     public void Open() {

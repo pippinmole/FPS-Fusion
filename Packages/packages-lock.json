@@ -231,6 +231,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.zenvin.settings-framework": {
+      "version": "https://github.com/xZenvin/UnitySettingsFramework.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "fb40d29cdfacbd6e301224164c78be783ee4a752"
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

@@ -1,0 +1,205 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6367059017633574529
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbc313863670464aae2a570836ccf8a, type: 3}
+  m_Name: New Setting(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  guid: 7d8fd57b-e3e1-4311-84fc-a2bf95d0283b
+  external: 0
+  label: Strafe Left
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -313605315205610637}
+  defaultValue: 97
+--- !u!114 &-6186302050450313764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f460c7312f6b8946a889ee18a433ed6, type: 3}
+  m_Name: New Group
+  m_EditorClassIdentifier: 
+  guid: c7d3bef0-7dc0-4e5e-959b-22e71957add0
+  external: 0
+  label: Graphics
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  groupIcon: {fileID: 0}
+  parent: {fileID: 11400000}
+  groups: []
+  settings:
+  - {fileID: 0}
+--- !u!114 &-5629429808099520590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4914d9c0b14f4b918df8dba99980cbf4, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: 4b01416d-3f78-46ee-9aec-dc2f176a5cf0
+  external: 0
+  label: Resolution
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 0
+  _values: []
+--- !u!114 &-4216438384065913257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f460c7312f6b8946a889ee18a433ed6, type: 3}
+  m_Name: New Group
+  m_EditorClassIdentifier: 
+  guid: 05526b86-b1f4-4ca9-916d-e5beb6686e37
+  external: 0
+  label: Audio
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  groupIcon: {fileID: 0}
+  parent: {fileID: 11400000}
+  groups: []
+  settings: []
+--- !u!114 &-636738945082230270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbc313863670464aae2a570836ccf8a, type: 3}
+  m_Name: New Setting(Clone)
+  m_EditorClassIdentifier: 
+  guid: 291bdf76-5d68-4335-9d5b-ae7b3751c4b3
+  external: 0
+  label: Backward
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -313605315205610637}
+  defaultValue: 115
+--- !u!114 &-313605315205610637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f460c7312f6b8946a889ee18a433ed6, type: 3}
+  m_Name: New Group
+  m_EditorClassIdentifier: 
+  guid: f62afc57-000e-4653-b341-95ddf5f899bb
+  external: 0
+  label: Controls
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  groupIcon: {fileID: 0}
+  parent: {fileID: 11400000}
+  groups: []
+  settings:
+  - {fileID: 2708226919093567792}
+  - {fileID: -636738945082230270}
+  - {fileID: -6367059017633574529}
+  - {fileID: 6400170117522530923}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dec39ef7ed3889c4ba5fd7c53fbc3f81, type: 3}
+  m_Name: New Settings
+  m_EditorClassIdentifier: 
+  guid: 
+  external: 0
+  label: 
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  groupIcon: {fileID: 0}
+  parent: {fileID: 0}
+  groups:
+  - {fileID: -6186302050450313764}
+  - {fileID: -313605315205610637}
+  - {fileID: -4216438384065913257}
+  settings: []
+  orderStep: 100
+--- !u!114 &2708226919093567792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbc313863670464aae2a570836ccf8a, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: 7a55d0e1-fa93-488c-a8aa-46b893353aa1
+  external: 0
+  label: Forward
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -313605315205610637}
+  defaultValue: 119
+--- !u!114 &6400170117522530923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbc313863670464aae2a570836ccf8a, type: 3}
+  m_Name: New Setting(Clone)(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  guid: b93f5217-0a56-4400-8082-ca93e0638d33
+  external: 0
+  label: Strafe Right
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -313605315205610637}
+  defaultValue: 100
