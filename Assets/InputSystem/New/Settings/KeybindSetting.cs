@@ -1,17 +1,19 @@
-using System;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Serialization;
 
-public class KeybindSetting : SettingBase<KeyCode> {
+public class KeybindSetting : SettingBase<KeyCode>, ISerializable<JObject> {
 
-    public readonly IEnumerable<KeyCode> Options = (KeyCode[])Enum.GetValues(typeof(KeyCode));
-
-    protected override KeyCode OnDeserialize(byte[] data) {
-        return (KeyCode)BitConverter.ToInt32(data, 0);
+    void ISerializable<JObject>.OnSerialize(JObject obj) {
+        obj.Add("keycode", (int)CurrentValue);
     }
 
-    protected override byte[] OnSerialize() {
-        return BitConverter.GetBytes((int)CurrentValue);
+    void ISerializable<JObject>.OnDeserialize(JObject obj) {
+        var mode = obj.GetValue("keycode");
+        if ( mode == null ) return;
+
+        SetValue(mode.ToObject<KeyCode>());
+        ApplyValue();
     }
 }

@@ -1,17 +1,33 @@
-using System;
 using System.Collections.Generic;
+using System.IO;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Serialization;
 using Zenvin.Settings.UI;
 
 public partial class SettingsUI {
+
+    private static string SettingsLocation =>
+        Application.isPlaying ? Path.Combine(Application.persistentDataPath, "Settings.ini") : "";
     
     [SerializeField] private SettingsAsset _config;
     [SerializeField] private SettingsTabUI _tabUI;
     [SerializeField] private SettingControlCollection _prefabs;
     [SerializeField] private Button _resetKeybindsButton;
+
+    private JsonFileSerializer _serializer;
+    
+    private void LoadSettings() {
+        var result = _config.DeserializeSettings(_serializer);
+        if ( result ) {
+            Debug.Log("Successfully loaded settings from config file.");    
+        } else {
+            Debug.LogWarning("Unsuccessfully loaded settings from config file.");
+        }
+        
+    }
 
     private static readonly Dictionary<FullScreenMode, string> ScreenModeNames = new() {
         { FullScreenMode.Windowed, "Windowed" },
@@ -21,7 +37,10 @@ public partial class SettingsUI {
     };
 
     private void InitUI() {
+        _serializer = new JsonFileSerializer(SettingsLocation);
+        
         _config.Initialize();
+        LoadSettings();
 
         _resetKeybindsButton.onClick.RemoveAllListeners();
         _resetKeybindsButton.onClick.AddListener(() => _config.ResetAllSettings(true));
@@ -36,8 +55,10 @@ public partial class SettingsUI {
                 if ( _prefabs.TryGetControl(setting.GetType(), out var prefab) ) {
                     // Try instantiating the found prefab with the given setting. If successful, this will automatically spawn and initialize the prefab.
                     if ( prefab.TryInstantiateWith(setting, out var control) ) {
+                        
                         // make instance a child of the layout group
                         control.transform.SetParent(parent);
+                        
                         // reset instance scale, because parenting UI elements likes to mess that up
                         control.transform.localPosition = Vector3.zero;
                         control.transform.localScale = Vector3.one;
@@ -47,6 +68,16 @@ public partial class SettingsUI {
                     Debug.LogWarning($"Failed to get control prefab for {setting.GetType()}.");
                 }
             }
+        }
+    }
+
+    public void SaveSettings() {
+        var result = _config.SerializeSettings(_serializer);
+        if ( result ) {
+            Debug.Log($"Saved settings json to file: {SettingsLocation}");   
+        } else {
+            Debug.LogError(
+                $"Failed to save settings json to file: {SettingsLocation}. Serializer is null: {_serializer == null}");
         }
     }
 }

@@ -20,6 +20,7 @@ MonoBehaviour:
   descriptionLocalizationKey: 
   asset: {fileID: 11400000}
   group: {fileID: -6186302050450313764}
+  defaultValue: 0
 --- !u!114 &-6367059017633574529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64,6 +65,7 @@ MonoBehaviour:
   groups: []
   settings:
   - {fileID: -8693631013795055657}
+  - {fileID: 8129212958077743358}
 --- !u!114 &-5629429808099520590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,3 +225,25 @@ MonoBehaviour:
   asset: {fileID: 11400000}
   group: {fileID: -313605315205610637}
   defaultValue: 100
+--- !u!114 &8129212958077743358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6216d4390963fa148a2c3ed569dc3b04, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: c1e82766-e957-49bd-9b3d-937cb187beef
+  external: 0
+  label: Fullscreen Mode
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 1
+  typedDefaultValue: 0

@@ -30,10 +30,13 @@ public class SettingsTabUI : MonoBehaviour {
         if ( group == null )
             return null;
 
+        var isFirst = _middleParent.childCount == 0;
         var top = Instantiate(_topPrefab, _topParent);
+        
         top.Setup(this, group, Tabs.Count);
 
         var middle = Instantiate(_middlePrefab, _middleParent);
+        middle.gameObject.SetActive(isFirst);
         
         Tabs.Add(new TabData(Tabs.Count, group, middle));
 

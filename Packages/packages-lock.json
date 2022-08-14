@@ -103,7 +103,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.0.2",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -235,8 +235,10 @@
       "version": "https://github.com/xZenvin/UnitySettingsFramework.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "c3026065c9495765e114c927f4d73bc99b7f29f7"
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0"
+      },
+      "hash": "a3190801d96565b2eee0704e0e8fdd7fd643848e"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

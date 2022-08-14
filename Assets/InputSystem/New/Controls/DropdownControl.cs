@@ -4,31 +4,49 @@ using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
-public class DropdownControl : SettingControl<DropdownSetting, int> {
+public class DropdownControl : SettingControl<ValueArraySetting, int> {
 
     [SerializeField] private CustomDropdown _dropdown;
 
     protected override void OnSetup() {
-        RedrawOptions();
+        Debug.Log($"OnSetup for {Setting.Name}. Cached: {Setting.CachedValue}. Current: {Setting.CurrentValue}");
+
+        _dropdown.dropdownEvent.AddListener(UpdateSetting);
+        
+        RedrawDropdown();
+    }
+
+    private void UpdateSetting(int value) {
+        Setting.SetValue(value);
+        Setting.ApplyValue();
     }
 
     protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
-        _dropdown.index = Setting.CachedValue;
-        
-        RedrawOptions();
-    }
+        if ( mode == SettingBase.ValueChangeMode.Apply ) {
+            Debug.Log($"SettingValueChanged for {Setting.Name} has changed to {Setting.CurrentValue}");
+        }
 
-    private void RedrawOptions() {
-        _dropdown.dropdownItems = new List<CustomDropdown.Item>();
-        var i = 0;
-        foreach ( var item in Setting.Options ) {
-            _dropdown.dropdownItems.Add(new CustomDropdown.Item {
-                itemIcon = null,
-                itemName = item,
-                itemIndex = i++
-            });
+        if ( mode == SettingBase.ValueChangeMode.Initialize ) {
+            Debug.Log("Initialising dropdown value changed");
         }
         
-        _dropdown.UpdateItemLayout();
+        RedrawDropdown();
+    }
+
+    private void RedrawDropdown() {
+        _dropdown.selectedItemIndex = Setting.CurrentValue;
+        _dropdown.dropdownItems = new List<CustomDropdown.Item>();
+
+        for ( var i = 0; i < Setting.Length; i++ ) {
+            var itemName = Setting.GetValueString(i);
+            
+            _dropdown.dropdownItems.Add(new CustomDropdown.Item {
+                itemIcon = null,
+                itemName = itemName,
+                itemIndex = i
+            });
+        }
+
+        _dropdown.SetupDropdown();
     }
 }
