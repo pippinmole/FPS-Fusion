@@ -89,6 +89,7 @@ MonoBehaviour:
   settings:
   - {fileID: -8693631013795055657}
   - {fileID: 8129212958077743358}
+  - {fileID: 1200713449874928845}
 --- !u!114 &-5629429808099520590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,6 +233,27 @@ MonoBehaviour:
   defaultValue: 65
   _mixer: {fileID: 24100000, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
   _group: {fileID: 8826787771815287548, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
+--- !u!114 &1200713449874928845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc322cb63463e264b932c4486b20d41d, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: fe1f074b-821e-4662-8e9f-7ba292fd9d16
+  external: 0
+  label: Vsync
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 0
 --- !u!114 &1879575248115794140
 MonoBehaviour:
   m_ObjectHideFlags: 0
