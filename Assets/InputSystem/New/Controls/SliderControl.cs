@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
-public class SliderControl : SettingControl<FloatSetting, float> {
+public class SliderControl : SettingControl<SettingBase<float>, float> {
 
     [SerializeField] private TMP_Text _title;
     [SerializeField] private Slider _slider;
@@ -14,6 +14,8 @@ public class SliderControl : SettingControl<FloatSetting, float> {
         
         _title.SetText(Setting.Name);
         _slider.onValueChanged.AddListener(SetAndSaveValue);
+        
+        Debug.Log("OnSetup  slider");
     }
 
     private void SetAndSaveValue(float value) {
@@ -23,11 +25,11 @@ public class SliderControl : SettingControl<FloatSetting, float> {
 
     protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
         base.OnSettingValueChanged(mode);
-        
-        if ( mode == SettingBase.ValueChangeMode.Initialize ) {
+
+        if ( mode == SettingBase.ValueChangeMode.Deserialize ) {
             Debug.Log(
                 $"Initialising slider {Setting.Name} with currentValue:{Setting.CurrentValue} and cached value:{Setting.CachedValue}");
-            _slider.value = Setting.CurrentValue;
+            _slider.value = Setting.CurrentValue;   
         }
     }
 }
