@@ -19,10 +19,7 @@ public class SliderControl : SettingControl<FloatSetting, float> {
     protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
         base.OnSettingValueChanged(mode);
         
-        Debug.Log("Testing!!!");
-        
         if ( mode == SettingBase.ValueChangeMode.Initialize ) {
-            Debug.Log("Initialising slider value");
             _slider.value = Setting.CurrentValue;
         }
     }

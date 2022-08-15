@@ -26,7 +26,18 @@ public partial class SettingsUI {
         { FullScreenMode.FullScreenWindow, "Borderless" }
     };
 
+    private void LoadSettings() {
+        var result = _config.DeserializeSettings(_serializer);
+        if ( result ) {
+            Debug.Log("Successfully loaded settings from config file.");    
+        } else {
+            Debug.LogWarning("Unsuccessfully loaded settings from config file.");
+        }
+    }
+    
     private void InitUI() {
+        DrawAllUI();
+        
         _serializer = new JsonFileSerializer(SettingsLocation);
         
         _config.Initialize();
@@ -34,7 +45,9 @@ public partial class SettingsUI {
 
         _resetKeybindsButton.onClick.RemoveAllListeners();
         _resetKeybindsButton.onClick.AddListener(() => _config.ResetAllSettings(true));
+    }
 
+    private void DrawAllUI() {
         var groups = _config.GetGroups();
         foreach ( var group in groups ) {
             // Create UI for group
@@ -68,15 +81,6 @@ public partial class SettingsUI {
         } else {
             Debug.LogError(
                 $"Failed to save settings json to file: {SettingsLocation}. Serializer is null: {_serializer == null}");
-        }
-    }
-    
-    private void LoadSettings() {
-        var result = _config.DeserializeSettings(_serializer);
-        if ( result ) {
-            Debug.Log("Successfully loaded settings from config file.");    
-        } else {
-            Debug.LogWarning("Unsuccessfully loaded settings from config file.");
         }
     }
 }

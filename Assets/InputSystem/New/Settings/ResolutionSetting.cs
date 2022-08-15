@@ -24,7 +24,6 @@ public class ResolutionSetting : ValueArraySetting<Resolution>, ISerializable<JO
     /// Updates the screen resolution using the current saved value
     /// </summary>
     private void UpdateScreenResolution() {
-        Debug.Log($"Updating screen resolution to {CurrentValueTyped}");
         Screen.SetResolution(CurrentValueTyped.width, CurrentValueTyped.height, Screen.fullScreenMode);
     }
 
