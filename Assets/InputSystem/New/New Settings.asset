@@ -21,6 +21,29 @@ MonoBehaviour:
   asset: {fileID: 11400000}
   group: {fileID: -6186302050450313764}
   defaultValue: 0
+--- !u!114 &-8018580486741490876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39d61f2f8d18ed4eb015341ada91b70, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: 7831a583-9bd4-4e6b-a9e9-bfd080dabdb8
+  external: 0
+  label: Main Audio
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -4216438384065913257}
+  defaultValue: 65
+  _mixer: {fileID: 24100000, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
+  _group: {fileID: 24300002, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
 --- !u!114 &-6367059017633574529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,7 +132,10 @@ MonoBehaviour:
   groupIcon: {fileID: 0}
   parent: {fileID: 11400000}
   groups: []
-  settings: []
+  settings:
+  - {fileID: -8018580486741490876}
+  - {fileID: 1879575248115794140}
+  - {fileID: 446915687974827792}
 --- !u!114 &-636738945082230270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +209,52 @@ MonoBehaviour:
   - {fileID: -4216438384065913257}
   settings: []
   orderStep: 100
+--- !u!114 &446915687974827792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39d61f2f8d18ed4eb015341ada91b70, type: 3}
+  m_Name: New Setting(Clone)(Clone)
+  m_EditorClassIdentifier: 
+  guid: d41c0efb-df60-4a77-8e9b-86e8e8fc0f04
+  external: 0
+  label: Music Audio
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -4216438384065913257}
+  defaultValue: 65
+  _mixer: {fileID: 24100000, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
+  _group: {fileID: 8826787771815287548, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
+--- !u!114 &1879575248115794140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39d61f2f8d18ed4eb015341ada91b70, type: 3}
+  m_Name: New Setting(Clone)
+  m_EditorClassIdentifier: 
+  guid: 6a4a0386-5ca1-41c5-b50c-ce58792ea6b2
+  external: 0
+  label: Interface Audio
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -4216438384065913257}
+  defaultValue: 65
+  _mixer: {fileID: 24100000, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
+  _group: {fileID: 1619912750427551815, guid: 38c22bd723fd8384a9dc2009f86c646b, type: 2}
 --- !u!114 &2708226919093567792
 MonoBehaviour:
   m_ObjectHideFlags: 0

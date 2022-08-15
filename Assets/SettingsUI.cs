@@ -18,16 +18,6 @@ public partial class SettingsUI {
     [SerializeField] private Button _resetKeybindsButton;
 
     private JsonFileSerializer _serializer;
-    
-    private void LoadSettings() {
-        var result = _config.DeserializeSettings(_serializer);
-        if ( result ) {
-            Debug.Log("Successfully loaded settings from config file.");    
-        } else {
-            Debug.LogWarning("Unsuccessfully loaded settings from config file.");
-        }
-        
-    }
 
     private static readonly Dictionary<FullScreenMode, string> ScreenModeNames = new() {
         { FullScreenMode.Windowed, "Windowed" },
@@ -78,6 +68,15 @@ public partial class SettingsUI {
         } else {
             Debug.LogError(
                 $"Failed to save settings json to file: {SettingsLocation}. Serializer is null: {_serializer == null}");
+        }
+    }
+    
+    private void LoadSettings() {
+        var result = _config.DeserializeSettings(_serializer);
+        if ( result ) {
+            Debug.Log("Successfully loaded settings from config file.");    
+        } else {
+            Debug.LogWarning("Unsuccessfully loaded settings from config file.");
         }
     }
 }

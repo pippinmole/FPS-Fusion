@@ -1,22 +1,26 @@
 using System.Collections.Generic;
 using Michsky.UI.ModernUIPack;
+using TMPro;
 using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
 public class DropdownControl : SettingControl<ValueArraySetting, int> {
 
+    [SerializeField] private TMP_Text _title;
     [SerializeField] private CustomDropdown _dropdown;
 
     protected override void OnSetup() {
         Debug.Log($"OnSetup for {Setting.Name}. Cached: {Setting.CachedValue}. Current: {Setting.CurrentValue}");
 
+        _title.SetText(Setting.Name);
         _dropdown.dropdownEvent.AddListener(UpdateSetting);
         
         RedrawDropdown();
     }
 
     private void UpdateSetting(int value) {
+        Debug.LogError("HELP");
         Setting.SetValue(value);
         Setting.ApplyValue();
     }
