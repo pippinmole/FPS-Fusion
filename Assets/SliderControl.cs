@@ -13,13 +13,20 @@ public class SliderControl : SettingControl<FloatSetting, float> {
         base.OnSetup();
         
         _title.SetText(Setting.Name);
-        _slider.onValueChanged.AddListener(SetValue);
+        _slider.onValueChanged.AddListener(SetAndSaveValue);
+    }
+
+    private void SetAndSaveValue(float value) {
+        Setting.SetValue(value);
+        Setting.ApplyValue();
     }
 
     protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
         base.OnSettingValueChanged(mode);
         
         if ( mode == SettingBase.ValueChangeMode.Initialize ) {
+            Debug.Log(
+                $"Initialising slider {Setting.Name} with currentValue:{Setting.CurrentValue} and cached value:{Setting.CachedValue}");
             _slider.value = Setting.CurrentValue;
         }
     }

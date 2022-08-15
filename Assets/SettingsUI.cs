@@ -15,7 +15,6 @@ public partial class SettingsUI {
     [SerializeField] private SettingsAsset _config;
     [SerializeField] private SettingsTabUI _tabUI;
     [SerializeField] private SettingControlCollection _prefabs;
-    [SerializeField] private Button _resetKeybindsButton;
 
     private JsonFileSerializer _serializer;
 
@@ -42,9 +41,6 @@ public partial class SettingsUI {
         
         _config.Initialize();
         LoadSettings();
-
-        _resetKeybindsButton.onClick.RemoveAllListeners();
-        _resetKeybindsButton.onClick.AddListener(() => _config.ResetAllSettings(true));
     }
 
     private void DrawAllUI() {
@@ -82,6 +78,10 @@ public partial class SettingsUI {
             Debug.LogError(
                 $"Failed to save settings json to file: {SettingsLocation}. Serializer is null: {_serializer == null}");
         }
+    }
+
+    public void ResetSettings() {
+        _config.ResetAllSettings(true);
     }
 }
 
