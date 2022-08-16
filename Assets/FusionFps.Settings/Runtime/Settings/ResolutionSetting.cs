@@ -31,7 +31,7 @@ namespace FusionFps.Settings {
         protected override void OnValueChanged(ValueChangeMode mode) {
             base.OnValueChanged(mode);
 
-            if ( mode == ValueChangeMode.Apply ) {
+            if ( mode is ValueChangeMode.Apply or ValueChangeMode.Deserialize ) {
                 UpdateScreenResolution();
             }
 
@@ -65,7 +65,7 @@ namespace FusionFps.Settings {
             Debug.Log($"No resolution found for resolution index: {index}.");
 
             // no resolution fitting the save was found
-            return 0;
+            return Mathf.Max(Screen.resolutions.Length - 1, index);
         }
 
         void ISerializable<JObject>.OnSerialize(JObject obj) {

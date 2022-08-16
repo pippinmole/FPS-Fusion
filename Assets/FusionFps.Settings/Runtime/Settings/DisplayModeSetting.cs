@@ -19,6 +19,13 @@ namespace FusionFps.Settings {
             ApplyValue();
         }
 
+        protected override void OnValueChanged(ValueChangeMode mode) {
+            base.OnValueChanged(mode);
+
+            var currentResolution = Screen.currentResolution;
+            Screen.SetResolution(currentResolution.width, currentResolution.height, CurrentValueTyped);
+        }
+
         protected override object[] GetValueArray() {
             return Enum.GetValues(typeof(FullScreenMode)).Cast<object>().ToArray();
         }
