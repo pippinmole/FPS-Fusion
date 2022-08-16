@@ -1,5 +1,27 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8824763808500110956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6272f164da81e6e44ab17bffbcf3ab55, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: dc535cd7-3cfb-42ee-99b4-f2f2b50bcb64
+  external: 0
+  label: Shadow Quality
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 0
+  typedDefaultValue: 0
 --- !u!114 &-8693631013795055657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -91,6 +113,8 @@ MonoBehaviour:
   - {fileID: 8129212958077743358}
   - {fileID: 1200713449874928845}
   - {fileID: 4039357959767580867}
+  - {fileID: -8824763808500110956}
+  - {fileID: -3145314077173902896}
 --- !u!114 &-5629429808099520590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,6 +162,28 @@ MonoBehaviour:
   - {fileID: -8018580486741490876}
   - {fileID: 1879575248115794140}
   - {fileID: 446915687974827792}
+--- !u!114 &-3145314077173902896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ee3db97d389fe749b251fe9aaf02bd6, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: f7405805-6643-4551-8225-2750c9f77c28
+  external: 0
+  label: Anti-Aliasing
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 0
+  typedDefaultValue: 0
 --- !u!114 &-636738945082230270
 MonoBehaviour:
   m_ObjectHideFlags: 0
