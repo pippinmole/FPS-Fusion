@@ -1,10 +1,13 @@
 using FusionFps.Core;
 using Michsky.UI.ModernUIPack;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 public class NewLobbyCanvas : MonoBehaviour {
 
+    [SerializeField] private Button[] _disableButtonIfInLobby;
+    
     [SerializeField] private Button _createGameButton;
     [SerializeField] private Button _joinGameButton;
     [SerializeField] private Button _exitGameButton;
@@ -24,8 +27,11 @@ public class NewLobbyCanvas : MonoBehaviour {
     }
     
     private void Update() {
-        _joinGameButton.interactable = !_sessionManager.IsInSession && !_sessionManager.IsBusy;
-        _createGameButton.interactable = !_sessionManager.IsInSession && !_sessionManager.IsBusy;
+        var active = !_sessionManager.IsInSession && !_sessionManager.IsBusy;
+        
+        foreach ( var button in _disableButtonIfInLobby ) {
+            button.interactable = active;
+        }
     }
 
     private void CreateGameClicked() {

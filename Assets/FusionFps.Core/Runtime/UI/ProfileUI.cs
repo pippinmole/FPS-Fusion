@@ -7,6 +7,7 @@ public class ProfileUI : MonoBehaviour {
     [SerializeField] private Vector3 _closeState;
     [SerializeField] private float _speed = 3f;
     
+    private readonly Vector3[] _bounds = new Vector3[4];
     private RectTransform _rect;
     private bool _isOpen;
 
@@ -25,8 +26,12 @@ public class ProfileUI : MonoBehaviour {
     }
 
     private void UpdateIsOpen() {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rect, Input.mousePosition, Camera.main, out var localPoint);
-        _isOpen = !IsMouseOutOfBounds() && _rect.rect.Contains(localPoint);
+        _rect.GetLocalCorners(_bounds);
+
+        var screenPoint = Input.mousePosition;
+
+        _isOpen = !IsMouseOutOfBounds() &&
+                  RectTransformUtility.RectangleContainsScreenPoint(_rect, screenPoint, Camera.main);
     }
 
     private static bool IsMouseOutOfBounds() {

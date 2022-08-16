@@ -17,7 +17,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.collab-proxy": {
-      "version": "1.15.18",
+      "version": "1.17.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -103,7 +103,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.0.2",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -231,12 +231,14 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.wooshii.hierarchydecorator": {
-      "version": "https://github.com/WooshiiDev/HierarchyDecorator.git",
+    "com.zenvin.settings-framework": {
+      "version": "https://github.com/xZenvin/UnitySettingsFramework.git",
       "depth": 0,
       "source": "git",
-      "dependencies": {},
-      "hash": "d0fe8e1ebf6d9e9be443d3eaa8cfc664ff4fdd5e"
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0"
+      },
+      "hash": "b403f731bb119786269db5fde278d4b0863dfa2f"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
