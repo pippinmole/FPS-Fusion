@@ -24,10 +24,7 @@ public class AudioSetting : SettingBase<float>, ISerializable<JObject> {
     }
 
     void ISerializable<JObject>.OnDeserialize(JObject obj) {
-        Debug.Log ($"{GUID}: {obj.ToString()}");
-        
         if ( obj.TryGetValue("value", out var val) ) {
-            Debug.Log($"got value of {(int)val}");
             SetValue((int)val);
             ApplyValue();
         }

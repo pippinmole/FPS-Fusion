@@ -14,8 +14,6 @@ public class SliderControl : SettingControl<SettingBase<float>, float> {
         
         _title.SetText(Setting.Name);
         _slider.onValueChanged.AddListener(SetAndSaveValue);
-        
-        Debug.Log("OnSetup  slider");
     }
 
     private void SetAndSaveValue(float value) {
@@ -27,8 +25,6 @@ public class SliderControl : SettingControl<SettingBase<float>, float> {
         base.OnSettingValueChanged(mode);
 
         if ( mode == SettingBase.ValueChangeMode.Deserialize ) {
-            Debug.Log(
-                $"Initialising slider {Setting.Name} with currentValue:{Setting.CurrentValue} and cached value:{Setting.CachedValue}");
             _slider.value = Setting.CurrentValue;   
         }
     }

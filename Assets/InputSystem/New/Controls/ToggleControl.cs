@@ -27,8 +27,5 @@ public class ToggleControl : SettingControl<SettingBase<bool>, bool> {
         if ( mode == SettingBase.ValueChangeMode.Deserialize ) {
             _toggle.isOn = Setting.CurrentValue;
         }
-
-        var isOn = Setting.CurrentValue;
-        QualitySettings.vSyncCount = isOn ? 1 : 0;
     }
 }

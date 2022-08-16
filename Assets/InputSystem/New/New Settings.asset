@@ -90,6 +90,7 @@ MonoBehaviour:
   - {fileID: -8693631013795055657}
   - {fileID: 8129212958077743358}
   - {fileID: 1200713449874928845}
+  - {fileID: 4039357959767580867}
 --- !u!114 &-5629429808099520590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,6 +299,28 @@ MonoBehaviour:
   asset: {fileID: 11400000}
   group: {fileID: -313605315205610637}
   defaultValue: 119
+--- !u!114 &4039357959767580867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb44802b33c971e46b9de1797897da21, type: 3}
+  m_Name: New Setting
+  m_EditorClassIdentifier: 
+  guid: a79fb000-cf35-4e69-a13a-6d0d586f6008
+  external: 0
+  label: Texture Quality
+  labelLocalizationKey: 
+  description: 
+  descriptionLocalizationKey: 
+  asset: {fileID: 11400000}
+  group: {fileID: -6186302050450313764}
+  defaultValue: 0
+  typedDefaultValue: 0
 --- !u!114 &6400170117522530923
 MonoBehaviour:
   m_ObjectHideFlags: 0

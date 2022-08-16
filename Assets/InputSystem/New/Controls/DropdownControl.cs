@@ -15,8 +15,8 @@ public class DropdownControl : SettingControl<ValueArraySetting, int> {
         _dropdown.dropdownEvent.AddListener(UpdateSetting);
     }
 
-    private void UpdateSetting(int value) {
-        Setting.SetValue(value);
+    private void UpdateSetting(int index) {
+        Setting.SetValue(index);
         Setting.ApplyValue();
     }
 
