@@ -4,9 +4,16 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using Zenvin.Settings.Utility;
 
 namespace FusionFps.Settings {
+    [HasDeviatingDefaultValue]
     public class DisplayModeSetting : ValueArraySetting<FullScreenMode>, ISerializable<JObject> {
+
+        protected override int OnSetupInitialDefaultValue() {
+            return (int)FullScreenMode.FullScreenWindow;
+        }
+
         void ISerializable<JObject>.OnSerialize(JObject data) {
             data.Add("mode", CurrentValue);
         }

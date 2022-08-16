@@ -4,8 +4,10 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using Zenvin.Settings.Utility;
 
 namespace FusionFps.Settings {
+    [HasDeviatingDefaultValue]
     public class TextureQualitySetting : ValueArraySetting<int>, ISerializable<JObject> {
 
         private static readonly Dictionary<string, int> Qualities = new() {
@@ -14,13 +16,15 @@ namespace FusionFps.Settings {
             { "High", 1 },
         };
 
+        protected override int OnSetupInitialDefaultValue() => 0;
+
         protected override void OnValueChanged(ValueChangeMode mode) {
             base.OnValueChanged(mode);
 
             if ( mode is ValueChangeMode.Set or ValueChangeMode.Deserialize ) {
                 if ( Qualities.Count < CachedValue )
                     return;
-
+                
                 var value = Qualities.ElementAt(CachedValue);
                 
                 QualitySettings.streamingMipmapsAddAllCameras = true;

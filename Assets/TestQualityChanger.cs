@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using ShadowResolution = UnityEngine.Rendering.Universal.ShadowResolution;
 
 public class TestQualityChanger : MonoBehaviour {
     private UniversalRenderPipelineAsset _asset;
@@ -12,7 +11,7 @@ public class TestQualityChanger : MonoBehaviour {
         CheckKey(KeyCode.Alpha3, 2); // high
 
     }
-
+    
     private void CheckKey(KeyCode keyCode, int level) {
         if ( Input.GetKeyDown(keyCode) ) {
             // QualitySettings.streamingMipmapsAddAllCameras = true;
