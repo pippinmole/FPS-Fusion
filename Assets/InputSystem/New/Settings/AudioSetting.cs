@@ -4,7 +4,7 @@ using UnityEngine.Audio;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
 
-public class AudioSetting : SettingBase<float>, ISerializable<JObject> {
+public class AudioSetting : FloatSetting {
 
     [SerializeField] private AudioMixer _mixer;
     [SerializeField] private AudioMixerGroup _group;
@@ -19,14 +19,14 @@ public class AudioSetting : SettingBase<float>, ISerializable<JObject> {
         _mixer.SetFloat(_group.name, db);
     }
 
-    void ISerializable<JObject>.OnSerialize(JObject obj) {
-        obj.Add("value", CurrentValue);
-    }
-
-    void ISerializable<JObject>.OnDeserialize(JObject obj) {
-        if ( obj.TryGetValue("value", out var val) ) {
-            SetValue((int)val);
-            ApplyValue();
-        }
-    }
+    // void ISerializable<JObject>.OnSerialize(JObject obj) {
+    //     obj.Add("value", CurrentValue);
+    // }
+    //
+    // void ISerializable<JObject>.OnDeserialize(JObject obj) {
+    //     if ( obj.TryGetValue("value", out var val) ) {
+    //         SetValue((int)val);
+    //         ApplyValue();
+    //     }
+    // }
 }

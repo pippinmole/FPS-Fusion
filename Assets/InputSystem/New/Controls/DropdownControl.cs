@@ -21,11 +21,13 @@ public class DropdownControl : SettingControl<ValueArraySetting, int> {
     }
 
     protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
+        Debug.Log($"Redrawing setting ui for {Setting.Name} in mode {mode} to value {Setting.CachedValue}");
+        
         RedrawDropdown();
     }
 
     private void RedrawDropdown() {
-        _dropdown.selectedItemIndex = Setting.CurrentValue;
+        _dropdown.selectedItemIndex = Setting.CachedValue;
         _dropdown.dropdownItems = new List<CustomDropdown.Item>();
 
         for ( var i = 0; i < Setting.Length; i++ ) {
