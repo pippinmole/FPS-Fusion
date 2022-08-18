@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using DG.Tweening;
@@ -103,6 +102,12 @@ public partial class SettingsUI : MonoBehaviour {
 
     private void Start() {
         InitUI();
+    }
+
+    private void Update() {
+        if ( !_isClosed && Input.GetKey(KeyCode.Escape) ) {
+            Close();
+        }
     }
 
     public void Open() {

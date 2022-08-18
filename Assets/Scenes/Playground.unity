@@ -1460,7 +1460,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -17109,7 +17109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -17178,7 +17178,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 10, y: 0, z: 0, w: 10}
+  m_margin: {x: 10, y: 0, z: -415.4635, w: 10}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -17786,7 +17786,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 12f136f851d190748b87007168cb66e8,
+      objectReference: {fileID: 21300000, guid: 1fa5aecc22de67743b303088cdf99960,
         type: 3}
     - target: {fileID: 114158981579037088, guid: c88d180019f2d954cb75142954343e61,
         type: 3}
@@ -17802,7 +17802,7 @@ PrefabInstance:
     - target: {fileID: 114769114217541614, guid: c88d180019f2d954cb75142954343e61,
         type: 3}
       propertyPath: m_text
-      value: CREATE SESSION
+      value: SERVER LIST
       objectReference: {fileID: 0}
     - target: {fileID: 114769114217541614, guid: c88d180019f2d954cb75142954343e61,
         type: 3}
