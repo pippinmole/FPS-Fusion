@@ -2,12 +2,18 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using FusionFps.Settings;
 using UnityEngine;
 
 public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
 
     [SerializeField] private float _sensitivity = 2.5f;
-
+    
+    [SerializeField] private KeybindSetting _forwardKeybind;
+    [SerializeField] private KeybindSetting _backwardKeybind;
+    [SerializeField] private KeybindSetting _leftStrafeKeybind;
+    [SerializeField] private KeybindSetting _rightStrafeKeybind;
+    
     private PlayerCamera _camera;
 
     private void Awake() {
@@ -45,10 +51,10 @@ public class PlayerInput : NetworkBehaviour, INetworkRunnerCallbacks {
     public void OnInput(NetworkRunner runner, NetworkInput input) {
         var userInput = new NetworkInputData();
 
-        if ( Input.GetKey(KeyCode.W) ) userInput.Move.y = 1;
-        if ( Input.GetKey(KeyCode.S) ) userInput.Move.y = -1;
-        if ( Input.GetKey(KeyCode.A) ) userInput.Move.x = -1;
-        if ( Input.GetKey(KeyCode.D) ) userInput.Move.x = 1;
+        if ( Input.GetKey(_forwardKeybind.CachedValue) ) userInput.Move.y = 1;
+        if ( Input.GetKey(_backwardKeybind.CachedValue) ) userInput.Move.y = -1;
+        if ( Input.GetKey(_leftStrafeKeybind.CachedValue) ) userInput.Move.x = -1;
+        if ( Input.GetKey(_rightStrafeKeybind.CachedValue) ) userInput.Move.x = 1;
         
         userInput.WeaponIndex = -1;
         if ( Input.GetKey(KeyCode.Alpha1) ) userInput.WeaponIndex = 1;

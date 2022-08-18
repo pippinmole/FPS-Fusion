@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using DG.Tweening;
@@ -98,7 +99,9 @@ public partial class SettingsUI : MonoBehaviour {
         } else {
             Close();
         }
+    }
 
+    private void Start() {
         InitUI();
     }
 

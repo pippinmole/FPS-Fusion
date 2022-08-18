@@ -25,7 +25,8 @@ namespace FusionFps.Settings {
         protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
             base.OnSettingValueChanged(mode);
 
-            if ( mode == SettingBase.ValueChangeMode.Deserialize ) {
+            if ( mode is SettingBase.ValueChangeMode.Deserialize or SettingBase.ValueChangeMode.Initialize ) {
+                Debug.Log($"Setting {Setting.Name} slider to {Setting.CurrentValue}");
                 _slider.value = Setting.CurrentValue;
             }
         }

@@ -933,6 +933,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   _sensitivity: 4
+  _forwardKeybind: {fileID: 2708226919093567792, guid: 3cd28fc28d1740b4eb7b57b608e5fb04,
+    type: 2}
+  _backwardKeybind: {fileID: -636738945082230270, guid: 3cd28fc28d1740b4eb7b57b608e5fb04,
+    type: 2}
+  _leftStrafeKeybind: {fileID: -6367059017633574529, guid: 3cd28fc28d1740b4eb7b57b608e5fb04,
+    type: 2}
+  _rightStrafeKeybind: {fileID: 6400170117522530923, guid: 3cd28fc28d1740b4eb7b57b608e5fb04,
+    type: 2}
 --- !u!114 &8616685848737228371
 MonoBehaviour:
   m_ObjectHideFlags: 0

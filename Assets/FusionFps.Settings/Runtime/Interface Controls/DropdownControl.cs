@@ -22,8 +22,6 @@ namespace FusionFps.Settings {
         }
 
         protected override void OnSettingValueChanged(SettingBase.ValueChangeMode mode) {
-            Debug.Log($"Setting selected index to {Setting.CachedValue} for {Setting.Name} in mode {mode}");
-            
             RedrawDropdown();
         }
 

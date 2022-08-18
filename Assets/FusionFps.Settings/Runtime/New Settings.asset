@@ -34,7 +34,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6eaeb9ffbe7ee2249996bf449bf2e55b, type: 3}
   m_Name: New Setting
   m_EditorClassIdentifier: 
-  guid: 12539810-7dd1-4866-94bc-00ac795f1887
+  guid: Resolution
   external: 0
   label: Resolution
   labelLocalizationKey: 
@@ -227,10 +227,10 @@ MonoBehaviour:
   parent: {fileID: 11400000}
   groups: []
   settings:
-  - {fileID: 2708226919093567792}
-  - {fileID: -636738945082230270}
   - {fileID: -6367059017633574529}
   - {fileID: 6400170117522530923}
+  - {fileID: -636738945082230270}
+  - {fileID: 2708226919093567792}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,7 +400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6216d4390963fa148a2c3ed569dc3b04, type: 3}
   m_Name: New Setting
   m_EditorClassIdentifier: 
-  guid: c1e82766-e957-49bd-9b3d-937cb187beef
+  guid: Fullscreen Mode
   external: 0
   label: Fullscreen Mode
   labelLocalizationKey: 
