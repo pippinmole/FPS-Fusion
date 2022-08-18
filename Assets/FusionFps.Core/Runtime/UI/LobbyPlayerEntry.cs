@@ -13,8 +13,8 @@ public class LobbyPlayerEntry : MonoBehaviour {
     [SerializeField] private Button _steamProfileButton;
     [SerializeField] private Button _kickPlayerButton;
 
+    private uint _steamId;
     private NetworkRunner _runner;
-    private Friend _friend;
     private LobbyPlayer _player;
 
     private void Awake() {
@@ -23,7 +23,8 @@ public class LobbyPlayerEntry : MonoBehaviour {
     }
 
     private async void Start() {
-        await SetSteamProfile(_player.SteamId);
+        await SetSteamProfile();
+        _usernameText.SetText(_player.Username);
     }
 
     private void KickPlayerPressed() {
@@ -45,11 +46,11 @@ public class LobbyPlayerEntry : MonoBehaviour {
     
     private void OpenSteamProfile() {
         Debug.Log("Open steam profile page");
-        SteamFriends.OpenUserOverlay(_friend.Id, "chat");
+        SteamFriends.OpenUserOverlay(_player.SteamId, "chat");
     }
 
-    private async Task SetSteamProfile(SteamId steamId) {
-        var result = await SteamFriends.GetSmallAvatarAsync(steamId);
+    private async Task SetSteamProfile() {
+        var result = await SteamFriends.GetSmallAvatarAsync(_player.SteamId);
         if ( result == null ) return;
 
         _profilePicture.texture = result.Value.ToUnityTexture();
