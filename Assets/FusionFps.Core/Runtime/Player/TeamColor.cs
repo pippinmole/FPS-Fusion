@@ -1,23 +1,27 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using UnityEngine;
 
 public class TeamColor : NetworkBehaviour {
+    
+    [Serializable]
+    private struct TeamColorData {
+        public ETeam Team;
+        public Material Material;
+    }
+    
     [SerializeField] private MeshRenderer _renderer;
-
-    private static readonly Dictionary<ETeam, Color> TeamColors = new() {
-        { ETeam.Blue, new Color(0, 15, 154) },
-        { ETeam.Red, new Color(169, 0, 8) }
-    };
+    [SerializeField] private List<TeamColorData> _materials = new();
 
     public override void Spawned() {
         base.Spawned();
 
         var lobbyPlayer = LobbyPlayer.GetPlayer(Object.InputAuthority);
         var team = lobbyPlayer.Team;
-        var color = TeamColors[team];
+        var data = _materials.First(x => x.Team == team);
 
-        _renderer.material.color = color;
+        _renderer.material = data.Material;
     }
 }
