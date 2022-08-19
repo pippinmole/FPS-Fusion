@@ -15,6 +15,8 @@ namespace FusionFps.Settings {
             { "High", 3 },
             { "Ultra", 4 },
         };
+        
+        protected override int OnSetupInitialDefaultValue() => 2;
 
         protected override void OnValueChanged(ValueChangeMode mode) {
             base.OnValueChanged(mode);

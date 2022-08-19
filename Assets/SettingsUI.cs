@@ -98,8 +98,19 @@ public partial class SettingsUI : MonoBehaviour {
         } else {
             Close();
         }
+        
+        // We want the settings menu in-game with us
+        DontDestroyOnLoad(gameObject);
+    }
 
+    private void Start() {
         InitUI();
+    }
+
+    private void Update() {
+        if ( Input.GetKeyDown(KeyCode.Escape) ) {
+            Toggle();
+        }
     }
 
     public void Open() {

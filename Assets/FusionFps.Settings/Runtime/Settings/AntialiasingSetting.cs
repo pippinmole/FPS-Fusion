@@ -4,8 +4,10 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.Rendering.Universal;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using Zenvin.Settings.Utility;
 
 namespace FusionFps.Settings {
+    [HasDeviatingDefaultValue]
     public class AntialiasingSetting : ValueArraySetting<int>, ISerializable<JObject> {
 
         private static readonly Dictionary<string, int> Qualities = new() {
@@ -14,6 +16,8 @@ namespace FusionFps.Settings {
             { "SMAA", (int)AntialiasingMode.SubpixelMorphologicalAntiAliasing },
         };
 
+        protected override int OnSetupInitialDefaultValue() => 1;
+        
         protected override void OnValueChanged(ValueChangeMode mode) {
             base.OnValueChanged(mode);
 

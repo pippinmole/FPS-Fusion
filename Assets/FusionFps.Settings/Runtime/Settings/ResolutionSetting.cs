@@ -3,8 +3,10 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using Zenvin.Settings.Utility;
 
 namespace FusionFps.Settings {
+    [HasDeviatingDefaultValue]
     public class ResolutionSetting : ValueArraySetting<Resolution>, ISerializable<JObject> {
 
         protected override object[] GetValueArray() {
@@ -31,7 +33,7 @@ namespace FusionFps.Settings {
         protected override void OnValueChanged(ValueChangeMode mode) {
             base.OnValueChanged(mode);
 
-            if ( mode == ValueChangeMode.Apply ) {
+            if ( mode is ValueChangeMode.Apply or ValueChangeMode.Deserialize ) {
                 UpdateScreenResolution();
             }
 
@@ -61,11 +63,9 @@ namespace FusionFps.Settings {
                     return i;
                 }
             }
-
-            Debug.Log($"No resolution found for resolution index: {index}.");
-
+            
             // no resolution fitting the save was found
-            return 0;
+            return Mathf.Max(Screen.resolutions.Length - 1, index);
         }
 
         void ISerializable<JObject>.OnSerialize(JObject obj) {

@@ -29,6 +29,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     [Networked(OnChanged = nameof(ControllerChanged)), HideInInspector]
     public PlayerController Controller { get; private set; }
 
+    [Networked] public string Username { get; set; }
     [Networked] public ulong SteamId { get; set; }
 
     [Networked(OnChanged = nameof(TeamChanged))]
@@ -51,7 +52,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         if ( Object.HasInputAuthority ) {
             LocalPlayer = this;
             
-            RPC_SetSteamId(SteamClient.SteamId);
+            RPC_SetSteamId(SteamClient.SteamId, SteamClient.Name);
         }
         
         Players.Add(this);
@@ -62,8 +63,9 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
     }
 
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
-    private void RPC_SetSteamId(ulong steamId) {
+    private void RPC_SetSteamId(ulong steamId, string username) {
         SteamId = steamId;
+        Username = username;
     }
 
     [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority)]
@@ -123,7 +125,7 @@ public class LobbyPlayer : NetworkBehaviour, INetworkRunnerCallbacks {
         var matchScene = (int) runner.SessionInfo.Properties[SessionPropertyProps.MapName];
         var currentScene = SceneManager.GetActiveScene().buildIndex;
         
-        if ( currentScene == matchScene ) {
+        if ( currentScene == matchScene) {
             // Spawn UI?
             _ui = Instantiate(_uiPrefab);
             _ui.Setup(this, Runner);
