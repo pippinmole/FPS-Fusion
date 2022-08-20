@@ -35,9 +35,6 @@ jobs:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
           
-  deployToSteam:
-    runs-on: ubuntu-latest
-    steps:
       - uses: game-ci/steam-deploy@v1
         with:
           username: ${{ secrets.STEAM_USERNAME }}
