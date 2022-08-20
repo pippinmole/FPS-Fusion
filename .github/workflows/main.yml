@@ -71,7 +71,7 @@ jobs:
           ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
           ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
           appId: ${{ secrets.STEAM_APP_ID }}
-          buildDescription: v${{ needs.buildForWindowsLinuxOSX.outputs.buildVersion }}
+          buildDescription: ${{ github.sha }}
           rootPath: build
           depot1Path: StandaloneWindows64
           depot2Path: StandaloneWindows
