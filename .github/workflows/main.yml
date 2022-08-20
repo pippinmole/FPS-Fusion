@@ -3,7 +3,7 @@ name: Build project
 on: [push]
 
 jobs:
-  buildForAllSupportedPlatforms:
+  buildForWindowsLinuxOSX:
     name: Build for ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
@@ -44,6 +44,48 @@ jobs:
           ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
           appId: 1086540
           buildDescription: ${{ github.sha }}
+          rootPath: build
+          depot1Path: StandaloneWindows64
+          depot2Path: StandaloneLinux64
+          releaseBranch: prerelease
+          
+  deployToSteam:
+    needs: [buildForWindowsLinuxOSX]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download StandaloneWindows64 Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download StandaloneWindows Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneWindows
+          path: build/StandaloneWindows
+      - name: Download StandaloneLinux64 Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneLinux64
+          path: build/StandaloneLinux64
+      - name: Download StandaloneOSX Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneOSX
+          path: build/StandaloneOSX
+      - uses: game-ci/steam-deploy@v1
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          password: ${{ secrets.STEAM_PASSWORD }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+          ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
+          ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
+          appId: ${{ secrets.STEAM_APP_ID }}
+          buildDescription: v${{ needs.buildForWindowsLinuxOSX.outputs.buildVersion }}
           rootPath: build
           depot1Path: StandaloneWindows64
           depot2Path: StandaloneLinux64
