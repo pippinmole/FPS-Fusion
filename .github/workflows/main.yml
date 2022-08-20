@@ -92,3 +92,4 @@ jobs:
           depot3Path: StandaloneLinux64
           depot4Path: StandaloneOSX
           releaseBranch: prerelease
+          
