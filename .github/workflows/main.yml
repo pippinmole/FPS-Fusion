@@ -42,7 +42,7 @@ jobs:
           configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
           ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
           ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
-          appId: 1086540
+          appId: ${{ secrets.STEAM_APP_ID }}
           buildDescription: ${{ github.sha }}
           rootPath: build
           depot1Path: StandaloneWindows64
@@ -88,8 +88,7 @@ jobs:
           buildDescription: v${{ needs.buildForWindowsLinuxOSX.outputs.buildVersion }}
           rootPath: build
           depot1Path: StandaloneWindows64
-          depot2Path: StandaloneWindows32
+          depot2Path: StandaloneWindows
           depot3Path: StandaloneLinux64
           depot4Path: StandaloneOSX
           releaseBranch: prerelease
-          
