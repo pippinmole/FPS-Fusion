@@ -1,0 +1,83 @@
+name: Build project
+
+on: 
+  push:
+    branches:
+      - main
+
+jobs:
+  buildForWindowsLinuxOSX:
+    name: Build for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows # Build a Windows standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: Library-
+      - uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          unityVersion: auto
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+          
+  deployToSteam:
+    needs: [buildForWindowsLinuxOSX]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download StandaloneWindows64 Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneWindows64
+          path: build/StandaloneWindows64
+      - name: Download StandaloneWindows Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneWindows
+          path: build/StandaloneWindows
+      - name: Download StandaloneLinux64 Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneLinux64
+          path: build/StandaloneLinux64
+      - name: Download StandaloneOSX Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Build-StandaloneOSX
+          path: build/StandaloneOSX
+      - uses: game-ci/steam-deploy@v1
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          password: ${{ secrets.STEAM_PASSWORD }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+          ssfnFileName: ${{ secrets.STEAM_SSFN_FILE_NAME }}
+          ssfnFileContents: ${{ secrets.STEAM_SSFN_FILE_CONTENTS }}
+          appId: ${{ secrets.STEAM_APP_ID }}
+          buildDescription: ${{ github.sha }}
+          rootPath: build
+          depot1Path: StandaloneWindows64
+          depot2Path: StandaloneWindows
+          depot3Path: StandaloneLinux64
+          depot4Path: StandaloneOSX
+          releaseBranch: prerelease

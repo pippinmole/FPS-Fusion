@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/FusionFps.Settings.meta
 guid: 3a894f0ed803eec448125ab7fb1772f1
+========
+guid: 755b2583f7a8dd14188fe6fa12b60c5a
+>>>>>>>> main:Assets/Plugins/Demigiant.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
