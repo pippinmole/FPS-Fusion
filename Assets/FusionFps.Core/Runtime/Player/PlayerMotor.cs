@@ -75,11 +75,9 @@ public class PlayerMotor : NetworkTransform {
         horizontalVel.x = moveVelocity.x;
         horizontalVel.z = moveVelocity.z;
 
-        if ( vector == default ) {
-            horizontalVel = Vector3.Lerp(horizontalVel, default, _braking * deltaTime);
-        } else {
-            horizontalVel = Vector3.Lerp(horizontalVel, vector, _acceleration * Runner.DeltaTime);
-        }
+        horizontalVel = vector == default 
+            ? Vector3.Lerp(horizontalVel, default, _braking * deltaTime) 
+            : Vector3.Lerp(horizontalVel, vector, _acceleration * Runner.DeltaTime);
 
         moveVelocity.x = horizontalVel.x;
         moveVelocity.z = horizontalVel.z;
