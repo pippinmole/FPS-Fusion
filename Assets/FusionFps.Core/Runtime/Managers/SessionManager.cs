@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using Fusion;
 using Fusion.Photon.Realtime;
 using Fusion.Sockets;
-using FusionFps.Steamworks;
 using Steamworks;
-using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using NetAddress = Fusion.Sockets.NetAddress;
@@ -302,7 +300,8 @@ namespace FusionFps.Core {
         }
 
         public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request,
-            byte[] token) { }
+            byte[] token) {
+        }
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
         public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
 

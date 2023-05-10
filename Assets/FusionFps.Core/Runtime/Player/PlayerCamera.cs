@@ -14,16 +14,11 @@ public class PlayerCamera : NetworkBehaviour, IBeforeUpdate {
 
     public Angle CameraYaw => Yaw + _yawDelta;
     public Angle CameraPitch => Pitch + _pitchDelta;
-
-    private PlayerController _controller;
-    private PlayerHealth _health;
+    
     private Angle _yawDelta;
     private Angle _pitchDelta;
 
     private void Awake() {
-        _health = GetComponent<PlayerHealth>();
-        _controller = GetComponent<PlayerController>();
-        
         _camera.gameObject.SetActive(false);
     }
 
