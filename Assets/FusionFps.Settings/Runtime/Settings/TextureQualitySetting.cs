@@ -28,7 +28,7 @@ namespace FusionFps.Settings {
                 var value = Qualities.ElementAt(CachedValue);
                 
                 QualitySettings.streamingMipmapsAddAllCameras = true;
-                QualitySettings.masterTextureLimit = value.Value;
+                QualitySettings.globalTextureMipmapLimit = value.Value;
             }
         }
 

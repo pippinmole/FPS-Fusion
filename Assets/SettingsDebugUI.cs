@@ -15,7 +15,7 @@ public class SettingsDebugUI : MonoBehaviour {
         text += $"\n Current display mode: {Screen.fullScreenMode.ToString()}";
         text += $"\n Current Monitor Index: {displayLayout.IndexOf(Screen.mainWindowDisplayInfo)}";
         text += $"\n Current vSync Count: {QualitySettings.vSyncCount}";
-        text += $"\n Texture Size Limit: {QualitySettings.masterTextureLimit}";
+        text += $"\n Texture Size Limit: {QualitySettings.globalTextureMipmapLimit}";
         text += $"\n Framerate: {(int)(1f / Time.unscaledDeltaTime)}";
         
         _text.SetText(text);
