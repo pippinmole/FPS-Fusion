@@ -19,7 +19,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.cinemachine": {
-      "version": "2.9.5",
+      "version": "2.9.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -261,7 +261,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "d0fe8e1ebf6d9e9be443d3eaa8cfc664ff4fdd5e"
+      "hash": "5c1a8fcc444416dc9336368d5c610b727d2691dc"
     },
     "com.zenvin.settings-framework": {
       "version": "https://github.com/xZenvin/UnitySettingsFramework.git",
@@ -270,7 +270,7 @@
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
       },
-      "hash": "ab48c693c0b445fec037d9aa87e59c863526685e"
+      "hash": "3f4fd06ac80183edaf66b72262e816b8fd417f09"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

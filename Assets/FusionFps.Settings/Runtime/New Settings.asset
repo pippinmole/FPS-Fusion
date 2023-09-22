@@ -257,6 +257,7 @@ MonoBehaviour:
   - {fileID: -4216438384065913257}
   settings: []
   orderStep: 100
+  enableDebugLogging: 0
 --- !u!114 &446915687974827792
 MonoBehaviour:
   m_ObjectHideFlags: 0
